@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Business App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1E2321; --paper:#F1EFE6; --card:#FBFAF5; --brand:#1F4D3D;
+    --brand-ink:#F1EFE6; --accent:#E0972C; --whatsapp:#25D366;
+    --line:#DDD6C7; --muted:#6B6A5F; --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+    font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif}
+  a{color:inherit}
+  .container{max-width:520px;margin:0 auto;padding:0 18px 48px}
+
+  #demoBanner{display:none;background:var(--accent);color:#1E2321;font-size:13px;
+    font-weight:600;text-align:center;padding:9px 12px;}
+
+  header.top{position:sticky;top:0;z-index:5;background:var(--brand);color:var(--brand-ink);
+    padding:22px 18px 26px;border-bottom-left-radius:22px;border-bottom-right-radius:22px;}
+  header.top .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;font-weight:600;}
+  header.top h1{font-size:26px;margin:4px 0 2px;font-weight:700;}
+  header.top p{margin:0;font-size:14px;opacity:.85}
+
+  section{margin-top:28px}
+  section h2{font-size:17px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .count-pill{background:var(--brand);color:var(--brand-ink);font-family:'Space Grotesk';
+    font-size:11px;padding:2px 9px;border-radius:99px;font-weight:600}
+
+  .update{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;margin-bottom:10px;}
+  .update .date{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .update h3{font-size:15px;margin:4px 0 4px;font-weight:600}
+  .update p{font-size:13.5px;color:#3a3d3a;margin:0;line-height:1.5}
+
+  .promo{position:relative;background:var(--card);border:1px solid var(--line);
+    border-radius:4px;margin-bottom:16px;overflow:hidden;
+    clip-path:polygon(0 0,100% 0,100% 100%,14px 100%,0 calc(100% - 14px));
+    box-shadow:0 1px 0 var(--line);}
+  .promo .tagHole{position:absolute;left:10px;top:10px;width:10px;height:10px;
+    border-radius:50%;background:var(--paper);border:1px solid var(--line);z-index:2}
+  .promo img{width:100%;height:140px;object-fit:cover;display:block;background:
+    linear-gradient(135deg,var(--brand),#2c6a54)}
+  .promo .body{padding:14px 16px 16px 26px}
+  .promo .badge{display:inline-block;background:var(--accent);color:#241a05;
+    font-family:'Space Grotesk';font-weight:700;font-size:11px;letter-spacing:.04em;
+    padding:3px 10px;border-radius:99px;margin-bottom:8px}
+  .promo h3{font-size:16px;margin:0 0 4px;font-weight:700}
+  .promo p{font-size:13.5px;color:#3a3d3a;margin:0;line-height:1.5}
+  .promo .expiry{font-size:11.5px;color:var(--muted);margin-top:8px;font-weight:600}
+
+  .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:8px;}
+  .contact-row{display:flex;align-items:center;gap:12px;padding:12px 10px;text-decoration:none;
+    border-radius:12px;transition:background .15s}
+  .contact-row:active{background:var(--paper)}
+  .contact-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;font-size:18px}
+  .contact-row .txt .label{font-size:11px;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.05em;font-weight:600}
+  .contact-row .txt .val{font-size:14.5px;font-weight:600;color:var(--ink)}
+  .icon.wa{background:#e8f9ee;color:var(--whatsapp)}
+  .icon.call{background:#eaf1ee;color:var(--brand)}
+  .icon.web{background:#fdf1e2;color:#a8671b}
+  .icon.loc{background:#eeece3;color:var(--muted)}
+  .divider{height:1px;background:var(--line);margin:2px 8px}
+
+  .cta-wa{display:flex;align-items:center;justify-content:center;gap:10px;
+    background:var(--whatsapp);color:#fff;font-family:'Space Grotesk';font-weight:700;
+    font-size:15px;padding:15px;border-radius:14px;text-decoration:none;margin-top:16px;
+    box-shadow:0 6px 16px -4px rgba(37,211,102,.5)}
+  .cta-wa:active{transform:scale(.98)}
+
+  .empty{color:var(--muted);font-size:13.5px;padding:18px 4px;text-align:center}
+  footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:36px}
+
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .in{animation:rise .35s ease both}
+
+  @media (prefers-reduced-motion: reduce){.in{animation:none}}
+  *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div id="demoBanner">⚙️ Demo mode — connect Firebase to show your real content (see README)</div>
+
+<header class="top">
+  <div class="eyebrow">Welcome</div>
+  <h1 id="bizName">Your Business</h1>
+  <p id="bizTagline">Loading the latest updates &amp; offers…</p>
+</header>
+
+<div class="container">
+
+  <section id="promosSection">
+    <h2>Current promotions <span class="count-pill" id="promoCount">0</span></h2>
+    <div id="promosList"></div>
+  </section>
+
+  <section id="updatesSection">
+    <h2>Updates</h2>
+    <div id="updatesList"></div>
+  </section>
+
+  <section>
+    <h2>Get in touch</h2>
+    <div class="contact-card" id="contactCard"></div>
+    <a class="cta-wa" id="waBtn" href="#" target="_blank" rel="noopener">
+      💬 Chat with us on WhatsApp
+    </a>
+  </section>
+
+  <footer>Tap 💬 anytime — we usually reply fast.</footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA0hvHb-Osy79HF42wZDFQRfGGllNiv7tI",
+  authDomain: "captain-90263.firebaseapp.com",
+  projectId: "captain-90263",
+  storageBucket: "captain-90263.firebasestorage.app",
+  messagingSenderId: "807801159763",
+  appId: "1:807801159763:web:7cb5d7df63d089b59c06a6"
+};
+
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+const params = new URLSearchParams(location.search);
+const uid = params.get('uid');
+
+const DEMO = {
+  business: {
+    businessName: "Cedar & Co.",
+    tagline: "Fresh updates from our team",
+    whatsapp: "971500000000",
+    phone: "+971 4 000 0000",
+    website: "https://example.com",
+    address: "Shop 4, Al Wasl Road, Dubai",
+    hours: "Sat–Thu, 10am–10pm"
+  },
+  promos: [
+    {title:"20% off this weekend", description:"Show this screen in-store to redeem. Valid on all items.", badge:"LIMITED", expiresAt:"31 Jul"},
+    {title:"Refer a friend, get AED 25", description:"Both of you get credit once their first order is complete.", badge:"ONGOING", expiresAt:null}
+  ],
+  updates: [
+    {title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", date:"14 Jul"},
+    {title:"Holiday hours", body:"We'll be closed on Friday for a public holiday, back Saturday as usual.", date:"10 Jul"}
+  ]
+};
+
+let db = null;
+if (isConfigured) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) { console.error('Firebase init failed', e); }
+} else {
+  document.getElementById('demoBanner').style.display = 'block';
+}
+
+function renderBusiness(cfg){
+  document.getElementById('bizName').textContent = cfg.businessName || "Your Business";
+  document.getElementById('bizTagline').textContent = cfg.tagline || "Here's what's new";
+  const rows = [];
+  if (cfg.phone) rows.push(`<a class="contact-row" href="tel:${cfg.phone.replace(/\s/g,'')}">
+      <div class="icon call">📞</div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a><div class="divider"></div>`);
+  if (cfg.website) rows.push(`<a class="contact-row" href="${cfg.website}" target="_blank" rel="noopener">
+      <div class="icon web">🌐</div><div class="txt"><div class="label">Website</div><div class="val">${cfg.website.replace(/^https?:\/\//,'')}</div></div></a><div class="divider"></div>`);
+  if (cfg.address) rows.push(`<a class="contact-row" href="https://maps.google.com/?q=${encodeURIComponent(cfg.address)}" target="_blank" rel="noopener">
+      <div class="icon loc">📍</div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
+  document.getElementById('contactCard').innerHTML = rows.join('');
+  if (cfg.whatsapp) {
+    document.getElementById('waBtn').href = `https://wa.me/${cfg.whatsapp.replace(/[^0-9]/g,'')}`;
+  }
+}
+
+function renderPromos(list){
+  const el = document.getElementById('promosList');
+  document.getElementById('promoCount').textContent = list.length;
+  if (!list.length){ el.innerHTML = '<div class="empty">No promotions right now — check back soon.</div>'; return; }
+  el.innerHTML = list.map((p,i)=>`
+    <div class="promo in" style="animation-delay:${i*60}ms">
+      <div class="tagHole"></div>
+      ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : `<div style="height:90px;background:linear-gradient(135deg,var(--brand),#2c6a54)"></div>`}
+      <div class="body">
+        ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
+        <h3>${p.title||''}</h3>
+        <p>${p.description||''}</p>
+        ${p.expiresAt ? `<div class="expiry">Ends ${p.expiresAt}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderUpdates(list){
+  const el = document.getElementById('updatesList');
+  if (!list.length){ el.innerHTML = '<div class="empty">No updates yet.</div>'; return; }
+  el.innerHTML = list.map((u,i)=>`
+    <div class="update in" style="animation-delay:${i*60}ms">
+      <div class="date">${u.date||''}</div>
+      <h3>${u.title||''}</h3>
+      <p>${u.body||''}</p>
+    </div>`).join('');
+}
+
+function fmtDate(ts){
+  try{ const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString(undefined,{day:'numeric',month:'short'});
+  }catch(e){ return ''; }
+}
+
+async function trackActivity(uid){
+  if (!uid || !db) return;
+  try{
+    const ref = db.collection('installs').doc(uid);
+    const snap = await ref.get();
+    if (!snap.exists){
+      await ref.set({
+        installedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastActiveAt: firebase.firestore.FieldValue.serverTimestamp(),
+        platform: 'android'
+      });
+    } else {
+      await ref.update({ lastActiveAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+  }catch(e){ console.error('activity tracking failed', e); }
+}
+
+async function loadLive(){
+  try{
+    const cfgSnap = await db.collection('config').doc('business').get();
+    renderBusiness(cfgSnap.exists ? cfgSnap.data() : DEMO.business);
+  }catch(e){ renderBusiness(DEMO.business); }
+
+  try{
+    const promoSnap = await db.collection('promotions').where('active','==',true).get();
+    const promos = promoSnap.docs.map(d=>{
+      const p = d.data();
+      return {...p, expiresAt: p.expiresAt ? fmtDate(p.expiresAt) : null};
+    });
+    renderPromos(promos);
+  }catch(e){ renderPromos([]); }
+
+  try{
+    const upSnap = await db.collection('updates').orderBy('createdAt','desc').limit(10).get();
+    const updates = upSnap.docs.map(d=>{
+      const u = d.data();
+      return {...u, date: u.createdAt ? fmtDate(u.createdAt) : ''};
+    });
+    renderUpdates(updates);
+  }catch(e){ renderUpdates([]); }
+
+  trackActivity(uid);
+}
+
+function loadDemo(){
+  renderBusiness(DEMO.business);
+  renderPromos(DEMO.promos);
+  renderUpdates(DEMO.updates);
+}
+
+if (isConfigured && db) { loadLive(); } else { loadDemo(); }
+</script>
+</body>
+</html>
