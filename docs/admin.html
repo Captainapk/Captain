@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#1E2321; --paper:#F1EFE6; --card:#FBFAF5; --brand:#1F4D3D;
+    --brand-ink:#F1EFE6; --accent:#E0972C; --line:#DDD6C7; --muted:#6B6A5F;
+    --bad:#B3432B; --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;}
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  button{font-family:inherit;cursor:pointer}
+  #demoBanner{display:none;background:var(--accent);color:#1E2321;font-size:13px;
+    font-weight:600;text-align:center;padding:8px 12px}
+
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .loginBox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px;
+    width:100%;max-width:340px}
+  .loginBox h1{font-size:22px;margin:0 0 4px}
+  .loginBox p{color:var(--muted);font-size:13.5px;margin:0 0 20px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:.04em}
+  .field input,.field textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
+    background:#fff;font-size:14px;font-family:inherit;color:var(--ink)}
+  .field textarea{resize:vertical;min-height:70px}
+  .btn{background:var(--brand);color:var(--brand-ink);border:none;border-radius:10px;
+    padding:12px 18px;font-weight:700;font-size:14px;width:100%}
+  .btn:active{transform:scale(.98)}
+  .btn.secondary{background:transparent;color:var(--brand);border:1px solid var(--brand);width:auto}
+  .btn.ghost{background:transparent;color:var(--bad);border:1px solid var(--line);width:auto}
+  .btn.small{padding:8px 12px;font-size:12.5px;width:auto}
+  .err{color:var(--bad);font-size:13px;margin-top:10px;display:none}
+
+  #app{display:none;min-height:100vh}
+  header.top{background:var(--brand);color:var(--brand-ink);padding:16px 20px;
+    display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+  header.top h1{font-size:17px;margin:0}
+  header.top .who{font-size:11.5px;opacity:.75}
+  nav.tabs{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;background:var(--paper);
+    border-bottom:1px solid var(--line);position:sticky;top:56px;z-index:4}
+  nav.tabs button{background:transparent;border:1px solid var(--line);border-radius:99px;
+    padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
+  nav.tabs button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  main{max-width:760px;margin:0 auto;padding:20px}
+  .tabPanel{display:none}
+  .tabPanel.active{display:block}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
+  .stat .num{font-family:'IBM Plex Mono';font-size:24px;font-weight:600}
+  .stat.active .num{color:var(--brand)}
+  .stat.inactive .num{color:var(--bad)}
+  .stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+  .panel h3{margin:0 0 12px;font-size:14px}
+  select.thresh{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:inherit;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  table th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--line)}
+  table td{padding:8px;border-bottom:1px solid var(--line)}
+  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+  .tag.on{background:#e6f2ec;color:var(--brand)}
+  .tag.off{background:#f6e6e1;color:var(--bad)}
+
+  .row-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  .row-item h4{margin:0 0 3px;font-size:14.5px}
+  .row-item p{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
+  .row-item .actions{display:flex;gap:6px;flex-shrink:0}
+  .iconbtn{background:transparent;border:1px solid var(--line);border-radius:8px;width:30px;height:30px;font-size:14px}
+  .addBtn{display:block;width:100%;background:var(--ink);color:#fff;border:none;border-radius:12px;
+    padding:12px;font-weight:700;margin-bottom:14px}
+
+  .modalBg{display:none;position:fixed;inset:0;background:rgba(20,20,18,.5);z-index:20;
+    align-items:flex-end;justify-content:center}
+  .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;max-height:88vh;overflow:auto}
+  .modal h3{margin-top:0}
+  .switch{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin:4px 0 14px}
+  .modalActions{display:flex;gap:10px;margin-top:6px}
+  .modalActions .btn{flex:1}
+
+  .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
+  @media (max-width:420px){.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div id="demoBanner">⚙️ Demo mode — this is sample data. Connect Firebase to manage your real app (see README).</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="loginBox">
+    <h1>Admin Panel</h1>
+    <p>Sign in to manage your customer app.</p>
+    <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password"></div>
+    <button class="btn" onclick="doLogin()">Sign in</button>
+    <div class="err" id="loginErr"></div>
+    <p style="font-size:11.5px;margin-top:16px;color:var(--muted)">
+      No account yet? Create one in Firebase Console → Authentication → Users.
+      In demo mode, any email/password signs you in.
+    </p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="top">
+    <div><h1>Admin Panel</h1><div class="who" id="whoLabel">—</div></div>
+    <button class="btn ghost small" onclick="doLogout()" style="color:#fff;border-color:rgba(255,255,255,.4)">Sign out</button>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-tab="dashboard" onclick="showTab('dashboard')">Dashboard</button>
+    <button data-tab="promos" onclick="showTab('promos')">Promotions</button>
+    <button data-tab="updates" onclick="showTab('updates')">Updates</button>
+    <button data-tab="content" onclick="showTab('content')">Contact info</button>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="tabPanel active" id="tab-dashboard">
+      <div class="stats">
+        <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Installed</div></div>
+        <div class="stat active"><div class="num mono" id="statActive">0</div><div class="lbl">Active</div></div>
+        <div class="stat inactive"><div class="num mono" id="statInactive">0</div><div class="lbl">Inactive</div></div>
+      </div>
+      <div class="panel">
+        <h3>Active vs inactive
+          <select class="thresh" id="threshSelect" onchange="recomputeDashboard()" style="float:right">
+            <option value="1">last 24 hours</option>
+            <option value="7" selected>last 7 days</option>
+            <option value="30">last 30 days</option>
+          </select>
+        </h3>
+        <canvas id="activityChart" height="140"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Recent installs</h3>
+        <table>
+          <thead><tr><th>Customer ID</th><th>Installed</th><th>Last active</th><th>Status</th></tr></thead>
+          <tbody id="installsTable"><tr><td colspan="4" class="empty">No installs yet</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PROMOTIONS -->
+    <section class="tabPanel" id="tab-promos">
+      <button class="addBtn" onclick="openPromoModal()">+ Add promotion</button>
+      <div id="promosAdminList"></div>
+    </section>
+
+    <!-- UPDATES -->
+    <section class="tabPanel" id="tab-updates">
+      <button class="addBtn" onclick="openUpdateModal()">+ Add update</button>
+      <div id="updatesAdminList"></div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="tabPanel" id="tab-content">
+      <div class="panel">
+        <h3>Business info — shown to every customer</h3>
+        <div class="field"><label>Business name</label><input id="cfgName"></div>
+        <div class="field"><label>Tagline</label><input id="cfgTagline"></div>
+        <div class="field"><label>WhatsApp number (with country code, digits only)</label><input id="cfgWhatsapp" placeholder="971500000000"></div>
+        <div class="field"><label>Phone number</label><input id="cfgPhone"></div>
+        <div class="field"><label>Website</label><input id="cfgWebsite"></div>
+        <div class="field"><label>Address</label><input id="cfgAddress"></div>
+        <div class="field"><label>Hours</label><input id="cfgHours"></div>
+        <button class="btn" onclick="saveConfig()">Save changes</button>
+        <div class="err" id="cfgSaved" style="color:var(--brand)"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- PROMO MODAL -->
+<div class="modalBg" id="promoModalBg">
+  <div class="modal">
+    <h3 id="promoModalTitle">Add promotion</h3>
+    <input type="hidden" id="promoId">
+    <div class="field"><label>Title</label><input id="promoTitle"></div>
+    <div class="field"><label>Description</label><textarea id="promoDesc"></textarea></div>
+    <div class="field"><label>Badge (optional, e.g. LIMITED)</label><input id="promoBadge"></div>
+    <div class="field"><label>Image URL (optional)</label><input id="promoImg" placeholder="https://..."></div>
+    <label class="switch"><input type="checkbox" id="promoActive" checked> Active — visible in the app</label>
+    <div class="modalActions">
+      <button class="btn secondary" onclick="closeModal('promoModalBg')">Cancel</button>
+      <button class="btn" onclick="savePromo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATE MODAL -->
+<div class="modalBg" id="updateModalBg">
+  <div class="modal">
+    <h3 id="updateModalTitle">Add update</h3>
+    <input type="hidden" id="updateId">
+    <div class="field"><label>Title</label><input id="updateTitle"></div>
+    <div class="field"><label>Message</label><textarea id="updateBody"></textarea></div>
+    <div class="modalActions">
+      <button class="btn secondary" onclick="closeModal('updateModalBg')">Cancel</button>
+      <button class="btn" onclick="saveUpdate()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA0hvHb-Osy79HF42wZDFQRfGGllNiv7tI",
+  authDomain: "captain-90263.firebaseapp.com",
+  projectId: "captain-90263",
+  storageBucket: "captain-90263.firebasestorage.app",
+  messagingSenderId: "807801159763",
+  appId: "1:807801159763:web:7cb5d7df63d089b59c06a6"
+};
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+
+let db = null, auth = null;
+let state = { promos: [], updates: [], installs: [], config: {} };
+let chart = null;
+
+if (isConfigured) {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  auth = firebase.auth();
+} else {
+  document.getElementById('demoBanner').style.display = 'block';
+}
+
+function demoInstalls(){
+  const now = Date.now(), day = 86400000, out = [];
+  for (let i=0;i<32;i++){
+    const agoDays = Math.random() < 0.6 ? Math.random()*6 : 8 + Math.random()*40;
+    out.push({
+      id: 'demo-'+i,
+      installedAt: now - (agoDays + Math.random()*10) * day,
+      lastActiveAt: now - agoDays * day
+    });
+  }
+  return out;
+}
+const DEMO = {
+  config: {businessName:"Cedar & Co.", tagline:"Fresh updates from our team", whatsapp:"971500000000",
+    phone:"+971 4 000 0000", website:"https://example.com", address:"Shop 4, Al Wasl Road, Dubai", hours:"Sat–Thu, 10am–10pm"},
+  promos: [
+    {id:'p1', title:"20% off this weekend", description:"Show this screen in-store to redeem.", badge:"LIMITED", active:true, imageUrl:""},
+    {id:'p2', title:"Refer a friend, get AED 25", description:"Credit applies after their first order.", badge:"ONGOING", active:true, imageUrl:""}
+  ],
+  updates: [
+    {id:'u1', title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", createdAt:Date.now()-2*86400000},
+    {id:'u2', title:"Holiday hours", body:"Closed Friday for a public holiday, back Saturday as usual.", createdAt:Date.now()-6*86400000}
+  ],
+  installs: demoInstalls()
+};
+
+function doLogin(){
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('password').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  if (!isConfigured){
+    if (!email || !pass){ errEl.textContent = 'Enter any email and password to preview.'; errEl.style.display='block'; return; }
+    enterApp(email);
+    return;
+  }
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(cred => enterApp(cred.user.email))
+    .catch(e => { errEl.textContent = e.message; errEl.style.display = 'block'; });
+}
+function doLogout(){
+  if (isConfigured) auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+function enterApp(label){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('whoLabel').textContent = label;
+  loadAll();
+}
+
+function showTab(name){
+  document.querySelectorAll('.tabPanel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('nav.tabs button').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector(`nav.tabs button[data-tab="${name}"]`).classList.add('active');
+}
+
+async function loadAll(){
+  if (!isConfigured){
+    state = JSON.parse(JSON.stringify(DEMO));
+    fillConfigForm(state.config);
+    renderPromosAdmin(); renderUpdatesAdmin(); recomputeDashboard();
+    return;
+  }
+  const cfgSnap = await db.collection('config').doc('business').get();
+  state.config = cfgSnap.exists ? cfgSnap.data() : {};
+  fillConfigForm(state.config);
+
+  db.collection('promotions').onSnapshot(snap=>{
+    state.promos = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderPromosAdmin();
+  });
+  db.collection('updates').orderBy('createdAt','desc').onSnapshot(snap=>{
+    state.updates = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderUpdatesAdmin();
+  });
+  db.collection('installs').onSnapshot(snap=>{
+    state.installs = snap.docs.map(d=>{
+      const v = d.data();
+      return {id:d.id,
+        installedAt: v.installedAt && v.installedAt.toMillis ? v.installedAt.toMillis() : Date.now(),
+        lastActiveAt: v.lastActiveAt && v.lastActiveAt.toMillis ? v.lastActiveAt.toMillis() : Date.now()};
+    });
+    recomputeDashboard();
+  });
+}
+
+function recomputeDashboard(){
+  const days = parseInt(document.getElementById('threshSelect').value, 10);
+  const cutoff = Date.now() - days*86400000;
+  let active = 0, inactive = 0;
+  state.installs.forEach(i => (i.lastActiveAt >= cutoff ? active++ : inactive++));
+
+  document.getElementById('statTotal').textContent = state.installs.length;
+  document.getElementById('statActive').textContent = active;
+  document.getElementById('statInactive').textContent = inactive;
+
+  const ctx = document.getElementById('activityChart');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: ['Active','Inactive'], datasets:[{ data:[active,inactive],
+      backgroundColor:['#1F4D3D','#B3432B'], borderWidth:0 }] },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
+  });
+
+  const rows = [...state.installs].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,15).map(i=>{
+    const isActive = i.lastActiveAt >= cutoff;
+    return `<tr>
+      <td class="mono">${i.id.slice(0,10)}…</td>
+      <td>${new Date(i.installedAt).toLocaleDateString()}</td>
+      <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
+      <td><span class="tag ${isActive?'on':'off'}">${isActive?'Active':'Inactive'}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs yet</td></tr>';
+}
+
+function fillConfigForm(c){
+  document.getElementById('cfgName').value = c.businessName || '';
+  document.getElementById('cfgTagline').value = c.tagline || '';
+  document.getElementById('cfgWhatsapp').value = c.whatsapp || '';
+  document.getElementById('cfgPhone').value = c.phone || '';
+  document.getElementById('cfgWebsite').value = c.website || '';
+  document.getElementById('cfgAddress').value = c.address || '';
+  document.getElementById('cfgHours').value = c.hours || '';
+}
+async function saveConfig(){
+  const data = {
+    businessName: document.getElementById('cfgName').value.trim(),
+    tagline: document.getElementById('cfgTagline').value.trim(),
+    whatsapp: document.getElementById('cfgWhatsapp').value.trim(),
+    phone: document.getElementById('cfgPhone').value.trim(),
+    website: document.getElementById('cfgWebsite').value.trim(),
+    address: document.getElementById('cfgAddress').value.trim(),
+    hours: document.getElementById('cfgHours').value.trim()
+  };
+  const msg = document.getElementById('cfgSaved');
+  if (!isConfigured){ state.config = data; msg.textContent = 'Saved (demo mode — not persisted).'; msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); return; }
+  await db.collection('config').doc('business').set(data, {merge:true});
+  msg.textContent = 'Saved — customers will see this immediately.'; msg.style.display='block';
+  setTimeout(()=>msg.style.display='none', 2500);
+}
+
+function renderPromosAdmin(){
+  const el = document.getElementById('promosAdminList');
+  if (!state.promos.length){ el.innerHTML = '<div class="empty">No promotions yet</div>'; return; }
+  el.innerHTML = state.promos.map(p=>`
+    <div class="row-item">
+      <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.description||''}</p></div>
+      <div class="actions">
+        <button class="iconbtn" onclick='openPromoModal(${JSON.stringify(p).replace(/'/g,"&apos;")})'>✎</button>
+        <button class="iconbtn" onclick="deletePromo('${p.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openPromoModal(p){
+  document.getElementById('promoModalTitle').textContent = p ? 'Edit promotion' : 'Add promotion';
+  document.getElementById('promoId').value = p ? p.id : '';
+  document.getElementById('promoTitle').value = p ? p.title||'' : '';
+  document.getElementById('promoDesc').value = p ? p.description||'' : '';
+  document.getElementById('promoBadge').value = p ? p.badge||'' : '';
+  document.getElementById('promoImg').value = p ? p.imageUrl||'' : '';
+  document.getElementById('promoActive').checked = p ? !!p.active : true;
+  document.getElementById('promoModalBg').style.display = 'flex';
+}
+async function savePromo(){
+  const id = document.getElementById('promoId').value;
+  const data = {
+    title: document.getElementById('promoTitle').value.trim(),
+    description: document.getElementById('promoDesc').value.trim(),
+    badge: document.getElementById('promoBadge').value.trim(),
+    imageUrl: document.getElementById('promoImg').value.trim(),
+    active: document.getElementById('promoActive').checked
+  };
+  if (!isConfigured){
+    if (id){ const i=state.promos.findIndex(x=>x.id===id); state.promos[i]={...state.promos[i],...data}; }
+    else { state.promos.push({id:'p'+Date.now(), ...data}); }
+    renderPromosAdmin(); closeModal('promoModalBg'); return;
+  }
+  if (id) await db.collection('promotions').doc(id).set(data,{merge:true});
+  else await db.collection('promotions').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  closeModal('promoModalBg');
+}
+function deletePromo(id){
+  if (!confirm('Delete this promotion?')) return;
+  if (!isConfigured){ state.promos = state.promos.filter(p=>p.id!==id); renderPromosAdmin(); return; }
+  db.collection('promotions').doc(id).delete();
+}
+
+function renderUpdatesAdmin(){
+  const el = document.getElementById('updatesAdminList');
+  if (!state.updates.length){ el.innerHTML = '<div class="empty">No updates yet</div>'; return; }
+  el.innerHTML = state.updates.map(u=>`
+    <div class="row-item">
+      <div><h4>${u.title||''}</h4><p>${u.body||''}</p></div>
+      <div class="actions">
+        <button class="iconbtn" onclick='openUpdateModal(${JSON.stringify(u).replace(/'/g,"&apos;")})'>✎</button>
+        <button class="iconbtn" onclick="deleteUpdate('${u.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openUpdateModal(u){
+  document.getElementById('updateModalTitle').textContent = u ? 'Edit update' : 'Add update';
+  document.getElementById('updateId').value = u ? u.id : '';
+  document.getElementById('updateTitle').value = u ? u.title||'' : '';
+  document.getElementById('updateBody').value = u ? u.body||'' : '';
+  document.getElementById('updateModalBg').style.display = 'flex';
+}
+async function saveUpdate(){
+  const id = document.getElementById('updateId').value;
+  const data = { title: document.getElementById('updateTitle').value.trim(), body: document.getElementById('updateBody').value.trim() };
+  if (!isConfigured){
+    if (id){ const i=state.updates.findIndex(x=>x.id===id); state.updates[i]={...state.updates[i],...data}; }
+    else { state.updates.unshift({id:'u'+Date.now(), ...data, createdAt: Date.now()}); }
+    renderUpdatesAdmin(); closeModal('updateModalBg'); return;
+  }
+  if (id) await db.collection('updates').doc(id).set(data,{merge:true});
+  else await db.collection('updates').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  closeModal('updateModalBg');
+}
+function deleteUpdate(id){
+  if (!confirm('Delete this update?')) return;
+  if (!isConfigured){ state.updates = state.updates.filter(u=>u.id!==id); renderUpdatesAdmin(); return; }
+  db.collection('updates').doc(id).delete();
+}
+
+function closeModal(id){ document.getElementById(id).style.display = 'none'; }
+
+if (isConfigured){
+  auth.onAuthStateChanged(user => { if (user) enterApp(user.email); });
+}
+</script>
+</body>
+</html>
