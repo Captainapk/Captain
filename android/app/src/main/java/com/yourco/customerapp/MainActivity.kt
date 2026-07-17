@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: replace with your published web app URL, e.g.
     // "https://yourusername.github.io/your-repo/"
-    private val baseUrl = "https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO-NAME/"
+    private val baseUrl = "https://captainapk.github.io/Captain/"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
