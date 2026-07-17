@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
+        webView.setBackgroundColor(android.graphics.Color.parseColor("#0F0D0A"))
 
         webView.webViewClient = object : WebViewClient() {
 
