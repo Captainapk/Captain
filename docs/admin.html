@@ -6,89 +6,105 @@
 <title>Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
 <style>
   :root{
-    --ink:#1E2321; --paper:#F1EFE6; --card:#FBFAF5; --brand:#1F4D3D;
-    --brand-ink:#F1EFE6; --accent:#E0972C; --line:#DDD6C7; --muted:#6B6A5F;
-    --bad:#B3432B; --radius:16px;
+    --bg:#0F0D0A; --card:#1B1815; --card2:#231F18; --gold:#C9A227; --gold-soft:#E4C874;
+    --ink:#F5EFDD; --muted:#A79A7D; --line:#332D22; --bad:#D96A4C; --radius:16px;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);
+  body{margin:0;background:var(--bg);color:var(--ink);
     font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;}
-  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif}
+  h1,h2,h3,.serif{font-family:'Playfair Display',serif}
   .mono{font-family:'IBM Plex Mono',monospace}
   button{font-family:inherit;cursor:pointer}
-  #demoBanner{display:none;background:var(--accent);color:#1E2321;font-size:13px;
-    font-weight:600;text-align:center;padding:8px 12px}
+  #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:13px;
+    font-weight:700;text-align:center;padding:8px 12px}
 
   #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .loginBox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px;
     width:100%;max-width:340px}
-  .loginBox h1{font-size:22px;margin:0 0 4px}
+  .loginBox h1{font-size:22px;margin:0 0 4px;color:var(--gold)}
   .loginBox p{color:var(--muted);font-size:13.5px;margin:0 0 20px}
   .field{margin-bottom:14px}
-  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;
-    text-transform:uppercase;letter-spacing:.04em}
+  .field label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:.05em}
   .field input,.field textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
-    background:#fff;font-size:14px;font-family:inherit;color:var(--ink)}
+    background:var(--card2);font-size:14px;font-family:inherit;color:var(--ink)}
+  .field input::placeholder,.field textarea::placeholder{color:#5c5646}
   .field textarea{resize:vertical;min-height:70px}
-  .btn{background:var(--brand);color:var(--brand-ink);border:none;border-radius:10px;
+  .btn{background:var(--gold);color:#1a1608;border:none;border-radius:10px;
     padding:12px 18px;font-weight:700;font-size:14px;width:100%}
   .btn:active{transform:scale(.98)}
-  .btn.secondary{background:transparent;color:var(--brand);border:1px solid var(--brand);width:auto}
+  .btn.secondary{background:transparent;color:var(--gold);border:1px solid var(--gold);width:auto}
   .btn.ghost{background:transparent;color:var(--bad);border:1px solid var(--line);width:auto}
   .btn.small{padding:8px 12px;font-size:12.5px;width:auto}
   .err{color:var(--bad);font-size:13px;margin-top:10px;display:none}
+  .ok{color:var(--gold-soft);font-size:13px;margin-top:10px;display:none}
 
   #app{display:none;min-height:100vh}
-  header.top{background:var(--brand);color:var(--brand-ink);padding:16px 20px;
+  header.top{background:var(--card);border-bottom:1px solid var(--line);padding:16px 20px;
     display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
-  header.top h1{font-size:17px;margin:0}
-  header.top .who{font-size:11.5px;opacity:.75}
-  nav.tabs{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;background:var(--paper);
+  header.top h1{font-size:17px;margin:0;color:var(--gold)}
+  header.top .who{font-size:11.5px;opacity:.7}
+  nav.tabs{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;background:var(--bg);
     border-bottom:1px solid var(--line);position:sticky;top:56px;z-index:4}
   nav.tabs button{background:transparent;border:1px solid var(--line);border-radius:99px;
     padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
-  nav.tabs button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  nav.tabs button.active{background:var(--gold);color:#1a1608;border-color:var(--gold)}
   main{max-width:760px;margin:0 auto;padding:20px}
   .tabPanel{display:none}
   .tabPanel.active{display:block}
 
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
-  .stat .num{font-family:'IBM Plex Mono';font-size:24px;font-weight:600}
-  .stat.active .num{color:var(--brand)}
+  .stat .num{font-family:'IBM Plex Mono';font-size:24px;font-weight:600;color:var(--ink)}
+  .stat.active .num{color:var(--gold-soft)}
   .stat.inactive .num{color:var(--bad)}
   .stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
   .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
-  .panel h3{margin:0 0 12px;font-size:14px}
-  select.thresh{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:inherit;font-size:13px}
+  .panel h3{margin:0 0 12px;font-size:14px;color:var(--gold-soft)}
+  select.thresh{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:inherit;
+    font-size:13px;background:var(--card2);color:var(--ink)}
   table{width:100%;border-collapse:collapse;font-size:13px}
   table th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;
     letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--line)}
   table td{padding:8px;border-bottom:1px solid var(--line)}
   .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
-  .tag.on{background:#e6f2ec;color:var(--brand)}
-  .tag.off{background:#f6e6e1;color:var(--bad)}
+  .tag.on{background:#2a3324;color:var(--gold-soft)}
+  .tag.off{background:#3a241d;color:var(--bad)}
 
   .row-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
     background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
   .row-item h4{margin:0 0 3px;font-size:14.5px}
   .row-item p{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
   .row-item .actions{display:flex;gap:6px;flex-shrink:0}
-  .iconbtn{background:transparent;border:1px solid var(--line);border-radius:8px;width:30px;height:30px;font-size:14px}
-  .addBtn{display:block;width:100%;background:var(--ink);color:#fff;border:none;border-radius:12px;
-    padding:12px;font-weight:700;margin-bottom:14px}
+  .iconbtn{background:var(--card2);border:1px solid var(--line);border-radius:8px;width:30px;height:30px;
+    font-size:14px;color:var(--ink)}
+  .addBtn{display:block;width:100%;background:var(--card2);color:var(--gold);border:1px dashed var(--gold);
+    border-radius:12px;padding:12px;font-weight:700;margin-bottom:14px}
 
-  .modalBg{display:none;position:fixed;inset:0;background:rgba(20,20,18,.5);z-index:20;
+  .modalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:20;
     align-items:flex-end;justify-content:center}
-  .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;max-height:88vh;overflow:auto}
-  .modal h3{margin-top:0}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:20px;
+    width:100%;max-width:480px;max-height:88vh;overflow:auto}
+  .modal h3{margin-top:0;color:var(--gold)}
+  .switchRow{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .switchRow .lbl{font-size:13.5px;font-weight:600}
+  .switchRow .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .switchRow input[type=checkbox]{width:20px;height:20px;accent-color:var(--gold);flex-shrink:0}
   .switch{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin:4px 0 14px}
+  .switch input{width:18px;height:18px;accent-color:var(--gold)}
   .modalActions{display:flex;gap:10px;margin-top:6px}
   .modalActions .btn{flex:1}
+
+  .dynRow{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .dynRow input{flex:1;padding:10px 11px;border-radius:9px;border:1px solid var(--line);
+    background:var(--card2);color:var(--ink);font-size:13.5px;font-family:inherit}
+  .dynAdd{background:transparent;border:1px dashed var(--line);color:var(--gold-soft);
+    border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;width:100%;margin-top:2px}
 
   .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
   @media (max-width:420px){.stats{grid-template-columns:1fr 1fr}}
@@ -118,7 +134,7 @@
 <div id="app">
   <header class="top">
     <div><h1>Admin Panel</h1><div class="who" id="whoLabel">—</div></div>
-    <button class="btn ghost small" onclick="doLogout()" style="color:#fff;border-color:rgba(255,255,255,.4)">Sign out</button>
+    <button class="btn ghost small" onclick="doLogout()">Sign out</button>
   </header>
 
   <nav class="tabs">
@@ -170,17 +186,51 @@
     <!-- CONTENT -->
     <section class="tabPanel" id="tab-content">
       <div class="panel">
-        <h3>Business info — shown to every customer</h3>
+        <h3>Branding</h3>
         <div class="field"><label>Business name</label><input id="cfgName"></div>
         <div class="field"><label>Tagline</label><input id="cfgTagline"></div>
-        <div class="field"><label>WhatsApp number (with country code, digits only)</label><input id="cfgWhatsapp" placeholder="971500000000"></div>
+        <div class="field"><label>Logo image URL (shown in the app header)</label><input id="cfgLogo" placeholder="https://..."></div>
+      </div>
+
+      <div class="panel">
+        <div class="switchRow">
+          <div><div class="lbl">Show phone number</div><div class="sub">Off = hidden from customers</div></div>
+          <input type="checkbox" id="cfgShowPhone" checked>
+        </div>
         <div class="field"><label>Phone number</label><input id="cfgPhone"></div>
-        <div class="field"><label>Website</label><input id="cfgWebsite"></div>
+      </div>
+
+      <div class="panel">
+        <div class="switchRow">
+          <div><div class="lbl">Show address</div><div class="sub">Off = hidden from customers</div></div>
+          <input type="checkbox" id="cfgShowAddress" checked>
+        </div>
         <div class="field"><label>Address</label><input id="cfgAddress"></div>
         <div class="field"><label>Hours</label><input id="cfgHours"></div>
-        <button class="btn" onclick="saveConfig()">Save changes</button>
-        <div class="err" id="cfgSaved" style="color:var(--brand)"></div>
       </div>
+
+      <div class="panel">
+        <div class="switchRow">
+          <div><div class="lbl">Show WhatsApp</div><div class="sub">Off = hidden from customers</div></div>
+          <input type="checkbox" id="cfgShowWhatsapp" checked>
+        </div>
+        <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Numbers</label>
+        <div id="waRows" style="margin-top:8px"></div>
+        <button type="button" class="dynAdd" onclick="addWaRow()">+ Add another WhatsApp number</button>
+      </div>
+
+      <div class="panel">
+        <div class="switchRow">
+          <div><div class="lbl">Show website</div><div class="sub">Off = hidden from customers</div></div>
+          <input type="checkbox" id="cfgShowWebsite" checked>
+        </div>
+        <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Links</label>
+        <div id="webRows" style="margin-top:8px"></div>
+        <button type="button" class="dynAdd" onclick="addWebRow()">+ Add another website</button>
+      </div>
+
+      <button class="btn" onclick="saveConfig()">Save changes</button>
+      <div class="ok" id="cfgSaved"></div>
     </section>
   </main>
 </div>
@@ -191,9 +241,9 @@
     <h3 id="promoModalTitle">Add promotion</h3>
     <input type="hidden" id="promoId">
     <div class="field"><label>Title</label><input id="promoTitle"></div>
-    <div class="field"><label>Description</label><textarea id="promoDesc"></textarea></div>
     <div class="field"><label>Badge (optional, e.g. LIMITED)</label><input id="promoBadge"></div>
-    <div class="field"><label>Image URL (optional)</label><input id="promoImg" placeholder="https://..."></div>
+    <div class="field"><label>Image URL</label><input id="promoImg" placeholder="https://..."></div>
+    <div class="field"><label>Link URL — opens when tapped (optional)</label><input id="promoLink" placeholder="https://wa.me/... or any link"></div>
     <label class="switch"><input type="checkbox" id="promoActive" checked> Active — visible in the app</label>
     <div class="modalActions">
       <button class="btn secondary" onclick="closeModal('promoModalBg')">Cancel</button>
@@ -209,6 +259,7 @@
     <input type="hidden" id="updateId">
     <div class="field"><label>Title</label><input id="updateTitle"></div>
     <div class="field"><label>Message</label><textarea id="updateBody"></textarea></div>
+    <div class="field"><label>Image URL (optional)</label><input id="updateImg" placeholder="https://..."></div>
     <div class="modalActions">
       <button class="btn secondary" onclick="closeModal('updateModalBg')">Cancel</button>
       <button class="btn" onclick="saveUpdate()">Save</button>
@@ -233,6 +284,8 @@ const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 let db = null, auth = null;
 let state = { promos: [], updates: [], installs: [], config: {} };
 let chart = null;
+let waRows = [];
+let webRows = [];
 
 if (isConfigured) {
   firebase.initializeApp(firebaseConfig);
@@ -242,28 +295,42 @@ if (isConfigured) {
   document.getElementById('demoBanner').style.display = 'block';
 }
 
+function normalizeConfig(cfg){
+  const out = {...cfg};
+  if (!out.whatsapps && out.whatsapp) out.whatsapps = [{label:'', number: out.whatsapp}];
+  if (!out.websites && out.website) out.websites = [{label:'', url: out.website}];
+  if (!out.whatsapps) out.whatsapps = [];
+  if (!out.websites) out.websites = [];
+  if (out.showPhone === undefined) out.showPhone = !!out.phone;
+  if (out.showAddress === undefined) out.showAddress = !!out.address;
+  if (out.showWhatsapp === undefined) out.showWhatsapp = !!out.whatsapps.length;
+  if (out.showWebsite === undefined) out.showWebsite = !!out.websites.length;
+  return out;
+}
+
 function demoInstalls(){
   const now = Date.now(), day = 86400000, out = [];
   for (let i=0;i<32;i++){
     const agoDays = Math.random() < 0.6 ? Math.random()*6 : 8 + Math.random()*40;
-    out.push({
-      id: 'demo-'+i,
-      installedAt: now - (agoDays + Math.random()*10) * day,
-      lastActiveAt: now - agoDays * day
-    });
+    out.push({ id: 'demo-'+i, installedAt: now - (agoDays + Math.random()*10) * day, lastActiveAt: now - agoDays * day });
   }
   return out;
 }
 const DEMO = {
-  config: {businessName:"Cedar & Co.", tagline:"Fresh updates from our team", whatsapp:"971500000000",
-    phone:"+971 4 000 0000", website:"https://example.com", address:"Shop 4, Al Wasl Road, Dubai", hours:"Sat–Thu, 10am–10pm"},
+  config: {
+    businessName:"Cedar & Co.", tagline:"Fresh updates from our team", logoUrl:"",
+    phone:"+971 4 000 0000", showPhone:true,
+    address:"Shop 4, Al Wasl Road, Dubai", hours:"Sat–Thu, 10am–10pm", showAddress:true,
+    whatsapps:[{label:"Sales", number:"971500000000"}], showWhatsapp:true,
+    websites:[{label:"Main site", url:"https://example.com"}], showWebsite:true
+  },
   promos: [
-    {id:'p1', title:"20% off this weekend", description:"Show this screen in-store to redeem.", badge:"LIMITED", active:true, imageUrl:""},
-    {id:'p2', title:"Refer a friend, get AED 25", description:"Credit applies after their first order.", badge:"ONGOING", active:true, imageUrl:""}
+    {id:'p1', title:"20% off this weekend", badge:"LIMITED", active:true, imageUrl:"", linkUrl:""},
+    {id:'p2', title:"Refer a friend, get AED 25", badge:"ONGOING", active:true, imageUrl:"", linkUrl:""}
   ],
   updates: [
-    {id:'u1', title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", createdAt:Date.now()-2*86400000},
-    {id:'u2', title:"Holiday hours", body:"Closed Friday for a public holiday, back Saturday as usual.", createdAt:Date.now()-6*86400000}
+    {id:'u1', title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", createdAt:Date.now()-2*86400000, imageUrl:""},
+    {id:'u2', title:"Holiday hours", body:"Closed Friday for a public holiday, back Saturday as usual.", createdAt:Date.now()-6*86400000, imageUrl:""}
   ],
   installs: demoInstalls()
 };
@@ -346,8 +413,8 @@ function recomputeDashboard(){
   chart = new Chart(ctx, {
     type: 'doughnut',
     data: { labels: ['Active','Inactive'], datasets:[{ data:[active,inactive],
-      backgroundColor:['#1F4D3D','#B3432B'], borderWidth:0 }] },
-    options: { plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
+      backgroundColor:['#C9A227','#D96A4C'], borderWidth:0 }] },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
   });
 
   const rows = [...state.installs].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,15).map(i=>{
@@ -362,24 +429,62 @@ function recomputeDashboard(){
   document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs yet</td></tr>';
 }
 
-function fillConfigForm(c){
+function fillConfigForm(cRaw){
+  const c = normalizeConfig(cRaw);
   document.getElementById('cfgName').value = c.businessName || '';
   document.getElementById('cfgTagline').value = c.tagline || '';
-  document.getElementById('cfgWhatsapp').value = c.whatsapp || '';
+  document.getElementById('cfgLogo').value = c.logoUrl || '';
   document.getElementById('cfgPhone').value = c.phone || '';
-  document.getElementById('cfgWebsite').value = c.website || '';
+  document.getElementById('cfgShowPhone').checked = !!c.showPhone;
   document.getElementById('cfgAddress').value = c.address || '';
   document.getElementById('cfgHours').value = c.hours || '';
+  document.getElementById('cfgShowAddress').checked = !!c.showAddress;
+  document.getElementById('cfgShowWhatsapp').checked = !!c.showWhatsapp;
+  document.getElementById('cfgShowWebsite').checked = !!c.showWebsite;
+  waRows = c.whatsapps.length ? [...c.whatsapps] : [{label:'',number:''}];
+  webRows = c.websites.length ? [...c.websites] : [{label:'',url:''}];
+  renderWaRows();
+  renderWebRows();
 }
+
+function renderWaRows(){
+  const el = document.getElementById('waRows');
+  el.innerHTML = waRows.map((w,i)=>`
+    <div class="dynRow">
+      <input placeholder="Label (e.g. Sales)" value="${(w.label||'').replace(/"/g,'&quot;')}" oninput="waRows[${i}].label=this.value">
+      <input placeholder="971500000000" value="${(w.number||'').replace(/"/g,'&quot;')}" oninput="waRows[${i}].number=this.value">
+      <button type="button" class="iconbtn" onclick="removeWaRow(${i})">✕</button>
+    </div>`).join('');
+}
+function addWaRow(){ waRows.push({label:'',number:''}); renderWaRows(); }
+function removeWaRow(i){ waRows.splice(i,1); renderWaRows(); }
+
+function renderWebRows(){
+  const el = document.getElementById('webRows');
+  el.innerHTML = webRows.map((w,i)=>`
+    <div class="dynRow">
+      <input placeholder="Label (e.g. Main site)" value="${(w.label||'').replace(/"/g,'&quot;')}" oninput="webRows[${i}].label=this.value">
+      <input placeholder="https://..." value="${(w.url||'').replace(/"/g,'&quot;')}" oninput="webRows[${i}].url=this.value">
+      <button type="button" class="iconbtn" onclick="removeWebRow(${i})">✕</button>
+    </div>`).join('');
+}
+function addWebRow(){ webRows.push({label:'',url:''}); renderWebRows(); }
+function removeWebRow(i){ webRows.splice(i,1); renderWebRows(); }
+
 async function saveConfig(){
   const data = {
     businessName: document.getElementById('cfgName').value.trim(),
     tagline: document.getElementById('cfgTagline').value.trim(),
-    whatsapp: document.getElementById('cfgWhatsapp').value.trim(),
+    logoUrl: document.getElementById('cfgLogo').value.trim(),
     phone: document.getElementById('cfgPhone').value.trim(),
-    website: document.getElementById('cfgWebsite').value.trim(),
+    showPhone: document.getElementById('cfgShowPhone').checked,
     address: document.getElementById('cfgAddress').value.trim(),
-    hours: document.getElementById('cfgHours').value.trim()
+    hours: document.getElementById('cfgHours').value.trim(),
+    showAddress: document.getElementById('cfgShowAddress').checked,
+    whatsapps: waRows.filter(w=>w.number && w.number.trim()),
+    showWhatsapp: document.getElementById('cfgShowWhatsapp').checked,
+    websites: webRows.filter(w=>w.url && w.url.trim()),
+    showWebsite: document.getElementById('cfgShowWebsite').checked
   };
   const msg = document.getElementById('cfgSaved');
   if (!isConfigured){ state.config = data; msg.textContent = 'Saved (demo mode — not persisted).'; msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); return; }
@@ -393,7 +498,7 @@ function renderPromosAdmin(){
   if (!state.promos.length){ el.innerHTML = '<div class="empty">No promotions yet</div>'; return; }
   el.innerHTML = state.promos.map(p=>`
     <div class="row-item">
-      <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.description||''}</p></div>
+      <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.badge||''}</p></div>
       <div class="actions">
         <button class="iconbtn" onclick='openPromoModal(${JSON.stringify(p).replace(/'/g,"&apos;")})'>✎</button>
         <button class="iconbtn" onclick="deletePromo('${p.id}')">🗑</button>
@@ -404,9 +509,9 @@ function openPromoModal(p){
   document.getElementById('promoModalTitle').textContent = p ? 'Edit promotion' : 'Add promotion';
   document.getElementById('promoId').value = p ? p.id : '';
   document.getElementById('promoTitle').value = p ? p.title||'' : '';
-  document.getElementById('promoDesc').value = p ? p.description||'' : '';
   document.getElementById('promoBadge').value = p ? p.badge||'' : '';
   document.getElementById('promoImg').value = p ? p.imageUrl||'' : '';
+  document.getElementById('promoLink').value = p ? p.linkUrl||'' : '';
   document.getElementById('promoActive').checked = p ? !!p.active : true;
   document.getElementById('promoModalBg').style.display = 'flex';
 }
@@ -414,9 +519,9 @@ async function savePromo(){
   const id = document.getElementById('promoId').value;
   const data = {
     title: document.getElementById('promoTitle').value.trim(),
-    description: document.getElementById('promoDesc').value.trim(),
     badge: document.getElementById('promoBadge').value.trim(),
     imageUrl: document.getElementById('promoImg').value.trim(),
+    linkUrl: document.getElementById('promoLink').value.trim(),
     active: document.getElementById('promoActive').checked
   };
   if (!isConfigured){
@@ -451,11 +556,16 @@ function openUpdateModal(u){
   document.getElementById('updateId').value = u ? u.id : '';
   document.getElementById('updateTitle').value = u ? u.title||'' : '';
   document.getElementById('updateBody').value = u ? u.body||'' : '';
+  document.getElementById('updateImg').value = u ? u.imageUrl||'' : '';
   document.getElementById('updateModalBg').style.display = 'flex';
 }
 async function saveUpdate(){
   const id = document.getElementById('updateId').value;
-  const data = { title: document.getElementById('updateTitle').value.trim(), body: document.getElementById('updateBody').value.trim() };
+  const data = {
+    title: document.getElementById('updateTitle').value.trim(),
+    body: document.getElementById('updateBody').value.trim(),
+    imageUrl: document.getElementById('updateImg').value.trim()
+  };
   if (!isConfigured){
     if (id){ const i=state.updates.findIndex(x=>x.id===id); state.updates[i]={...state.updates[i],...data}; }
     else { state.updates.unshift({id:'u'+Date.now(), ...data, createdAt: Date.now()}); }
