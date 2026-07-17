@@ -25,6 +25,10 @@
   #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .loginBox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px;
     width:100%;max-width:340px}
+  .brandLogo{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;overflow:hidden;
+    border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card2)}
+  .brandLogo img{width:100%;height:100%;object-fit:cover}
+  .brandLogo.small{width:32px;height:32px;margin:0}
   .loginBox h1{font-size:22px;margin:0 0 4px;color:var(--gold)}
   .loginBox p{color:var(--muted);font-size:13.5px;margin:0 0 20px}
   .field{margin-bottom:14px}
@@ -77,6 +81,8 @@
 
   .row-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
     background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  .row-item .thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--card2)}
+  .row-item .info{display:flex;gap:10px;flex:1;min-width:0}
   .row-item h4{margin:0 0 3px;font-size:14.5px}
   .row-item p{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
   .row-item .actions{display:flex;gap:6px;flex-shrink:0}
@@ -106,6 +112,18 @@
   .dynAdd{background:transparent;border:1px dashed var(--line);color:var(--gold-soft);
     border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;width:100%;margin-top:2px}
 
+  .uploadRow{display:flex;gap:14px;align-items:center}
+  .uploadPreview{width:64px;height:64px;border-radius:14px;background:var(--card2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+  .uploadPreview.round{border-radius:50%}
+  .uploadPreview img{width:100%;height:100%;object-fit:cover}
+  .uploadPreview span{font-size:9px;color:var(--muted);text-align:center;padding:4px;line-height:1.3}
+  .uploadCol{flex:1;min-width:0}
+  input[type=file]{width:100%;font-size:12px;color:var(--muted)}
+  input[type=file]::file-selector-button{background:var(--gold);color:#1a1608;border:none;border-radius:8px;
+    padding:8px 12px;font-weight:700;font-size:12px;margin-right:10px}
+  .uploadNote{font-size:11px;color:var(--muted);margin-top:6px}
+
   .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
   @media (max-width:420px){.stats{grid-template-columns:1fr 1fr}}
 </style>
@@ -117,6 +135,7 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="loginBox">
+    <div class="brandLogo" id="brandLogoLogin" style="display:none"><img id="brandLogoLoginImg"></div>
     <h1>Admin Panel</h1>
     <p>Sign in to manage your customer app.</p>
     <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username"></div>
@@ -133,7 +152,10 @@
 <!-- APP -->
 <div id="app">
   <header class="top">
-    <div><h1>Admin Panel</h1><div class="who" id="whoLabel">—</div></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="brandLogo small" id="brandLogoHeader" style="display:none"><img id="brandLogoHeaderImg"></div>
+      <div><h1>Admin Panel</h1><div class="who" id="whoLabel">—</div></div>
+    </div>
     <button class="btn ghost small" onclick="doLogout()">Sign out</button>
   </header>
 
@@ -189,7 +211,20 @@
         <h3>Branding</h3>
         <div class="field"><label>Business name</label><input id="cfgName"></div>
         <div class="field"><label>Tagline</label><input id="cfgTagline"></div>
-        <div class="field"><label>Logo image URL (shown in the app header)</label><input id="cfgLogo" placeholder="https://..."></div>
+        <div class="field">
+          <label>Logo (shown in the app header)</label>
+          <div class="uploadRow">
+            <div class="uploadPreview round" id="logoPreviewWrap">
+              <img id="logoPreviewImg" style="display:none">
+              <span id="logoPreviewFallback">No logo</span>
+            </div>
+            <div class="uploadCol">
+              <input type="file" accept="image/png,image/jpeg" id="cfgLogoFile" onchange="handleLogoFile(this)">
+              <button type="button" class="btn ghost small" onclick="clearLogo()" style="margin-top:8px">Remove</button>
+            </div>
+          </div>
+          <div class="uploadNote">Pick a photo from your phone — it's resized automatically, no link needed.</div>
+        </div>
       </div>
 
       <div class="panel">
@@ -242,7 +277,19 @@
     <input type="hidden" id="promoId">
     <div class="field"><label>Title</label><input id="promoTitle"></div>
     <div class="field"><label>Badge (optional, e.g. LIMITED)</label><input id="promoBadge"></div>
-    <div class="field"><label>Image URL</label><input id="promoImg" placeholder="https://..."></div>
+    <div class="field">
+      <label>Photo</label>
+      <div class="uploadRow">
+        <div class="uploadPreview" id="promoPreviewWrap">
+          <img id="promoPreviewImg" style="display:none">
+          <span id="promoPreviewFallback">No photo</span>
+        </div>
+        <div class="uploadCol">
+          <input type="file" accept="image/png,image/jpeg" id="promoFile" onchange="handlePromoFile(this)">
+          <button type="button" class="btn ghost small" onclick="clearPromoImg()" style="margin-top:8px">Remove</button>
+        </div>
+      </div>
+    </div>
     <div class="field"><label>Link URL — opens when tapped (optional)</label><input id="promoLink" placeholder="https://wa.me/... or any link"></div>
     <label class="switch"><input type="checkbox" id="promoActive" checked> Active — visible in the app</label>
     <div class="modalActions">
@@ -259,7 +306,19 @@
     <input type="hidden" id="updateId">
     <div class="field"><label>Title</label><input id="updateTitle"></div>
     <div class="field"><label>Message</label><textarea id="updateBody"></textarea></div>
-    <div class="field"><label>Image URL (optional)</label><input id="updateImg" placeholder="https://..."></div>
+    <div class="field">
+      <label>Photo (optional)</label>
+      <div class="uploadRow">
+        <div class="uploadPreview" id="updatePreviewWrap">
+          <img id="updatePreviewImg" style="display:none">
+          <span id="updatePreviewFallback">No photo</span>
+        </div>
+        <div class="uploadCol">
+          <input type="file" accept="image/png,image/jpeg" id="updateFile" onchange="handleUpdateFile(this)">
+          <button type="button" class="btn ghost small" onclick="clearUpdateImg()" style="margin-top:8px">Remove</button>
+        </div>
+      </div>
+    </div>
     <div class="modalActions">
       <button class="btn secondary" onclick="closeModal('updateModalBg')">Cancel</button>
       <button class="btn" onclick="saveUpdate()">Save</button>
@@ -286,13 +345,94 @@ let state = { promos: [], updates: [], installs: [], config: {} };
 let chart = null;
 let waRows = [];
 let webRows = [];
+let logoDataUrl = '';
+let promoImgDataUrl = '';
+let updateImgDataUrl = '';
 
 if (isConfigured) {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
   auth = firebase.auth();
+  db.collection('config').doc('business').get().then(snap=>{
+    if (snap.exists && snap.data().logoUrl) showBrandLogo(snap.data().logoUrl);
+  }).catch(()=>{});
 } else {
   document.getElementById('demoBanner').style.display = 'block';
+}
+
+function showBrandLogo(url){
+  ['Login','Header'].forEach(where=>{
+    const wrap = document.getElementById('brandLogo'+where);
+    const img = document.getElementById('brandLogo'+where+'Img');
+    if (wrap && img){ img.src = url; wrap.style.display = 'flex'; }
+  });
+}
+
+function resizeImageFile(file, maxDim, mimeType, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if (w > h){ if (w > maxDim){ h = Math.round(h*maxDim/w); w = maxDim; } }
+        else { if (h > maxDim){ w = Math.round(w*maxDim/h); h = maxDim; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL(mimeType, quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleLogoFile(input){
+  const file = input.files[0];
+  if (!file) return;
+  logoDataUrl = await resizeImageFile(file, 320, 'image/png', 1);
+  document.getElementById('logoPreviewImg').src = logoDataUrl;
+  document.getElementById('logoPreviewImg').style.display = 'block';
+  document.getElementById('logoPreviewFallback').style.display = 'none';
+}
+function clearLogo(){
+  logoDataUrl = '';
+  document.getElementById('logoPreviewImg').style.display = 'none';
+  document.getElementById('logoPreviewFallback').style.display = 'block';
+  document.getElementById('cfgLogoFile').value = '';
+}
+
+async function handlePromoFile(input){
+  const file = input.files[0];
+  if (!file) return;
+  promoImgDataUrl = await resizeImageFile(file, 900, 'image/jpeg', 0.75);
+  document.getElementById('promoPreviewImg').src = promoImgDataUrl;
+  document.getElementById('promoPreviewImg').style.display = 'block';
+  document.getElementById('promoPreviewFallback').style.display = 'none';
+}
+function clearPromoImg(){
+  promoImgDataUrl = '';
+  document.getElementById('promoPreviewImg').style.display = 'none';
+  document.getElementById('promoPreviewFallback').style.display = 'block';
+  document.getElementById('promoFile').value = '';
+}
+
+async function handleUpdateFile(input){
+  const file = input.files[0];
+  if (!file) return;
+  updateImgDataUrl = await resizeImageFile(file, 900, 'image/jpeg', 0.75);
+  document.getElementById('updatePreviewImg').src = updateImgDataUrl;
+  document.getElementById('updatePreviewImg').style.display = 'block';
+  document.getElementById('updatePreviewFallback').style.display = 'none';
+}
+function clearUpdateImg(){
+  updateImgDataUrl = '';
+  document.getElementById('updatePreviewImg').style.display = 'none';
+  document.getElementById('updatePreviewFallback').style.display = 'block';
+  document.getElementById('updateFile').value = '';
 }
 
 function normalizeConfig(cfg){
@@ -433,7 +573,15 @@ function fillConfigForm(cRaw){
   const c = normalizeConfig(cRaw);
   document.getElementById('cfgName').value = c.businessName || '';
   document.getElementById('cfgTagline').value = c.tagline || '';
-  document.getElementById('cfgLogo').value = c.logoUrl || '';
+  logoDataUrl = c.logoUrl || '';
+  if (logoDataUrl){
+    document.getElementById('logoPreviewImg').src = logoDataUrl;
+    document.getElementById('logoPreviewImg').style.display = 'block';
+    document.getElementById('logoPreviewFallback').style.display = 'none';
+  } else {
+    document.getElementById('logoPreviewImg').style.display = 'none';
+    document.getElementById('logoPreviewFallback').style.display = 'block';
+  }
   document.getElementById('cfgPhone').value = c.phone || '';
   document.getElementById('cfgShowPhone').checked = !!c.showPhone;
   document.getElementById('cfgAddress').value = c.address || '';
@@ -475,7 +623,7 @@ async function saveConfig(){
   const data = {
     businessName: document.getElementById('cfgName').value.trim(),
     tagline: document.getElementById('cfgTagline').value.trim(),
-    logoUrl: document.getElementById('cfgLogo').value.trim(),
+    logoUrl: logoDataUrl,
     phone: document.getElementById('cfgPhone').value.trim(),
     showPhone: document.getElementById('cfgShowPhone').checked,
     address: document.getElementById('cfgAddress').value.trim(),
@@ -498,7 +646,10 @@ function renderPromosAdmin(){
   if (!state.promos.length){ el.innerHTML = '<div class="empty">No promotions yet</div>'; return; }
   el.innerHTML = state.promos.map(p=>`
     <div class="row-item">
-      <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.badge||''}</p></div>
+      <div class="info">
+        ${p.imageUrl ? `<img class="thumb" src="${p.imageUrl}">` : ''}
+        <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.badge||''}</p></div>
+      </div>
       <div class="actions">
         <button class="iconbtn" onclick='openPromoModal(${JSON.stringify(p).replace(/'/g,"&apos;")})'>✎</button>
         <button class="iconbtn" onclick="deletePromo('${p.id}')">🗑</button>
@@ -510,9 +661,18 @@ function openPromoModal(p){
   document.getElementById('promoId').value = p ? p.id : '';
   document.getElementById('promoTitle').value = p ? p.title||'' : '';
   document.getElementById('promoBadge').value = p ? p.badge||'' : '';
-  document.getElementById('promoImg').value = p ? p.imageUrl||'' : '';
   document.getElementById('promoLink').value = p ? p.linkUrl||'' : '';
   document.getElementById('promoActive').checked = p ? !!p.active : true;
+  promoImgDataUrl = p ? (p.imageUrl||'') : '';
+  document.getElementById('promoFile').value = '';
+  if (promoImgDataUrl){
+    document.getElementById('promoPreviewImg').src = promoImgDataUrl;
+    document.getElementById('promoPreviewImg').style.display = 'block';
+    document.getElementById('promoPreviewFallback').style.display = 'none';
+  } else {
+    document.getElementById('promoPreviewImg').style.display = 'none';
+    document.getElementById('promoPreviewFallback').style.display = 'block';
+  }
   document.getElementById('promoModalBg').style.display = 'flex';
 }
 async function savePromo(){
@@ -520,7 +680,7 @@ async function savePromo(){
   const data = {
     title: document.getElementById('promoTitle').value.trim(),
     badge: document.getElementById('promoBadge').value.trim(),
-    imageUrl: document.getElementById('promoImg').value.trim(),
+    imageUrl: promoImgDataUrl,
     linkUrl: document.getElementById('promoLink').value.trim(),
     active: document.getElementById('promoActive').checked
   };
@@ -544,7 +704,10 @@ function renderUpdatesAdmin(){
   if (!state.updates.length){ el.innerHTML = '<div class="empty">No updates yet</div>'; return; }
   el.innerHTML = state.updates.map(u=>`
     <div class="row-item">
-      <div><h4>${u.title||''}</h4><p>${u.body||''}</p></div>
+      <div class="info">
+        ${u.imageUrl ? `<img class="thumb" src="${u.imageUrl}">` : ''}
+        <div><h4>${u.title||''}</h4><p>${u.body||''}</p></div>
+      </div>
       <div class="actions">
         <button class="iconbtn" onclick='openUpdateModal(${JSON.stringify(u).replace(/'/g,"&apos;")})'>✎</button>
         <button class="iconbtn" onclick="deleteUpdate('${u.id}')">🗑</button>
@@ -556,7 +719,16 @@ function openUpdateModal(u){
   document.getElementById('updateId').value = u ? u.id : '';
   document.getElementById('updateTitle').value = u ? u.title||'' : '';
   document.getElementById('updateBody').value = u ? u.body||'' : '';
-  document.getElementById('updateImg').value = u ? u.imageUrl||'' : '';
+  updateImgDataUrl = u ? (u.imageUrl||'') : '';
+  document.getElementById('updateFile').value = '';
+  if (updateImgDataUrl){
+    document.getElementById('updatePreviewImg').src = updateImgDataUrl;
+    document.getElementById('updatePreviewImg').style.display = 'block';
+    document.getElementById('updatePreviewFallback').style.display = 'none';
+  } else {
+    document.getElementById('updatePreviewImg').style.display = 'none';
+    document.getElementById('updatePreviewFallback').style.display = 'block';
+  }
   document.getElementById('updateModalBg').style.display = 'flex';
 }
 async function saveUpdate(){
@@ -564,7 +736,7 @@ async function saveUpdate(){
   const data = {
     title: document.getElementById('updateTitle').value.trim(),
     body: document.getElementById('updateBody').value.trim(),
-    imageUrl: document.getElementById('updateImg').value.trim()
+    imageUrl: updateImgDataUrl
   };
   if (!isConfigured){
     if (id){ const i=state.updates.findIndex(x=>x.id===id); state.updates[i]={...state.updates[i],...data}; }
