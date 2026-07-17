@@ -6,87 +6,85 @@
 <title>Business App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1E2321; --paper:#F1EFE6; --card:#FBFAF5; --brand:#1F4D3D;
-    --brand-ink:#F1EFE6; --accent:#E0972C; --whatsapp:#25D366;
-    --line:#DDD6C7; --muted:#6B6A5F; --radius:18px;
+    --bg:#0F0D0A; --card:#1B1815; --card2:#231F18; --gold:#C9A227; --gold-soft:#E4C874;
+    --ink:#F5EFDD; --muted:#A79A7D; --line:#332D22; --whatsapp:#25D366; --radius:18px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
-    font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased;}
-  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Playfair Display',serif}
   a{color:inherit}
-  .container{max-width:520px;margin:0 auto;padding:0 18px 48px}
+  .container{max-width:520px;margin:0 auto;padding:0 18px 56px}
 
-  #demoBanner{display:none;background:var(--accent);color:#1E2321;font-size:13px;
-    font-weight:600;text-align:center;padding:9px 12px;}
+  #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:12.5px;
+    font-weight:700;text-align:center;padding:8px 12px;letter-spacing:.02em}
 
-  header.top{position:sticky;top:0;z-index:5;background:var(--brand);color:var(--brand-ink);
-    padding:22px 18px 26px;border-bottom-left-radius:22px;border-bottom-right-radius:22px;}
-  header.top .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;font-weight:600;}
-  header.top h1{font-size:26px;margin:4px 0 2px;font-weight:700;}
-  header.top p{margin:0;font-size:14px;opacity:.85}
+  header.top{padding:30px 18px 26px;text-align:center;border-bottom:1px solid var(--line)}
+  .logoWrap{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;overflow:hidden;
+    border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card)}
+  .logoWrap img{width:100%;height:100%;object-fit:cover}
+  .logoWrap .fallback{font-family:'Playfair Display';font-size:24px;color:var(--gold)}
+  header.top h1{font-size:24px;margin:0 0 4px;font-weight:700;letter-spacing:.01em}
+  header.top p{margin:0;font-size:13px;color:var(--muted);letter-spacing:.02em}
 
-  section{margin-top:28px}
-  section h2{font-size:17px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
-  .count-pill{background:var(--brand);color:var(--brand-ink);font-family:'Space Grotesk';
-    font-size:11px;padding:2px 9px;border-radius:99px;font-weight:600}
+  section{margin-top:32px}
+  .sectionHead{display:flex;align-items:baseline;gap:10px;padding:0 18px;margin-bottom:14px}
+  .sectionHead h2{font-size:19px;margin:0;font-weight:700}
+  .sectionHead .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+  .promoScroll{display:flex;gap:14px;overflow-x:auto;padding:2px 18px 6px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .promoScroll::-webkit-scrollbar{display:none}
+  .promoCard{flex:0 0 auto;width:70%;max-width:270px;aspect-ratio:4/5;scroll-snap-align:start;
+    position:relative;border-radius:16px;overflow:hidden;text-decoration:none;display:block;
+    background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line)}
+  .promoCard img{width:100%;height:100%;object-fit:cover;display:block}
+  .promoCard .scrim{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(15,13,10,0) 38%,rgba(15,13,10,.94) 100%);
+    display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
+  .promoCard .badge{align-self:flex-start;background:var(--gold);color:#1a1608;font-weight:700;
+    font-size:10.5px;letter-spacing:.05em;padding:3px 10px;border-radius:99px;margin-bottom:8px}
+  .promoCard h3{font-size:16px;margin:0 0 3px;color:var(--ink);font-weight:700}
+  .promoCard .tap{font-size:11px;color:var(--gold-soft);font-weight:600;letter-spacing:.03em}
+  .promoCard.noImg{display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+  .promoCard.noImg h3{font-size:18px}
 
   .update{background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:14px 16px;margin-bottom:10px;}
-  .update .date{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-  .update h3{font-size:15px;margin:4px 0 4px;font-weight:600}
-  .update p{font-size:13.5px;color:#3a3d3a;margin:0;line-height:1.5}
-
-  .promo{position:relative;background:var(--card);border:1px solid var(--line);
-    border-radius:4px;margin-bottom:16px;overflow:hidden;
-    clip-path:polygon(0 0,100% 0,100% 100%,14px 100%,0 calc(100% - 14px));
-    box-shadow:0 1px 0 var(--line);}
-  .promo .tagHole{position:absolute;left:10px;top:10px;width:10px;height:10px;
-    border-radius:50%;background:var(--paper);border:1px solid var(--line);z-index:2}
-  .promo img{width:100%;height:140px;object-fit:cover;display:block;background:
-    linear-gradient(135deg,var(--brand),#2c6a54)}
-  .promo .body{padding:14px 16px 16px 26px}
-  .promo .badge{display:inline-block;background:var(--accent);color:#241a05;
-    font-family:'Space Grotesk';font-weight:700;font-size:11px;letter-spacing:.04em;
-    padding:3px 10px;border-radius:99px;margin-bottom:8px}
-  .promo h3{font-size:16px;margin:0 0 4px;font-weight:700}
-  .promo p{font-size:13.5px;color:#3a3d3a;margin:0;line-height:1.5}
-  .promo .expiry{font-size:11.5px;color:var(--muted);margin-top:8px;font-weight:600}
+    overflow:hidden;margin:0 18px 10px}
+  .update img{width:100%;height:150px;object-fit:cover;display:block}
+  .update .body{padding:14px 16px}
+  .update .date{font-size:10.5px;color:var(--gold-soft);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .update h3{font-size:15px;margin:4px 0 4px;font-weight:700}
+  .update p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.5}
 
   .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:8px;}
-  .contact-row{display:flex;align-items:center;gap:12px;padding:12px 10px;text-decoration:none;
-    border-radius:12px;transition:background .15s}
-  .contact-row:active{background:var(--paper)}
+    padding:8px;margin:0 18px}
+  .contact-row{display:flex;align-items:center;gap:12px;padding:13px 10px;text-decoration:none;
+    border-radius:12px}
+  .contact-row:active{background:var(--card2)}
   .contact-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
-    justify-content:center;flex-shrink:0;font-size:18px}
-  .contact-row .txt .label{font-size:11px;color:var(--muted);text-transform:uppercase;
-    letter-spacing:.05em;font-weight:600}
-  .contact-row .txt .val{font-size:14.5px;font-weight:600;color:var(--ink)}
-  .icon.wa{background:#e8f9ee;color:var(--whatsapp)}
-  .icon.call{background:#eaf1ee;color:var(--brand)}
-  .icon.web{background:#fdf1e2;color:#a8671b}
-  .icon.loc{background:#eeece3;color:var(--muted)}
+    justify-content:center;flex-shrink:0;font-size:17px;background:var(--card2);border:1px solid var(--line)}
+  .contact-row .txt .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.06em;font-weight:700}
+  .contact-row .txt .val{font-size:14px;font-weight:600;color:var(--ink)}
   .divider{height:1px;background:var(--line);margin:2px 8px}
 
+  .waList{margin:14px 18px 0;display:flex;flex-direction:column;gap:10px}
   .cta-wa{display:flex;align-items:center;justify-content:center;gap:10px;
-    background:var(--whatsapp);color:#fff;font-family:'Space Grotesk';font-weight:700;
-    font-size:15px;padding:15px;border-radius:14px;text-decoration:none;margin-top:16px;
-    box-shadow:0 6px 16px -4px rgba(37,211,102,.5)}
+    background:var(--whatsapp);color:#062b14;font-weight:700;font-size:14.5px;padding:14px;
+    border-radius:14px;text-decoration:none;box-shadow:0 6px 18px -6px rgba(37,211,102,.45)}
   .cta-wa:active{transform:scale(.98)}
 
-  .empty{color:var(--muted);font-size:13.5px;padding:18px 4px;text-align:center}
-  footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:36px}
+  .empty{color:var(--muted);font-size:13.5px;padding:18px;text-align:center}
+  footer{text-align:center;color:var(--muted);font-size:11px;margin-top:40px;letter-spacing:.03em}
 
   @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-  .in{animation:rise .35s ease both}
-
+  .in{animation:rise .4s ease both}
   @media (prefers-reduced-motion: reduce){.in{animation:none}}
-  *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  *:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -94,7 +92,7 @@
 <div id="demoBanner">⚙️ Demo mode — connect Firebase to show your real content (see README)</div>
 
 <header class="top">
-  <div class="eyebrow">Welcome</div>
+  <div class="logoWrap" id="logoWrap"><span class="fallback" id="logoFallback">Y</span></div>
   <h1 id="bizName">Your Business</h1>
   <p id="bizTagline">Loading the latest updates &amp; offers…</p>
 </header>
@@ -102,24 +100,22 @@
 <div class="container">
 
   <section id="promosSection">
-    <h2>Current promotions <span class="count-pill" id="promoCount">0</span></h2>
-    <div id="promosList"></div>
+    <div class="sectionHead"><h2>Promotions</h2><div class="rule"></div></div>
+    <div class="promoScroll" id="promosList"></div>
   </section>
 
   <section id="updatesSection">
-    <h2>Updates</h2>
+    <div class="sectionHead"><h2>Updates</h2><div class="rule"></div></div>
     <div id="updatesList"></div>
   </section>
 
   <section>
-    <h2>Get in touch</h2>
+    <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
     <div class="contact-card" id="contactCard"></div>
-    <a class="cta-wa" id="waBtn" href="#" target="_blank" rel="noopener">
-      💬 Chat with us on WhatsApp
-    </a>
+    <div class="waList" id="waList"></div>
   </section>
 
-  <footer>Tap 💬 anytime — we usually reply fast.</footer>
+  <footer>We usually reply fast — tap above anytime.</footer>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -140,75 +136,104 @@ const uid = params.get('uid');
 
 const DEMO = {
   business: {
-    businessName: "Cedar & Co.",
-    tagline: "Fresh updates from our team",
-    whatsapp: "971500000000",
-    phone: "+971 4 000 0000",
-    website: "https://example.com",
-    address: "Shop 4, Al Wasl Road, Dubai",
-    hours: "Sat–Thu, 10am–10pm"
+    businessName: "Cedar & Co.", tagline: "Fresh updates from our team", logoUrl: "",
+    phone: "+971 4 000 0000", showPhone: true,
+    address: "Shop 4, Al Wasl Road, Dubai", hours: "Sat–Thu, 10am–10pm", showAddress: true,
+    whatsapps: [{label:"Sales", number:"971500000000"}, {label:"Support", number:"971500000001"}], showWhatsapp: true,
+    websites: [{label:"Main site", url:"https://example.com"}], showWebsite: true
   },
   promos: [
-    {title:"20% off this weekend", description:"Show this screen in-store to redeem. Valid on all items.", badge:"LIMITED", expiresAt:"31 Jul"},
-    {title:"Refer a friend, get AED 25", description:"Both of you get credit once their first order is complete.", badge:"ONGOING", expiresAt:null}
+    {title:"20% off this weekend", badge:"LIMITED", imageUrl:"", linkUrl:""},
+    {title:"Refer a friend, get AED 25", badge:"ONGOING", imageUrl:"", linkUrl:""}
   ],
   updates: [
-    {title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", date:"14 Jul"},
-    {title:"Holiday hours", body:"We'll be closed on Friday for a public holiday, back Saturday as usual.", date:"10 Jul"}
+    {title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", date:"14 Jul", imageUrl:""},
+    {title:"Holiday hours", body:"We'll be closed Friday for a public holiday, back Saturday.", date:"10 Jul", imageUrl:""}
   ]
 };
 
+function normalizeConfig(cfg){
+  const out = {...cfg};
+  if (!out.whatsapps && out.whatsapp) out.whatsapps = [{label:'', number: out.whatsapp}];
+  if (!out.websites && out.website) out.websites = [{label:'', url: out.website}];
+  if (out.showPhone === undefined) out.showPhone = !!out.phone;
+  if (out.showAddress === undefined) out.showAddress = !!out.address;
+  if (out.showWhatsapp === undefined) out.showWhatsapp = !!(out.whatsapps && out.whatsapps.length);
+  if (out.showWebsite === undefined) out.showWebsite = !!(out.websites && out.websites.length);
+  return out;
+}
+
 let db = null;
 if (isConfigured) {
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-  } catch (e) { console.error('Firebase init failed', e); }
+  try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); }
+  catch (e) { console.error('Firebase init failed', e); }
 } else {
   document.getElementById('demoBanner').style.display = 'block';
 }
 
-function renderBusiness(cfg){
+function renderBusiness(cfgRaw){
+  const cfg = normalizeConfig(cfgRaw);
   document.getElementById('bizName').textContent = cfg.businessName || "Your Business";
   document.getElementById('bizTagline').textContent = cfg.tagline || "Here's what's new";
+
+  const logoWrap = document.getElementById('logoWrap');
+  if (cfg.logoUrl) {
+    logoWrap.innerHTML = `<img src="${cfg.logoUrl}" alt="">`;
+  } else {
+    const fb = document.getElementById('logoFallback');
+    if (fb) fb.textContent = (cfg.businessName||"Y").charAt(0).toUpperCase();
+  }
+
   const rows = [];
-  if (cfg.phone) rows.push(`<a class="contact-row" href="tel:${cfg.phone.replace(/\s/g,'')}">
-      <div class="icon call">📞</div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a><div class="divider"></div>`);
-  if (cfg.website) rows.push(`<a class="contact-row" href="${cfg.website}" target="_blank" rel="noopener">
-      <div class="icon web">🌐</div><div class="txt"><div class="label">Website</div><div class="val">${cfg.website.replace(/^https?:\/\//,'')}</div></div></a><div class="divider"></div>`);
-  if (cfg.address) rows.push(`<a class="contact-row" href="https://maps.google.com/?q=${encodeURIComponent(cfg.address)}" target="_blank" rel="noopener">
-      <div class="icon loc">📍</div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
-  document.getElementById('contactCard').innerHTML = rows.join('');
-  if (cfg.whatsapp) {
-    document.getElementById('waBtn').href = `https://wa.me/${cfg.whatsapp.replace(/[^0-9]/g,'')}`;
+  if (cfg.showPhone && cfg.phone) rows.push(`<a class="contact-row" href="tel:${cfg.phone.replace(/\s/g,'')}">
+      <div class="icon">📞</div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a>`);
+  if (cfg.showWebsite && cfg.websites && cfg.websites.length){
+    cfg.websites.forEach(w=>{
+      if (!w.url) return;
+      rows.push(`<a class="contact-row" href="${w.url}" target="_blank" rel="noopener">
+        <div class="icon">🌐</div><div class="txt"><div class="label">${w.label || 'Website'}</div><div class="val">${w.url.replace(/^https?:\/\//,'')}</div></div></a>`);
+    });
+  }
+  if (cfg.showAddress && cfg.address) rows.push(`<a class="contact-row" href="https://maps.google.com/?q=${encodeURIComponent(cfg.address)}" target="_blank" rel="noopener">
+      <div class="icon">📍</div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
+  document.getElementById('contactCard').innerHTML = rows.length
+    ? rows.join('<div class="divider"></div>')
+    : '<div class="empty">Contact details coming soon</div>';
+
+  const waEl = document.getElementById('waList');
+  if (cfg.showWhatsapp && cfg.whatsapps && cfg.whatsapps.length){
+    waEl.innerHTML = cfg.whatsapps.filter(w=>w.number).map(w=>
+      `<a class="cta-wa" href="https://wa.me/${w.number.replace(/[^0-9]/g,'')}" target="_blank" rel="noopener">
+        💬 ${w.label ? 'Chat — '+w.label : 'Chat on WhatsApp'}</a>`).join('');
+  } else {
+    waEl.innerHTML = '';
   }
 }
 
 function renderPromos(list){
   const el = document.getElementById('promosList');
-  document.getElementById('promoCount').textContent = list.length;
   if (!list.length){ el.innerHTML = '<div class="empty">No promotions right now — check back soon.</div>'; return; }
-  el.innerHTML = list.map((p,i)=>`
-    <div class="promo in" style="animation-delay:${i*60}ms">
-      <div class="tagHole"></div>
-      ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : `<div style="height:90px;background:linear-gradient(135deg,var(--brand),#2c6a54)"></div>`}
-      <div class="body">
-        ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
-        <h3>${p.title||''}</h3>
-        <p>${p.description||''}</p>
-        ${p.expiresAt ? `<div class="expiry">Ends ${p.expiresAt}</div>` : ''}
-      </div>
-    </div>`).join('');
+  el.innerHTML = list.map((p,i)=>{
+    const inner = p.imageUrl
+      ? `<img src="${p.imageUrl}" alt=""><div class="scrim">${p.badge?`<span class="badge">${p.badge}</span>`:''}<h3>${p.title||''}</h3>${p.linkUrl?'<div class="tap">Tap to view →</div>':''}</div>`
+      : `${p.badge?`<span class="badge" style="position:absolute;top:14px;left:14px">${p.badge}</span>`:''}<h3>${p.title||''}</h3>`;
+    const tag = p.linkUrl ? 'a' : 'div';
+    const href = p.linkUrl ? ` href="${p.linkUrl}" target="_blank" rel="noopener"` : '';
+    return `<${tag} class="promoCard${p.imageUrl?'':' noImg'} in" style="animation-delay:${i*70}ms"${href}>${inner}</${tag}>`;
+  }).join('');
 }
 
 function renderUpdates(list){
   const el = document.getElementById('updatesList');
   if (!list.length){ el.innerHTML = '<div class="empty">No updates yet.</div>'; return; }
   el.innerHTML = list.map((u,i)=>`
-    <div class="update in" style="animation-delay:${i*60}ms">
-      <div class="date">${u.date||''}</div>
-      <h3>${u.title||''}</h3>
-      <p>${u.body||''}</p>
+    <div class="update in" style="animation-delay:${i*70}ms">
+      ${u.imageUrl ? `<img src="${u.imageUrl}" alt="">` : ''}
+      <div class="body">
+        <div class="date">${u.date||''}</div>
+        <h3>${u.title||''}</h3>
+        <p>${u.body||''}</p>
+      </div>
     </div>`).join('');
 }
 
@@ -243,11 +268,7 @@ async function loadLive(){
 
   try{
     const promoSnap = await db.collection('promotions').where('active','==',true).get();
-    const promos = promoSnap.docs.map(d=>{
-      const p = d.data();
-      return {...p, expiresAt: p.expiresAt ? fmtDate(p.expiresAt) : null};
-    });
-    renderPromos(promos);
+    renderPromos(promoSnap.docs.map(d=>d.data()));
   }catch(e){ renderPromos([]); }
 
   try{
