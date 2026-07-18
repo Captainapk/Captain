@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://www.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
 (function(){
@@ -236,7 +237,11 @@ function normalizeConfig(cfg){
 
 let db = null;
 if (isConfigured) {
-  try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); }
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    db.enablePersistence().catch(()=>{ /* unsupported here, falls back to normal network mode */ });
+  }
   catch (e) { console.error('Firebase init failed', e); }
 } else {
   document.getElementById('demoBanner').style.display = 'block';
@@ -347,6 +352,24 @@ async function trackActivity(uid){
 async function loadLive(){
   trackActivity(uid);
 
+  // Instant paint from local cache if this device has opened the app before.
+  // First-ever open has nothing cached yet, so this quietly does nothing and
+  // the skeleton stays visible until the network fetch below completes.
+  try{
+    const [cfgC, promoC, upC] = await Promise.all([
+      db.collection('config').doc('business').get({source:'cache'}),
+      db.collection('promotions').where('active','==',true).get({source:'cache'}),
+      db.collection('updates').orderBy('createdAt','desc').limit(10).get({source:'cache'})
+    ]);
+    if (cfgC.exists) renderBusiness(cfgC.data());
+    if (!promoC.empty) renderPromos(promoC.docs.map(d=>d.data()));
+    if (!upC.empty) renderUpdates(upC.docs.map(d=>{
+      const u = d.data();
+      return {...u, date: u.createdAt ? fmtDate(u.createdAt) : ''};
+    }));
+  }catch(e){ /* nothing cached yet — that's fine */ }
+
+  // Always refresh from the server too, and update anything that changed.
   const [cfgRes, promoRes, upRes] = await Promise.allSettled([
     db.collection('config').doc('business').get(),
     db.collection('promotions').where('active','==',true).get(),
