@@ -22,11 +22,12 @@
   :root{
     --bg:#0F0D0A; --card:#1B1815; --card2:#231F18; --gold:#C9A227; --gold-soft:#E4C874;
     --ink:#F5EFDD; --muted:#A79A7D; --line:#332D22; --whatsapp:#25D366; --radius:18px;
-    --shadow:rgba(0,0,0,.5);
+    --shadow:rgba(0,0,0,.5); --sk1:#211D17; --sk2:#3D3324;
   }
   html.light{
     --bg:#FBF9F3; --card:#FFFFFF; --card2:#F3EEDF; --gold:#A9820D; --gold-soft:#8C6B0F;
     --ink:#211D14; --muted:#847A62; --line:#E6DFC9; --shadow:rgba(120,105,60,.16);
+    --sk1:#EFE8D3; --sk2:#FDFBF5;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
@@ -115,12 +116,13 @@
   .floatWa:active{transform:scale(.92)}
   @keyframes floatIn{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
 
-  .skeleton{background:linear-gradient(100deg,var(--card) 30%,var(--card2) 45%,var(--card) 60%);
-    background-size:300% 100%;animation:shimmer 1.5s ease infinite}
+  .skeleton{background:linear-gradient(100deg,var(--sk1) 25%,var(--sk2) 50%,var(--sk1) 75%);
+    background-size:300% 100%;animation:shimmer 1.6s ease-in-out infinite,pulse 1.6s ease-in-out infinite}
   @keyframes shimmer{0%{background-position:140% 0}100%{background-position:-40% 0}}
-  .sk-card{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;border-radius:14px;border:1px solid var(--line)}
-  .sk-update{height:64px;border-radius:14px;margin:0 18px 10px;border:1px solid var(--line)}
-  .sk-contact{height:150px;border-radius:var(--radius);margin:0 18px;border:1px solid var(--line)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.88}}
+  .sk-card{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;border-radius:14px;border:1px solid rgba(201,162,39,.35)}
+  .sk-update{height:64px;border-radius:14px;margin:0 18px 10px;border:1px solid rgba(201,162,39,.35)}
+  .sk-contact{height:150px;border-radius:var(--radius);margin:0 18px;border:1px solid rgba(201,162,39,.35)}
 
   .empty{color:var(--muted);font-size:13.5px;padding:18px;text-align:center}
   footer{text-align:center;color:var(--muted);font-size:11px;margin-top:40px;letter-spacing:.03em}
