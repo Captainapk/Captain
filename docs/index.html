@@ -73,6 +73,21 @@
     padding:12px 22px;border-radius:99px;text-decoration:none;display:none;align-items:center;gap:8px;
     box-shadow:0 6px 20px rgba(0,0,0,.4)}
   .storyLinkBtn:active{transform:translateX(-50%) scale(.96)}
+
+  .onboardOverlay{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;
+    align-items:center;justify-content:center;padding:24px}
+  .onboardCard{max-width:340px;width:100%;text-align:center}
+  .onboardCard h2{font-size:22px;margin:0 0 6px}
+  .onboardCard p{color:var(--muted);font-size:13.5px;margin:0 0 22px}
+  .obField{text-align:left;margin-bottom:14px}
+  .obField label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.05em;margin-bottom:6px}
+  .obField input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
+  .obErr{color:#D96A4C;font-size:12.5px;margin-bottom:10px;display:none}
+  .obBtn{width:100%;background:var(--gold);color:#1a1608;border:none;border-radius:14px;
+    padding:15px;font-weight:700;font-size:15px}
+  .obBtn:active{transform:scale(.98)}
   header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
   header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
@@ -202,6 +217,17 @@
     <div class="storyTapNext" onclick="nextStory()"></div>
   </div>
   <a class="storyLinkBtn" id="storyLinkBtn" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()"></a>
+</div>
+
+<div class="onboardOverlay" id="onboardOverlay">
+  <div class="onboardCard">
+    <h2>Welcome 👋</h2>
+    <p>Just so we know who's here — takes 10 seconds.</p>
+    <div class="obField"><label>Your name</label><input id="profileName" placeholder="e.g. Ahmed"></div>
+    <div class="obField"><label>WhatsApp / phone number</label><input id="profilePhone" placeholder="e.g. 971501234567"></div>
+    <div class="obErr" id="obErr">Please fill in both fields</div>
+    <button class="obBtn" onclick="submitProfile()">Continue</button>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -532,7 +558,32 @@ function loadDemo(){
   updateLogoRing();
 }
 
-if (isConfigured && db) { loadLive(); } else { loadDemo(); }
+function hasProfileLocally(){
+  try { return localStorage.getItem('profile_done') === '1'; } catch(e){ return false; }
+}
+function markProfileDone(){
+  try { localStorage.setItem('profile_done', '1'); } catch(e){}
+}
+async function submitProfile(){
+  const name = document.getElementById('profileName').value.trim();
+  const phone = document.getElementById('profilePhone').value.trim();
+  const err = document.getElementById('obErr');
+  if (!name || !phone){ err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  document.getElementById('onboardOverlay').style.display = 'none';
+  markProfileDone();
+  if (db && uid){
+    try{ await db.collection('installs').doc(uid).set({ name, phone }, {merge:true}); }
+    catch(e){ console.error('profile save failed', e); }
+  }
+}
+
+if (isConfigured && db) {
+  if (uid && !hasProfileLocally()) document.getElementById('onboardOverlay').style.display = 'flex';
+  loadLive();
+} else {
+  loadDemo();
+}
 </script>
 </body>
 </html>
