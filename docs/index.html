@@ -6,84 +6,127 @@
 <title>Business App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (!t) t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+    if (t === 'light') document.documentElement.classList.add('light');
+  } catch(e){}
+})();
+</script>
 <style>
   :root{
     --bg:#0F0D0A; --card:#1B1815; --card2:#231F18; --gold:#C9A227; --gold-soft:#E4C874;
     --ink:#F5EFDD; --muted:#A79A7D; --line:#332D22; --whatsapp:#25D366; --radius:18px;
+    --shadow:rgba(0,0,0,.5);
+  }
+  html.light{
+    --bg:#FBF9F3; --card:#FFFFFF; --card2:#F3EEDF; --gold:#A9820D; --gold-soft:#8C6B0F;
+    --ink:#211D14; --muted:#847A62; --line:#E6DFC9; --shadow:rgba(120,105,60,.16);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
     font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{transition:background-color .35s ease,color .35s ease}
   h1,h2,h3,.serif{font-family:'Playfair Display',serif}
   a{color:inherit}
-  .container{max-width:520px;margin:0 auto;padding:0 18px 56px}
+  .container{max-width:520px;margin:0 auto;padding:0 18px 90px}
 
   #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:12.5px;
     font-weight:700;text-align:center;padding:8px 12px;letter-spacing:.02em}
 
-  header.top{padding:30px 18px 26px;text-align:center;border-bottom:1px solid var(--line)}
-  .logoWrap{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;overflow:hidden;
-    border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card)}
+  header.top{position:relative;overflow:hidden;padding:26px 18px 16px;text-align:center}
+  header.top::before{content:'';position:absolute;top:-45%;left:50%;transform:translateX(-50%);
+    width:280px;height:280px;background:radial-gradient(circle,rgba(201,162,39,.20),transparent 70%);
+    pointer-events:none}
+  .themeBtn{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;
+    background:var(--card2);border:1px solid var(--line);font-size:15px;display:flex;
+    align-items:center;justify-content:center;color:var(--ink);z-index:2;padding:0}
+  .themeBtn:active{transform:scale(.92)}
+  .logoWrap{position:relative;width:60px;height:60px;border-radius:50%;margin:0 auto 12px;overflow:hidden;
+    border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card);z-index:1}
   .logoWrap img{width:100%;height:100%;object-fit:cover}
-  .logoWrap .fallback{font-family:'Playfair Display';font-size:24px;color:var(--gold)}
-  header.top h1{font-size:24px;margin:0 0 4px;font-weight:700;letter-spacing:.01em}
-  header.top p{margin:0;font-size:13px;color:var(--muted);letter-spacing:.02em}
+  .logoWrap .fallback{font-family:'Playfair Display';font-size:22px;color:var(--gold)}
+  header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
+  header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
-  section{margin-top:32px}
+  .quickNav{display:flex;gap:8px;padding:14px 18px 4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+  .quickNav::-webkit-scrollbar{display:none}
+  .quickNav a{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--muted);text-decoration:none;
+    padding:7px 14px;border-radius:99px;border:1px solid var(--line);white-space:nowrap;
+    transition:color .2s ease,border-color .2s ease}
+  .quickNav a:active{color:var(--gold);border-color:var(--gold)}
+
+  section{margin-top:30px;scroll-margin-top:14px}
   .sectionHead{display:flex;align-items:baseline;gap:10px;padding:0 18px;margin-bottom:14px}
   .sectionHead h2{font-size:19px;margin:0;font-weight:700}
   .sectionHead .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 
-  .promoScroll{display:flex;gap:14px;overflow-x:auto;padding:2px 18px 6px;
+  .promoScroll{display:flex;gap:12px;overflow-x:auto;padding:2px 18px 6px;
     scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .promoScroll::-webkit-scrollbar{display:none}
-  .promoCard{flex:0 0 auto;width:70%;max-width:270px;aspect-ratio:4/5;scroll-snap-align:start;
-    position:relative;border-radius:16px;overflow:hidden;text-decoration:none;display:block;
-    background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line)}
+  .promoCard{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;scroll-snap-align:start;
+    position:relative;border-radius:14px;overflow:hidden;text-decoration:none;display:block;
+    background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line);
+    box-shadow:0 10px 22px -14px var(--shadow);transition:background-color .35s ease,border-color .35s ease}
   .promoCard img{width:100%;height:100%;object-fit:cover;display:block}
   .promoCard .scrim{position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(15,13,10,0) 38%,rgba(15,13,10,.94) 100%);
-    display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
+    background:linear-gradient(180deg,rgba(10,9,6,0) 40%,rgba(10,9,6,.92) 100%);
+    display:flex;flex-direction:column;justify-content:flex-end;padding:12px}
   .promoCard .badge{align-self:flex-start;background:var(--gold);color:#1a1608;font-weight:700;
-    font-size:10.5px;letter-spacing:.05em;padding:3px 10px;border-radius:99px;margin-bottom:8px}
-  .promoCard h3{font-size:16px;margin:0 0 3px;color:var(--ink);font-weight:700}
-  .promoCard .tap{font-size:11px;color:var(--gold-soft);font-weight:600;letter-spacing:.03em}
-  .promoCard.noImg{display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
-  .promoCard.noImg h3{font-size:18px}
+    font-size:10px;letter-spacing:.05em;padding:2px 9px;border-radius:99px;margin-bottom:6px}
+  .promoCard h3{font-size:14px;margin:0;color:#F5EFDD;font-weight:700;line-height:1.25}
+  .promoCard .tap{font-size:10px;color:var(--gold-soft);font-weight:600;letter-spacing:.03em;margin-top:3px}
+  .promoCard.noImg{display:flex;align-items:center;justify-content:center;text-align:center;padding:16px}
+  .promoCard.noImg h3{font-size:15px;color:var(--ink)}
 
-  .update{background:var(--card);border:1px solid var(--line);border-radius:14px;
-    overflow:hidden;margin:0 18px 10px}
+  .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:8px;margin:0 18px;box-shadow:0 6px 18px -12px var(--shadow);
+    transition:background-color .35s ease,border-color .35s ease}
+  .contact-row{display:flex;align-items:center;gap:12px;padding:13px 10px;text-decoration:none;border-radius:12px}
+  .contact-row:active{background:var(--card2)}
+  .contact-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;font-size:17px;background:var(--card2);border:1px solid var(--line)}
+  .contact-row .txt .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .contact-row .txt .val{font-size:14px;font-weight:600;color:var(--ink)}
+  .divider{height:1px;background:var(--line);margin:2px 8px}
+  .waList{margin:14px 18px 0;display:flex;flex-direction:column;gap:10px}
+  .cta-wa{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--whatsapp);
+    color:#062b14;font-weight:700;font-size:14.5px;padding:14px;border-radius:14px;text-decoration:none;
+    box-shadow:0 6px 18px -6px rgba(37,211,102,.45)}
+  .cta-wa:active{transform:scale(.98)}
+
+  .update{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    margin:0 18px 10px;box-shadow:0 6px 18px -12px var(--shadow);transition:background-color .35s ease,border-color .35s ease}
   .update img{width:100%;height:150px;object-fit:cover;display:block}
   .update .body{padding:14px 16px}
   .update .date{font-size:10.5px;color:var(--gold-soft);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
   .update h3{font-size:15px;margin:4px 0 4px;font-weight:700}
   .update p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.5}
 
-  .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:8px;margin:0 18px}
-  .contact-row{display:flex;align-items:center;gap:12px;padding:13px 10px;text-decoration:none;
-    border-radius:12px}
-  .contact-row:active{background:var(--card2)}
-  .contact-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
-    justify-content:center;flex-shrink:0;font-size:17px;background:var(--card2);border:1px solid var(--line)}
-  .contact-row .txt .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;
-    letter-spacing:.06em;font-weight:700}
-  .contact-row .txt .val{font-size:14px;font-weight:600;color:var(--ink)}
-  .divider{height:1px;background:var(--line);margin:2px 8px}
+  .floatWa{position:fixed;bottom:22px;right:18px;width:56px;height:56px;border-radius:50%;
+    background:var(--whatsapp);display:flex;align-items:center;justify-content:center;font-size:26px;
+    text-decoration:none;box-shadow:0 10px 26px -6px rgba(37,211,102,.55);z-index:10;
+    animation:floatIn .5s ease .3s both}
+  .floatWa:active{transform:scale(.92)}
+  @keyframes floatIn{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
 
-  .waList{margin:14px 18px 0;display:flex;flex-direction:column;gap:10px}
-  .cta-wa{display:flex;align-items:center;justify-content:center;gap:10px;
-    background:var(--whatsapp);color:#062b14;font-weight:700;font-size:14.5px;padding:14px;
-    border-radius:14px;text-decoration:none;box-shadow:0 6px 18px -6px rgba(37,211,102,.45)}
-  .cta-wa:active{transform:scale(.98)}
+  .skeleton{background:linear-gradient(100deg,var(--card) 30%,var(--card2) 45%,var(--card) 60%);
+    background-size:300% 100%;animation:shimmer 1.5s ease infinite}
+  @keyframes shimmer{0%{background-position:140% 0}100%{background-position:-40% 0}}
+  .sk-card{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;border-radius:14px;border:1px solid var(--line)}
+  .sk-update{height:64px;border-radius:14px;margin:0 18px 10px;border:1px solid var(--line)}
+  .sk-contact{height:150px;border-radius:var(--radius);margin:0 18px;border:1px solid var(--line)}
 
   .empty{color:var(--muted);font-size:13.5px;padding:18px;text-align:center}
   footer{text-align:center;color:var(--muted);font-size:11px;margin-top:40px;letter-spacing:.03em}
 
   @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .in{animation:rise .4s ease both}
-  @media (prefers-reduced-motion: reduce){.in{animation:none}}
+  @media (prefers-reduced-motion: reduce){.in,.skeleton,.floatWa{animation:none}}
   *:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 </head>
@@ -92,31 +135,48 @@
 <div id="demoBanner">⚙️ Demo mode — connect Firebase to show your real content (see README)</div>
 
 <header class="top">
+  <button class="themeBtn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️</button>
   <div class="logoWrap" id="logoWrap"><span class="fallback" id="logoFallback">Y</span></div>
   <h1 id="bizName">Your Business</h1>
   <p id="bizTagline">Loading the latest updates &amp; offers…</p>
 </header>
 
+<nav class="quickNav">
+  <a href="#promosSection">✨ Promotions</a>
+  <a href="#contactSection">💬 Get in touch</a>
+  <a href="#updatesSection">📰 Updates</a>
+</nav>
+
 <div class="container">
 
   <section id="promosSection">
     <div class="sectionHead"><h2>Promotions</h2><div class="rule"></div></div>
-    <div class="promoScroll" id="promosList"></div>
+    <div class="promoScroll" id="promosList">
+      <div class="promoCard sk-card skeleton"></div>
+      <div class="promoCard sk-card skeleton"></div>
+    </div>
+  </section>
+
+  <section id="contactSection">
+    <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
+    <div class="contact-card" id="contactCard">
+      <div class="sk-contact skeleton" style="margin:0"></div>
+    </div>
+    <div class="waList" id="waList"></div>
   </section>
 
   <section id="updatesSection">
     <div class="sectionHead"><h2>Updates</h2><div class="rule"></div></div>
-    <div id="updatesList"></div>
+    <div id="updatesList">
+      <div class="sk-update skeleton"></div>
+      <div class="sk-update skeleton"></div>
+    </div>
   </section>
 
-  <section>
-    <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
-    <div class="contact-card" id="contactCard"></div>
-    <div class="waList" id="waList"></div>
-  </section>
-
-  <footer>We usually reply fast — tap above anytime.</footer>
+  <footer>We usually reply fast — tap anytime.</footer>
 </div>
+
+<a class="floatWa" id="floatWaBtn" href="#" style="display:none" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">💬</a>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -151,6 +211,17 @@ const DEMO = {
     {title:"Holiday hours", body:"We'll be closed Friday for a public holiday, back Saturday.", date:"10 Jul", imageUrl:""}
   ]
 };
+
+function updateThemeIcon(){
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = document.documentElement.classList.contains('light') ? '🌙' : '☀️';
+}
+function toggleTheme(){
+  const isLight = document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('theme', isLight ? 'light' : 'dark'); } catch(e){}
+  updateThemeIcon();
+}
+updateThemeIcon();
 
 function normalizeConfig(cfg){
   const out = {...cfg};
@@ -201,12 +272,25 @@ function renderBusiness(cfgRaw){
     : '<div class="empty">Contact details coming soon</div>';
 
   const waEl = document.getElementById('waList');
-  if (cfg.showWhatsapp && cfg.whatsapps && cfg.whatsapps.length){
-    waEl.innerHTML = cfg.whatsapps.filter(w=>w.number).map(w=>
+  const validWa = (cfg.showWhatsapp && cfg.whatsapps) ? cfg.whatsapps.filter(w=>w.number) : [];
+  if (validWa.length){
+    waEl.innerHTML = validWa.map(w=>
       `<a class="cta-wa" href="https://wa.me/${w.number.replace(/[^0-9]/g,'')}" target="_blank" rel="noopener">
         💬 ${w.label ? 'Chat — '+w.label : 'Chat on WhatsApp'}</a>`).join('');
   } else {
     waEl.innerHTML = '';
+  }
+
+  const floatBtn = document.getElementById('floatWaBtn');
+  if (validWa.length === 1){
+    floatBtn.href = `https://wa.me/${validWa[0].number.replace(/[^0-9]/g,'')}`;
+    floatBtn.style.display = 'flex';
+  } else if (validWa.length > 1){
+    floatBtn.href = '#';
+    floatBtn.onclick = (e)=>{ e.preventDefault(); document.getElementById('waList').scrollIntoView({behavior:'smooth', block:'center'}); };
+    floatBtn.style.display = 'flex';
+  } else {
+    floatBtn.style.display = 'none';
   }
 }
 
@@ -216,7 +300,7 @@ function renderPromos(list){
   el.innerHTML = list.map((p,i)=>{
     const inner = p.imageUrl
       ? `<img src="${p.imageUrl}" alt=""><div class="scrim">${p.badge?`<span class="badge">${p.badge}</span>`:''}<h3>${p.title||''}</h3>${p.linkUrl?'<div class="tap">Tap to view →</div>':''}</div>`
-      : `${p.badge?`<span class="badge" style="position:absolute;top:14px;left:14px">${p.badge}</span>`:''}<h3>${p.title||''}</h3>`;
+      : `${p.badge?`<span class="badge" style="position:absolute;top:10px;left:10px">${p.badge}</span>`:''}<h3>${p.title||''}</h3>`;
     const tag = p.linkUrl ? 'a' : 'div';
     const href = p.linkUrl ? ` href="${p.linkUrl}" target="_blank" rel="noopener"` : '';
     return `<${tag} class="promoCard${p.imageUrl?'':' noImg'} in" style="animation-delay:${i*70}ms"${href}>${inner}</${tag}>`;
@@ -261,26 +345,29 @@ async function trackActivity(uid){
 }
 
 async function loadLive(){
-  try{
-    const cfgSnap = await db.collection('config').doc('business').get();
-    renderBusiness(cfgSnap.exists ? cfgSnap.data() : DEMO.business);
-  }catch(e){ renderBusiness(DEMO.business); }
+  trackActivity(uid);
 
-  try{
-    const promoSnap = await db.collection('promotions').where('active','==',true).get();
-    renderPromos(promoSnap.docs.map(d=>d.data()));
-  }catch(e){ renderPromos([]); }
+  const [cfgRes, promoRes, upRes] = await Promise.allSettled([
+    db.collection('config').doc('business').get(),
+    db.collection('promotions').where('active','==',true).get(),
+    db.collection('updates').orderBy('createdAt','desc').limit(10).get()
+  ]);
 
-  try{
-    const upSnap = await db.collection('updates').orderBy('createdAt','desc').limit(10).get();
-    const updates = upSnap.docs.map(d=>{
+  if (cfgRes.status === 'fulfilled') {
+    renderBusiness(cfgRes.value.exists ? cfgRes.value.data() : DEMO.business);
+  } else { renderBusiness(DEMO.business); }
+
+  if (promoRes.status === 'fulfilled') {
+    renderPromos(promoRes.value.docs.map(d=>d.data()));
+  } else { renderPromos([]); }
+
+  if (upRes.status === 'fulfilled') {
+    const updates = upRes.value.docs.map(d=>{
       const u = d.data();
       return {...u, date: u.createdAt ? fmtDate(u.createdAt) : ''};
     });
     renderUpdates(updates);
-  }catch(e){ renderUpdates([]); }
-
-  trackActivity(uid);
+  } else { renderUpdates([]); }
 }
 
 function loadDemo(){
