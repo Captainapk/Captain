@@ -68,6 +68,11 @@
   .storyTapZones{position:absolute;inset:0;display:flex;z-index:1}
   .storyTapPrev{flex:1}
   .storyTapNext{flex:2}
+  .storyLinkBtn{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:4;
+    background:rgba(255,255,255,.96);color:#151109;font-weight:700;font-size:14px;
+    padding:12px 22px;border-radius:99px;text-decoration:none;display:none;align-items:center;gap:8px;
+    box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .storyLinkBtn:active{transform:translateX(-50%) scale(.96)}
   header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
   header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
@@ -196,6 +201,7 @@
     <div class="storyTapPrev" onclick="prevStory()"></div>
     <div class="storyTapNext" onclick="nextStory()"></div>
   </div>
+  <a class="storyLinkBtn" id="storyLinkBtn" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()"></a>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -444,6 +450,14 @@ function showStory(i){
     fill.style.width = idx < i ? '100%' : '0%';
   });
   document.getElementById('storyImg').src = statusList[i].imageUrl;
+  const linkBtn = document.getElementById('storyLinkBtn');
+  if (statusList[i].linkUrl){
+    linkBtn.href = statusList[i].linkUrl;
+    linkBtn.textContent = statusList[i].linkUrl.includes('wa.me') ? '💬 Chat on WhatsApp' : '🔗 Visit link';
+    linkBtn.style.display = 'flex';
+  } else {
+    linkBtn.style.display = 'none';
+  }
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       const fill = segs[i].querySelector('.fill');
