@@ -208,8 +208,9 @@
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px">
           Each photo disappears automatically 24 hours after you add it — just like WhatsApp/Instagram status.
         </p>
-        <input type="file" accept="image/png,image/jpeg" id="statusFile" style="display:none" onchange="handleStatusFile(this)">
-        <button type="button" class="addBtn" style="margin-bottom:0" onclick="document.getElementById('statusFile').click()">+ Add status photo</button>
+        <input type="file" accept="image/png,image/jpeg" id="statusFile" multiple style="display:none" onchange="handleStatusFile(this)">
+        <button type="button" class="addBtn" style="margin-bottom:0" onclick="document.getElementById('statusFile').click()">+ Add status photo(s)</button>
+        <div class="ok" id="statusMsg" style="margin-top:10px"></div>
       </div>
       <div id="statusGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
     </section>
@@ -459,16 +460,32 @@ function clearUpdateImg(){
 const STATUS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 async function handleStatusFile(input){
-  const file = input.files[0];
-  if (!file) return;
-  const dataUrl = await resizeImageFile(file, 1080, 'image/jpeg', 0.8);
-  if (!isConfigured){
-    state.status.unshift({id:'s'+Date.now(), imageUrl:dataUrl, createdAt: Date.now()});
-    renderStatusGrid();
-    input.value = '';
-    return;
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+  const msg = document.getElementById('statusMsg');
+  const showMsg = (text, isError)=>{
+    if (!msg) return;
+    msg.textContent = text;
+    msg.style.color = isError ? 'var(--bad)' : 'var(--gold-soft)';
+    msg.style.display = 'block';
+  };
+  showMsg(`Uploading ${files.length} photo${files.length>1?'s':''}…`, false);
+  try{
+    for (const file of files){
+      const dataUrl = await resizeImageFile(file, 1080, 'image/jpeg', 0.8);
+      if (!isConfigured){
+        state.status.unshift({id:'s'+Date.now()+Math.random(), imageUrl:dataUrl, createdAt: Date.now()});
+      } else {
+        await db.collection('status').add({ imageUrl: dataUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      }
+    }
+    if (!isConfigured) renderStatusGrid();
+    showMsg(`${files.length} photo${files.length>1?'s':''} uploaded ✓`, false);
+    setTimeout(()=>{ if (msg) msg.style.display = 'none'; }, 2500);
+  }catch(e){
+    console.error('status upload failed', e);
+    showMsg('Upload failed — check that Firestore Rules include the "status" section and are Published, then try again.', true);
   }
-  await db.collection('status').add({ imageUrl: dataUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
   input.value = '';
 }
 
