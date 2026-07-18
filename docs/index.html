@@ -52,6 +52,22 @@
     border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card);z-index:1}
   .logoWrap img{width:100%;height:100%;object-fit:cover}
   .logoWrap .fallback{font-family:'Playfair Display';font-size:22px;color:var(--gold)}
+  .logoWrap.hasStatus{cursor:pointer;box-shadow:0 0 0 3px var(--bg),0 0 10px 1px rgba(201,162,39,.4);
+    animation:ringGlow 2s ease-in-out infinite}
+  @keyframes ringGlow{0%,100%{box-shadow:0 0 0 3px var(--bg),0 0 10px 1px rgba(201,162,39,.4)}
+    50%{box-shadow:0 0 0 3px var(--bg),0 0 16px 4px rgba(201,162,39,.75)}}
+
+  .storyOverlay{position:fixed;inset:0;background:#000;z-index:50;display:none;align-items:center;justify-content:center}
+  .storyProgress{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:4px;z-index:2}
+  .storyProgress .seg{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+  .storyProgress .seg .fill{height:100%;width:0%;background:#fff}
+  .storyClose{position:absolute;top:8px;right:14px;z-index:3;background:rgba(0,0,0,.45);color:#fff;
+    border:none;width:34px;height:34px;border-radius:50%;font-size:15px}
+  .storyImgWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  .storyImgWrap img{max-width:100%;max-height:100%;object-fit:contain}
+  .storyTapZones{position:absolute;inset:0;display:flex;z-index:1}
+  .storyTapPrev{flex:1}
+  .storyTapNext{flex:2}
   header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
   header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
@@ -172,6 +188,16 @@
   <footer>We usually reply fast — tap anytime.</footer>
 </div>
 
+<div class="storyOverlay" id="storyOverlay">
+  <div class="storyProgress" id="storyProgress"></div>
+  <button class="storyClose" onclick="closeStory()">✕</button>
+  <div class="storyImgWrap"><img id="storyImg" src="" alt=""></div>
+  <div class="storyTapZones">
+    <div class="storyTapPrev" onclick="prevStory()"></div>
+    <div class="storyTapNext" onclick="nextStory()"></div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -203,7 +229,8 @@ const DEMO = {
   updates: [
     {title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", date:"14 Jul", imageUrl:""},
     {title:"Holiday hours", body:"We'll be closed Friday for a public holiday, back Saturday.", date:"10 Jul", imageUrl:""}
-  ]
+  ],
+  status: []
 };
 
 function updateThemeIcon(){
@@ -367,12 +394,81 @@ async function trackActivity(uid){
   }catch(e){ console.error('activity tracking failed', e); }
 }
 
+// ---------- Status / stories (auto-expire after 24h, client-side) ----------
+let statusList = [];
+let storyIndex = 0;
+let storyTimer = null;
+const STORY_DURATION = 5000;
+const STORY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function isStatusActive(s){
+  if (!s.createdAt) return false;
+  const ms = s.createdAt.toMillis ? s.createdAt.toMillis() : s.createdAt;
+  return (Date.now() - ms) < STORY_WINDOW_MS;
+}
+
+function updateLogoRing(){
+  const wrap = document.getElementById('logoWrap');
+  if (statusList.length){
+    wrap.classList.add('hasStatus');
+    wrap.onclick = openStory;
+  } else {
+    wrap.classList.remove('hasStatus');
+    wrap.onclick = null;
+  }
+}
+
+async function loadStatus(){
+  if (!db) { statusList = []; updateLogoRing(); return; }
+  try{
+    const snap = await db.collection('status').orderBy('createdAt','desc').get();
+    statusList = snap.docs.map(d=>d.data()).filter(isStatusActive);
+  }catch(e){ statusList = []; }
+  updateLogoRing();
+}
+
+function openStory(){
+  if (!statusList.length) return;
+  storyIndex = 0;
+  document.getElementById('storyProgress').innerHTML =
+    statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+  showStory(0);
+  document.getElementById('storyOverlay').style.display = 'flex';
+}
+function showStory(i){
+  clearTimeout(storyTimer);
+  const segs = document.querySelectorAll('#storyProgress .seg');
+  segs.forEach((s,idx)=>{
+    const fill = s.querySelector('.fill');
+    fill.style.transition = 'none';
+    fill.style.width = idx < i ? '100%' : '0%';
+  });
+  document.getElementById('storyImg').src = statusList[i].imageUrl;
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const fill = segs[i].querySelector('.fill');
+      fill.style.transition = `width ${STORY_DURATION}ms linear`;
+      fill.style.width = '100%';
+    });
+  });
+  storyTimer = setTimeout(nextStory, STORY_DURATION);
+}
+function nextStory(){
+  if (storyIndex < statusList.length - 1){ storyIndex++; showStory(storyIndex); }
+  else { closeStory(); }
+}
+function prevStory(){
+  if (storyIndex > 0){ storyIndex--; showStory(storyIndex); }
+}
+function closeStory(){
+  clearTimeout(storyTimer);
+  document.getElementById('storyOverlay').style.display = 'none';
+}
+
 async function loadLive(){
   trackActivity(uid);
+  loadStatus();
 
-  // Instant paint from local cache if this device has opened the app before.
-  // First-ever open has nothing cached yet, so this quietly does nothing and
-  // the skeleton stays visible until the network fetch below completes.
   try{
     const [cfgC, promoC, upC] = await Promise.all([
       db.collection('config').doc('business').get({source:'cache'}),
@@ -387,7 +483,6 @@ async function loadLive(){
     }));
   }catch(e){ /* nothing cached yet — that's fine */ }
 
-  // Always refresh from the server too, and update anything that changed.
   const [cfgRes, promoRes, upRes] = await Promise.allSettled([
     db.collection('config').doc('business').get(),
     db.collection('promotions').where('active','==',true).get(),
@@ -415,6 +510,8 @@ function loadDemo(){
   renderBusiness(DEMO.business);
   renderPromos(DEMO.promos);
   renderUpdates(DEMO.updates);
+  statusList = DEMO.status.filter(isStatusActive);
+  updateLogoRing();
 }
 
 if (isConfigured && db) { loadLive(); } else { loadDemo(); }
