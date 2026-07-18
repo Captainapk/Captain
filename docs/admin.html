@@ -193,9 +193,13 @@
         <canvas id="activityChart" height="140"></canvas>
       </div>
       <div class="panel">
-        <h3>Recent installs</h3>
+        <h3>Recent installs
+          <input type="text" id="installSearch" placeholder="Search name or phone…" oninput="recomputeDashboard()"
+            style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
+            font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
+        </h3>
         <table>
-          <thead><tr><th>Customer ID</th><th>Installed</th><th>Last active</th><th>Status</th></tr></thead>
+          <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th></tr></thead>
           <tbody id="installsTable"><tr><td colspan="4" class="empty">No installs yet</td></tr></tbody>
         </table>
       </div>
@@ -625,6 +629,8 @@ async function loadAll(){
     state.installs = snap.docs.map(d=>{
       const v = d.data();
       return {id:d.id,
+        name: v.name || '',
+        phone: v.phone || '',
         installedAt: v.installedAt && v.installedAt.toMillis ? v.installedAt.toMillis() : Date.now(),
         lastActiveAt: v.lastActiveAt && v.lastActiveAt.toMillis ? v.lastActiveAt.toMillis() : Date.now()};
     });
@@ -656,16 +662,24 @@ function recomputeDashboard(){
     options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
   });
 
-  const rows = [...state.installs].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,15).map(i=>{
+  const q = (document.getElementById('installSearch').value || '').toLowerCase().trim();
+  const filtered = state.installs.filter(i =>
+    !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
+
+  const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
     const isActive = i.lastActiveAt >= cutoff;
+    const nameCell = i.name ? i.name : '<span style="opacity:.5">Unknown</span>';
+    const phoneCell = i.phone
+      ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
+      : '—';
     return `<tr>
-      <td class="mono">${i.id.slice(0,10)}…</td>
-      <td>${new Date(i.installedAt).toLocaleDateString()}</td>
+      <td>${nameCell}</td>
+      <td>${phoneCell}</td>
       <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
       <td><span class="tag ${isActive?'on':'off'}">${isActive?'Active':'Inactive'}</span></td>
     </tr>`;
   }).join('');
-  document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs yet</td></tr>';
+  document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs match</td></tr>';
 }
 
 function fillConfigForm(cRaw){
