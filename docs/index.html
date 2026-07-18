@@ -402,8 +402,8 @@ const STORY_DURATION = 5000;
 const STORY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 function isStatusActive(s){
-  if (!s.createdAt) return false;
-  const ms = s.createdAt.toMillis ? s.createdAt.toMillis() : s.createdAt;
+  const ms = (s.createdAt && s.createdAt.toMillis) ? s.createdAt.toMillis()
+    : (typeof s.createdAt === 'number' ? s.createdAt : Date.now());
   return (Date.now() - ms) < STORY_WINDOW_MS;
 }
 
@@ -469,6 +469,9 @@ async function loadLive(){
   trackActivity(uid);
   loadStatus();
 
+  // Instant paint from local cache if this device has opened the app before.
+  // First-ever open has nothing cached yet, so this quietly does nothing and
+  // the skeleton stays visible until the network fetch below completes.
   try{
     const [cfgC, promoC, upC] = await Promise.all([
       db.collection('config').doc('business').get({source:'cache'}),
@@ -483,6 +486,7 @@ async function loadLive(){
     }));
   }catch(e){ /* nothing cached yet — that's fine */ }
 
+  // Always refresh from the server too, and update anything that changed.
   const [cfgRes, promoRes, upRes] = await Promise.allSettled([
     db.collection('config').doc('business').get(),
     db.collection('promotions').where('active','==',true).get(),
