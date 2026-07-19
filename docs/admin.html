@@ -500,7 +500,7 @@ async function handleStatusFile(input){
 function statusCreatedMs(s){
   if (s.createdAt && s.createdAt.toMillis) return s.createdAt.toMillis();
   if (typeof s.createdAt === 'number') return s.createdAt;
-  return Date.now(); // timestamp still pending from the server — treat as just uploaded
+  return Date.now();
 }
 function statusIsActive(s){
   return (Date.now() - statusCreatedMs(s)) < STATUS_WINDOW_MS;
