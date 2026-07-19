@@ -61,7 +61,7 @@
   .tabPanel{display:none}
   .tabPanel.active{display:block}
 
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
   .stat .num{font-family:'IBM Plex Mono';font-size:24px;font-weight:600;color:var(--ink)}
   .stat.active .num{color:var(--gold-soft)}
@@ -126,6 +126,7 @@
 
   .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
   @media (max-width:420px){.stats{grid-template-columns:1fr 1fr}}
+  .tag.gone{background:#2a2620;color:var(--muted)}
 
   .statusCard{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:3/4;background:var(--card2)}
   .statusCard img{width:100%;height:100%;object-fit:cover;display:block}
@@ -181,6 +182,7 @@
         <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Installed</div></div>
         <div class="stat active"><div class="num mono" id="statActive">0</div><div class="lbl">Active</div></div>
         <div class="stat inactive"><div class="num mono" id="statInactive">0</div><div class="lbl">Inactive</div></div>
+        <div class="stat inactive"><div class="num mono" id="statGone">0</div><div class="lbl">Likely gone</div></div>
       </div>
       <div class="panel">
         <h3>Active vs inactive
@@ -498,7 +500,7 @@ async function handleStatusFile(input){
 function statusCreatedMs(s){
   if (s.createdAt && s.createdAt.toMillis) return s.createdAt.toMillis();
   if (typeof s.createdAt === 'number') return s.createdAt;
-  return Date.now();
+  return Date.now(); // timestamp still pending from the server — treat as just uploaded
 }
 function statusIsActive(s){
   return (Date.now() - statusCreatedMs(s)) < STATUS_WINDOW_MS;
@@ -646,20 +648,27 @@ async function loadAll(){
 function recomputeDashboard(){
   const days = parseInt(document.getElementById('threshSelect').value, 10);
   const cutoff = Date.now() - days*86400000;
-  let active = 0, inactive = 0;
-  state.installs.forEach(i => (i.lastActiveAt >= cutoff ? active++ : inactive++));
+  const GONE_DAYS = 30;
+  const goneCutoff = Date.now() - GONE_DAYS*86400000;
+  let active = 0, inactive = 0, gone = 0;
+  state.installs.forEach(i => {
+    if (i.lastActiveAt >= cutoff) active++;
+    else if (i.lastActiveAt >= goneCutoff) inactive++;
+    else gone++;
+  });
 
   document.getElementById('statTotal').textContent = state.installs.length;
   document.getElementById('statActive').textContent = active;
   document.getElementById('statInactive').textContent = inactive;
+  document.getElementById('statGone').textContent = gone;
 
   try {
     const ctx = document.getElementById('activityChart');
     if (chart) chart.destroy();
     chart = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels: ['Active','Inactive'], datasets:[{ data:[active,inactive],
-        backgroundColor:['#C9A227','#D96A4C'], borderWidth:0 }] },
+      data: { labels: ['Active','Inactive','Likely gone'], datasets:[{ data:[active,inactive,gone],
+        backgroundColor:['#C9A227','#D96A4C','#5c5646'], borderWidth:0 }] },
       options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
     });
   } catch(e) { console.error('chart render failed', e); }
@@ -671,7 +680,10 @@ function recomputeDashboard(){
       !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
 
     const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
-      const isActive = i.lastActiveAt >= cutoff;
+      let tagClass, tagLabel;
+      if (i.lastActiveAt >= cutoff){ tagClass='on'; tagLabel='Active'; }
+      else if (i.lastActiveAt >= goneCutoff){ tagClass='off'; tagLabel='Inactive'; }
+      else { tagClass='gone'; tagLabel='Likely gone'; }
       const nameCell = i.name ? i.name : '<span style="opacity:.5">Unknown</span>';
       const phoneCell = i.phone
         ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
@@ -680,7 +692,7 @@ function recomputeDashboard(){
         <td>${nameCell}</td>
         <td>${phoneCell}</td>
         <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
-        <td><span class="tag ${isActive?'on':'off'}">${isActive?'Active':'Inactive'}</span></td>
+        <td><span class="tag ${tagClass}">${tagLabel}</span></td>
       </tr>`;
     }).join('');
     document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs match</td></tr>';
