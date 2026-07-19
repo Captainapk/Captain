@@ -498,7 +498,7 @@ async function handleStatusFile(input){
 function statusCreatedMs(s){
   if (s.createdAt && s.createdAt.toMillis) return s.createdAt.toMillis();
   if (typeof s.createdAt === 'number') return s.createdAt;
-  return Date.now(); // timestamp still pending from the server — treat as just uploaded
+  return Date.now();
 }
 function statusIsActive(s){
   return (Date.now() - statusCreatedMs(s)) < STATUS_WINDOW_MS;
@@ -556,7 +556,7 @@ function demoInstalls(){
 const DEMO = {
   config: {
     businessName:"Cedar & Co.", tagline:"Fresh updates from our team", logoUrl:"",
-    phone:"+971 4 000 0000", showPhone:true,
+    phone:"WhatsApp Number", showPhone:true,
     address:"Shop 4, Al Wasl Road, Dubai", hours:"Sat–Thu, 10am–10pm", showAddress:true,
     whatsapps:[{label:"Sales", number:"WhatsApp Number"}], showWhatsapp:true,
     websites:[{label:"Main site", url:"https://example.com"}], showWebsite:true
@@ -653,33 +653,41 @@ function recomputeDashboard(){
   document.getElementById('statActive').textContent = active;
   document.getElementById('statInactive').textContent = inactive;
 
-  const ctx = document.getElementById('activityChart');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels: ['Active','Inactive'], datasets:[{ data:[active,inactive],
-      backgroundColor:['#C9A227','#D96A4C'], borderWidth:0 }] },
-    options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
-  });
+  try {
+    const ctx = document.getElementById('activityChart');
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: ['Active','Inactive'], datasets:[{ data:[active,inactive],
+        backgroundColor:['#C9A227','#D96A4C'], borderWidth:0 }] },
+      options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
+    });
+  } catch(e) { console.error('chart render failed', e); }
 
-  const q = (document.getElementById('installSearch').value || '').toLowerCase().trim();
-  const filtered = state.installs.filter(i =>
-    !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
+  try {
+    const searchEl = document.getElementById('installSearch');
+    const q = (searchEl ? searchEl.value : '').toLowerCase().trim();
+    const filtered = state.installs.filter(i =>
+      !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
 
-  const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
-    const isActive = i.lastActiveAt >= cutoff;
-    const nameCell = i.name ? i.name : '<span style="opacity:.5">Unknown</span>';
-    const phoneCell = i.phone
-      ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
-      : '—';
-    return `<tr>
-      <td>${nameCell}</td>
-      <td>${phoneCell}</td>
-      <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
-      <td><span class="tag ${isActive?'on':'off'}">${isActive?'Active':'Inactive'}</span></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs match</td></tr>';
+    const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
+      const isActive = i.lastActiveAt >= cutoff;
+      const nameCell = i.name ? i.name : '<span style="opacity:.5">Unknown</span>';
+      const phoneCell = i.phone
+        ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
+        : '—';
+      return `<tr>
+        <td>${nameCell}</td>
+        <td>${phoneCell}</td>
+        <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
+        <td><span class="tag ${isActive?'on':'off'}">${isActive?'Active':'Inactive'}</span></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs match</td></tr>';
+  } catch(e) {
+    console.error('table render failed', e);
+    document.getElementById('installsTable').innerHTML = '<tr><td colspan="4" class="empty">Error loading table — see browser console</td></tr>';
+  }
 }
 
 function fillConfigForm(cRaw){
