@@ -223,7 +223,7 @@
             font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
         </h3>
         <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th></tr></thead>
+          <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th><th></th></tr></thead>
           <tbody id="installsTable"><tr><td colspan="4" class="empty">No installs yet</td></tr></tbody>
         </table>
       </div>
@@ -342,6 +342,7 @@
       </div>
     </div>
     <div class="field"><label>Link URL — opens when tapped (optional)</label><input id="promoLink" placeholder="https://wa.me/... or any link"></div>
+    <div class="field"><label>Start time (optional) — sends a "30 min left" reminder</label><input type="datetime-local" id="promoStartTime"></div>
     <label class="switch"><input type="checkbox" id="promoActive" checked> Active — visible in the app</label>
     <div class="modalActions">
       <button class="btn secondary" onclick="closeModal('promoModalBg')">Cancel</button>
@@ -522,7 +523,7 @@ async function handleStatusFile(input){
 function statusCreatedMs(s){
   if (s.createdAt && s.createdAt.toMillis) return s.createdAt.toMillis();
   if (typeof s.createdAt === 'number') return s.createdAt;
-  return Date.now(); // timestamp still pending from the server — treat as just uploaded
+  return Date.now();
 }
 function statusIsActive(s){
   return (Date.now() - statusCreatedMs(s)) < STATUS_WINDOW_MS;
@@ -583,8 +584,12 @@ function requestNotifyPermission(){
 }
 function showClickAlert(data){
   playSiren();
-  const label = data.name || 'Someone (no name yet)';
-  const sub = `${data.type === 'whatsapp' ? '💬 WhatsApp' : '📞 Call'}${data.detail ? ' — '+data.detail : ''}${data.phone ? ' · '+data.phone : ''}`;
+  const name = data.name || 'A customer';
+  const channelPhrase = data.type === 'whatsapp'
+    ? (data.detail ? `your ${data.detail} number` : 'your WhatsApp')
+    : 'you by phone';
+  const label = `${name} tried to contact ${channelPhrase}`;
+  const sub = data.phone ? `📱 ${data.phone}` : 'No number on file yet';
   document.getElementById('clickAlertName').textContent = label;
   document.getElementById('clickAlertSub').textContent = sub;
   document.getElementById('clickAlert').style.display = 'flex';
@@ -592,7 +597,7 @@ function showClickAlert(data){
   clickAlertTimer = setTimeout(dismissClickAlert, 8000);
   try{
     if (window.Notification && Notification.permission === 'granted'){
-      new Notification('📞 Contact request — ' + label, { body: sub });
+      new Notification('🔔 ' + label, { body: sub });
     }
   }catch(e){}
 }
@@ -601,13 +606,17 @@ function dismissClickAlert(){
 }
 function renderClicksList(docs){
   const el = document.getElementById('clicksList');
-  if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests yet</div>'; return; }
-  el.innerHTML = docs.slice(0,15).map(d=>{
+  if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests in the last 24 hours</div>'; return; }
+  el.innerHTML = docs.map(d=>{
     const v = d.data();
     const ms = v.clickedAt && v.clickedAt.toMillis ? v.clickedAt.toMillis() : Date.now();
+    const name = v.name || 'Unknown customer';
+    const channelPhrase = v.type === 'whatsapp'
+      ? (v.detail ? `your ${v.detail} number` : 'your WhatsApp')
+      : 'you by phone';
     return `<div class="row-item">
-      <div class="info"><div><h4>${v.name || 'Unknown'}</h4>
-      <p>${v.type==='whatsapp'?'💬 WhatsApp':'📞 Call'}${v.detail?' — '+v.detail:''} · ${new Date(ms).toLocaleString()}</p></div></div>
+      <div class="info"><div><h4>${name} tried to contact ${channelPhrase}</h4>
+      <p>${new Date(ms).toLocaleString()}${v.phone ? ' · '+v.phone : ''}</p></div></div>
       ${v.phone ? `<a class="btn secondary small" href="https://wa.me/${v.phone.replace(/[^0-9]/g,'')}" target="_blank">Reply</a>` : ''}
     </div>`;
   }).join('');
@@ -713,6 +722,7 @@ async function loadAll(){
       return {id:d.id,
         name: v.name || '',
         phone: v.phone || '',
+        blocked: !!v.blocked,
         installedAt: v.installedAt && v.installedAt.toMillis ? v.installedAt.toMillis() : Date.now(),
         lastActiveAt: v.lastActiveAt && v.lastActiveAt.toMillis ? v.lastActiveAt.toMillis() : Date.now()};
     });
@@ -725,7 +735,8 @@ async function loadAll(){
   });
 
   let firstClickSnapshot = true;
-  db.collection('contact_clicks').orderBy('clickedAt','desc').limit(20).onSnapshot(snap=>{
+  const clicksDayAgo = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
+  db.collection('contact_clicks').where('clickedAt','>=',clicksDayAgo).orderBy('clickedAt','desc').limit(100).onSnapshot(snap=>{
     if (firstClickSnapshot){
       firstClickSnapshot = false;
       renderClicksList(snap.docs);
@@ -774,25 +785,40 @@ function recomputeDashboard(){
 
     const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
       let tagClass, tagLabel;
-      if (i.lastActiveAt >= cutoff){ tagClass='on'; tagLabel='Active'; }
+      if (i.blocked){ tagClass='off'; tagLabel='🚫 Blocked'; }
+      else if (i.lastActiveAt >= cutoff){ tagClass='on'; tagLabel='Active'; }
       else if (i.lastActiveAt >= goneCutoff){ tagClass='off'; tagLabel='Inactive'; }
       else { tagClass='gone'; tagLabel='Likely gone'; }
       const nameCell = i.name ? i.name : '<span style="opacity:.5">Unknown</span>';
       const phoneCell = i.phone
         ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
         : '—';
+      const blockBtn = i.blocked
+        ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock">✓</button>`
+        : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block">🚫</button>`;
       return `<tr>
         <td>${nameCell}</td>
         <td>${phoneCell}</td>
         <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
         <td><span class="tag ${tagClass}">${tagLabel}</span></td>
+        <td>${blockBtn}</td>
       </tr>`;
     }).join('');
-    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="4" class="empty">No installs match</td></tr>';
+    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No installs match</td></tr>';
   } catch(e) {
     console.error('table render failed', e);
-    document.getElementById('installsTable').innerHTML = '<tr><td colspan="4" class="empty">Error loading table — see browser console</td></tr>';
+    document.getElementById('installsTable').innerHTML = '<tr><td colspan="5" class="empty">Error loading table — see browser console</td></tr>';
   }
+}
+function toggleBlock(id, blockState){
+  if (!confirm(blockState ? 'Block this customer? They will lose access to the app.' : 'Unblock this customer?')) return;
+  if (!isConfigured){
+    const i = state.installs.find(x=>x.id===id);
+    if (i) i.blocked = blockState;
+    recomputeDashboard();
+    return;
+  }
+  db.collection('installs').doc(id).update({ blocked: blockState }).catch(e=>console.error('block toggle failed', e));
 }
 
 function fillConfigForm(cRaw){
@@ -890,6 +916,15 @@ function openPromoModal(p){
   document.getElementById('promoBadge').value = p ? p.badge||'' : '';
   document.getElementById('promoLink').value = p ? p.linkUrl||'' : '';
   document.getElementById('promoActive').checked = p ? !!p.active : true;
+  const startInput = document.getElementById('promoStartTime');
+  if (p && p.startTime){
+    const ms = p.startTime.toMillis ? p.startTime.toMillis() : p.startTime;
+    const d = new Date(ms);
+    const pad = n => String(n).padStart(2,'0');
+    startInput.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } else {
+    startInput.value = '';
+  }
   promoImgDataUrl = p ? (p.imageUrl||'') : '';
   document.getElementById('promoFile').value = '';
   if (promoImgDataUrl){
@@ -904,20 +939,22 @@ function openPromoModal(p){
 }
 async function savePromo(){
   const id = document.getElementById('promoId').value;
+  const startVal = document.getElementById('promoStartTime').value;
   const data = {
     title: document.getElementById('promoTitle').value.trim(),
     badge: document.getElementById('promoBadge').value.trim(),
     imageUrl: promoImgDataUrl,
     linkUrl: document.getElementById('promoLink').value.trim(),
-    active: document.getElementById('promoActive').checked
+    active: document.getElementById('promoActive').checked,
+    startTime: startVal ? (isConfigured ? firebase.firestore.Timestamp.fromDate(new Date(startVal)) : new Date(startVal).getTime()) : null
   };
   if (!isConfigured){
     if (id){ const i=state.promos.findIndex(x=>x.id===id); state.promos[i]={...state.promos[i],...data}; }
-    else { state.promos.push({id:'p'+Date.now(), ...data}); }
+    else { state.promos.push({id:'p'+Date.now(), notified:false, reminderSent:false, ...data}); }
     renderPromosAdmin(); closeModal('promoModalBg'); return;
   }
   if (id) await db.collection('promotions').doc(id).set(data,{merge:true});
-  else await db.collection('promotions').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  else await db.collection('promotions').add({...data, notified:false, reminderSent:false, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
   closeModal('promoModalBg');
 }
 function deletePromo(id){
