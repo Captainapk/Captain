@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "807801159763",
+    "project_id": "captain-90263",
+    "storage_bucket": "captain-90263.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:807801159763:android:047d6ba6571099c29c06a6",
+        "android_client_info": {
+          "package_name": "com.yourco.customerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDWt6dbthjFdU806DfD83rPI3FIW1sz0Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
