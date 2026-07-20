@@ -1,14 +1,20 @@
 package com.yourco.customerapp
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.firebase.messaging.FirebaseMessaging
 import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
@@ -16,8 +22,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var swipeRefresh: SwipeRefreshLayout
 
-    // TODO: replace with your published web app URL, e.g.
-    // "https://yourusername.github.io/your-repo/"
     private val baseUrl = "https://captaininida.app/"
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -27,6 +31,8 @@ class MainActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webView)
         swipeRefresh = findViewById(R.id.swipeRefresh)
+
+        askNotificationPermission()
 
         val installId = getOrCreateInstallId()
 
@@ -54,12 +60,48 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 swipeRefresh.isRefreshing = false
+                syncFcmTokenIfPending(installId)
             }
         }
 
         swipeRefresh.setOnRefreshListener { webView.reload() }
 
-        webView.loadUrl("$baseUrl?uid=$installId&src=app")
+        val promoId = intent.getStringExtra("promoId")
+        var urlWithId = "$baseUrl?uid=$installId&src=app"
+        if (promoId != null) urlWithId += "&promo=$promoId"
+        webView.loadUrl(urlWithId)
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                prefs.edit()
+                    .putString("fcm_token", token)
+                    .putBoolean("fcm_token_pending", true)
+                    .apply()
+            }
+        }
+    }
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
+        }
+    }
+
+    private fun syncFcmTokenIfPending(installId: String) {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val pending = prefs.getBoolean("fcm_token_pending", false)
+        val token = prefs.getString("fcm_token", null)
+        if (pending && token != null) {
+            val js = "if (window.saveFcmToken) { window.saveFcmToken('$installId', '$token'); }"
+            webView.evaluateJavascript(js, null)
+            prefs.edit().putBoolean("fcm_token_pending", false).apply()
+        }
     }
 
     private fun getOrCreateInstallId(): String {
