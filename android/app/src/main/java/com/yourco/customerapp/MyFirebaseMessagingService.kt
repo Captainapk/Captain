@@ -25,7 +25,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val title = message.notification?.title ?: message.data["title"] ?: "New update"
         val body = message.notification?.body ?: message.data["body"] ?: ""
-        val promoId = message.data["promoId"]
+        val statusId = message.data["statusId"]
 
         val channelId = "promotions_channel"
         val nm = getSystemService(NotificationManager::class.java)
@@ -42,7 +42,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        if (promoId != null) intent.putExtra("promoId", promoId)
+        if (statusId != null) intent.putExtra("statusId", statusId)
 
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
