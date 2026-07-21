@@ -66,9 +66,9 @@ class MainActivity : AppCompatActivity() {
 
         swipeRefresh.setOnRefreshListener { webView.reload() }
 
-        val promoId = intent.getStringExtra("promoId")
+        val statusId = intent.getStringExtra("statusId")
         var urlWithId = "$baseUrl?uid=$installId&src=app"
-        if (promoId != null) urlWithId += "&promo=$promoId"
+        if (statusId != null) urlWithId += "&status=$statusId"
         webView.loadUrl(urlWithId)
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
