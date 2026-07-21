@@ -8,7 +8,7 @@ admin.initializeApp({
 const db = admin.firestore();
 const messaging = admin.messaging();
 
-async function sendToAll({ title, body, promoId }) {
+async function sendToAll({ title, body, statusId }) {
   const installsSnap = await db.collection('installs').get();
   const tokens = installsSnap.docs
     .filter(d => !d.data().blocked)
@@ -22,7 +22,7 @@ async function sendToAll({ title, body, promoId }) {
       await messaging.send({
         token,
         notification: { title, body },
-        data: { promoId: promoId || '' },
+        data: { statusId: statusId || '' },
         android: { priority: 'high' }
       });
     } catch (e) {
@@ -34,36 +34,32 @@ async function sendToAll({ title, body, promoId }) {
 async function main() {
   const now = Date.now();
 
-  const newPromosSnap = await db.collection('promotions')
-    .where('active', '==', true)
+  const newStatusSnap = await db.collection('status')
     .where('notified', '==', false)
     .get();
 
-  for (const doc of newPromosSnap.docs) {
-    const promo = doc.data();
+  for (const doc of newStatusSnap.docs) {
     await sendToAll({
-      title: `New offer: ${promo.title || 'Check it out'}`,
-      body: promo.badge ? `${promo.badge} — tap to view and claim` : 'Tap to view and claim',
-      promoId: doc.id
+      title: 'New update just posted!',
+      body: 'Tap to view — it disappears in 24 hours.',
+      statusId: doc.id
     });
     await doc.ref.update({ notified: true });
   }
 
-  const upcomingSnap = await db.collection('promotions')
-    .where('active', '==', true)
+  const reminderSnap = await db.collection('status')
     .where('reminderSent', '==', false)
     .get();
 
-  for (const doc of upcomingSnap.docs) {
-    const promo = doc.data();
-    if (!promo.startTime) continue;
-    const startMs = promo.startTime.toMillis ? promo.startTime.toMillis() : promo.startTime;
-    const minsUntil = (startMs - now) / 60000;
-    if (minsUntil <= 35 && minsUntil > 20) {
+  for (const doc of reminderSnap.docs) {
+    const s = doc.data();
+    if (!s.reminderTime) continue;
+    const remMs = s.reminderTime.toMillis ? s.reminderTime.toMillis() : s.reminderTime;
+    if (remMs <= now && remMs > now - 10 * 60000) {
       await sendToAll({
-        title: 'Last chance to join!',
-        body: `${promo.title || 'This offer'} starts in 30 minutes — don't miss out.`,
-        promoId: doc.id
+        title: 'Reminder — last chance!',
+        body: 'Tap to view this before it disappears.',
+        statusId: doc.id
       });
       await doc.ref.update({ reminderSent: true });
     }
