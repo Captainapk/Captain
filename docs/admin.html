@@ -237,6 +237,7 @@
           Each photo disappears automatically 24 hours after you add it — just like WhatsApp/Instagram status.
         </p>
         <div class="field"><label>Link (optional) — opens when tapped in the story</label><input id="statusLinkInput" placeholder="https://wa.me/... or any link"></div>
+        <div class="field"><label>Reminder date & time (optional) — sends a second notification at this exact time</label><input type="datetime-local" id="statusReminderInput"></div>
         <input type="file" accept="image/png,image/jpeg" id="statusFile" multiple style="display:none" onchange="handleStatusFile(this)">
         <button type="button" class="addBtn" style="margin-bottom:0" onclick="document.getElementById('statusFile').click()">+ Add status photo(s)</button>
         <div class="ok" id="statusMsg" style="margin-top:10px"></div>
@@ -342,7 +343,6 @@
       </div>
     </div>
     <div class="field"><label>Link URL — opens when tapped (optional)</label><input id="promoLink" placeholder="https://wa.me/... or any link"></div>
-    <div class="field"><label>Start time (optional) — sends a "30 min left" reminder</label><input type="datetime-local" id="promoStartTime"></div>
     <label class="switch"><input type="checkbox" id="promoActive" checked> Active — visible in the app</label>
     <div class="modalActions">
       <button class="btn secondary" onclick="closeModal('promoModalBg')">Cancel</button>
@@ -493,6 +493,10 @@ async function handleStatusFile(input){
   const files = Array.from(input.files || []);
   if (!files.length) return;
   const linkUrl = document.getElementById('statusLinkInput').value.trim();
+  const reminderVal = document.getElementById('statusReminderInput').value;
+  const reminderTime = reminderVal
+    ? (isConfigured ? firebase.firestore.Timestamp.fromDate(new Date(reminderVal)) : new Date(reminderVal).getTime())
+    : null;
   const msg = document.getElementById('statusMsg');
   const showMsg = (text, isError)=>{
     if (!msg) return;
@@ -505,14 +509,19 @@ async function handleStatusFile(input){
     for (const file of files){
       const dataUrl = await resizeImageFile(file, 1080, 'image/jpeg', 0.8);
       if (!isConfigured){
-        state.status.unshift({id:'s'+Date.now()+Math.random(), imageUrl:dataUrl, linkUrl, createdAt: Date.now()});
+        state.status.unshift({id:'s'+Date.now()+Math.random(), imageUrl:dataUrl, linkUrl, reminderTime, notified:false, reminderSent:false, createdAt: Date.now()});
       } else {
-        await db.collection('status').add({ imageUrl: dataUrl, linkUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        await db.collection('status').add({
+          imageUrl: dataUrl, linkUrl, reminderTime,
+          notified: false, reminderSent: false,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
       }
     }
     if (!isConfigured) renderStatusGrid();
-    showMsg(`${files.length} photo${files.length>1?'s':''} uploaded ✓`, false);
-    setTimeout(()=>{ if (msg) msg.style.display = 'none'; }, 2500);
+    showMsg(`${files.length} photo${files.length>1?'s':''} uploaded — notification will reach devices within ~5 min ✓`, false);
+    setTimeout(()=>{ if (msg) msg.style.display = 'none'; }, 4000);
+    document.getElementById('statusReminderInput').value = '';
   }catch(e){
     console.error('status upload failed', e);
     showMsg('Upload failed — check that Firestore Rules include the "status" section and are Published, then try again.', true);
@@ -523,7 +532,7 @@ async function handleStatusFile(input){
 function statusCreatedMs(s){
   if (s.createdAt && s.createdAt.toMillis) return s.createdAt.toMillis();
   if (typeof s.createdAt === 'number') return s.createdAt;
-  return Date.now();
+  return Date.now(); // timestamp still pending from the server — treat as just uploaded
 }
 function statusIsActive(s){
   return (Date.now() - statusCreatedMs(s)) < STATUS_WINDOW_MS;
@@ -916,15 +925,6 @@ function openPromoModal(p){
   document.getElementById('promoBadge').value = p ? p.badge||'' : '';
   document.getElementById('promoLink').value = p ? p.linkUrl||'' : '';
   document.getElementById('promoActive').checked = p ? !!p.active : true;
-  const startInput = document.getElementById('promoStartTime');
-  if (p && p.startTime){
-    const ms = p.startTime.toMillis ? p.startTime.toMillis() : p.startTime;
-    const d = new Date(ms);
-    const pad = n => String(n).padStart(2,'0');
-    startInput.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  } else {
-    startInput.value = '';
-  }
   promoImgDataUrl = p ? (p.imageUrl||'') : '';
   document.getElementById('promoFile').value = '';
   if (promoImgDataUrl){
@@ -939,22 +939,20 @@ function openPromoModal(p){
 }
 async function savePromo(){
   const id = document.getElementById('promoId').value;
-  const startVal = document.getElementById('promoStartTime').value;
   const data = {
     title: document.getElementById('promoTitle').value.trim(),
     badge: document.getElementById('promoBadge').value.trim(),
     imageUrl: promoImgDataUrl,
     linkUrl: document.getElementById('promoLink').value.trim(),
-    active: document.getElementById('promoActive').checked,
-    startTime: startVal ? (isConfigured ? firebase.firestore.Timestamp.fromDate(new Date(startVal)) : new Date(startVal).getTime()) : null
+    active: document.getElementById('promoActive').checked
   };
   if (!isConfigured){
     if (id){ const i=state.promos.findIndex(x=>x.id===id); state.promos[i]={...state.promos[i],...data}; }
-    else { state.promos.push({id:'p'+Date.now(), notified:false, reminderSent:false, ...data}); }
+    else { state.promos.push({id:'p'+Date.now(), ...data}); }
     renderPromosAdmin(); closeModal('promoModalBg'); return;
   }
   if (id) await db.collection('promotions').doc(id).set(data,{merge:true});
-  else await db.collection('promotions').add({...data, notified:false, reminderSent:false, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  else await db.collection('promotions').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
   closeModal('promoModalBg');
 }
 function deletePromo(id){
