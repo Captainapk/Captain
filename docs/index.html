@@ -358,19 +358,21 @@ function renderBusiness(cfgRaw){
   }
 }
 
-let deepLinkHandled = false;
-function handleNotificationDeepLink(list){
-  if (deepLinkHandled) return;
-  const promoId = params.get('promo');
-  if (!promoId) return;
-  const target = list.find(p => p.id === promoId);
-  if (target){
-    deepLinkHandled = true;
-    if (target.linkUrl) {
-      setTimeout(()=>{ location.href = target.linkUrl; }, 400);
-    } else {
-      setTimeout(()=>document.getElementById('promosSection').scrollIntoView({behavior:'smooth'}), 400);
-    }
+let statusDeepLinkHandled = false;
+function handleStatusDeepLink(){
+  if (statusDeepLinkHandled) return;
+  const statusId = params.get('status');
+  if (!statusId) return;
+  const idx = statusList.findIndex(s => s.id === statusId);
+  if (idx !== -1){
+    statusDeepLinkHandled = true;
+    setTimeout(()=>{
+      storyIndex = idx;
+      document.getElementById('storyProgress').innerHTML =
+        statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+      showStory(idx);
+      document.getElementById('storyOverlay').style.display = 'flex';
+    }, 400);
   }
 }
 
@@ -386,7 +388,6 @@ function renderPromos(list){
     return `<${tag} class="promoCard${p.imageUrl?'':' noImg'} in" style="animation-delay:${i*70}ms"${href}>${inner}</${tag}>`;
   }).join('');
   setupAutoScroll();
-  handleNotificationDeepLink(list);
 }
 
 let autoScrollTimer = null;
@@ -490,9 +491,10 @@ async function loadStatus(){
   if (!db) { statusList = []; updateLogoRing(); return; }
   try{
     const snap = await db.collection('status').orderBy('createdAt','desc').get();
-    statusList = snap.docs.map(d=>d.data()).filter(isStatusActive);
+    statusList = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
   }catch(e){ statusList = []; }
   updateLogoRing();
+  handleStatusDeepLink();
 }
 
 function openStory(){
@@ -694,3 +696,4 @@ initApp();
 </script>
 </body>
 </html>
+
