@@ -24,6 +24,9 @@ class MainActivity : AppCompatActivity() {
 
     private val baseUrl = "https://captaininida.app/"
 
+    private var webViewReady = false
+    private var pendingToken: String? = null
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +63,8 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 swipeRefresh.isRefreshing = false
-                syncFcmTokenIfPending(installId)
+                webViewReady = true
+                trySyncToken(installId)
             }
         }
 
@@ -75,11 +79,19 @@ class MainActivity : AppCompatActivity() {
             if (task.isSuccessful) {
                 val token = task.result
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                prefs.edit()
-                    .putString("fcm_token", token)
-                    .putBoolean("fcm_token_pending", true)
-                    .apply()
+                prefs.edit().putString("fcm_token", token).apply()
+                pendingToken = token
+                trySyncToken(installId)
             }
+        }
+    }
+
+    private fun trySyncToken(installId: String) {
+        val token = pendingToken
+        if (webViewReady && token != null) {
+            val js = "if (window.saveFcmToken) { window.saveFcmToken('$installId', '$token'); }"
+            webView.evaluateJavascript(js, null)
+            pendingToken = null
         }
     }
 
@@ -90,17 +102,6 @@ class MainActivity : AppCompatActivity() {
             ) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
             }
-        }
-    }
-
-    private fun syncFcmTokenIfPending(installId: String) {
-        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val pending = prefs.getBoolean("fcm_token_pending", false)
-        val token = prefs.getString("fcm_token", null)
-        if (pending && token != null) {
-            val js = "if (window.saveFcmToken) { window.saveFcmToken('$installId', '$token'); }"
-            webView.evaluateJavascript(js, null)
-            prefs.edit().putBoolean("fcm_token_pending", false).apply()
         }
     }
 
