@@ -75,6 +75,9 @@
     padding:12px 22px;border-radius:99px;text-decoration:none;display:none;align-items:center;gap:8px;
     box-shadow:0 6px 20px rgba(0,0,0,.4)}
   .storyLinkBtn:active{transform:translateX(-50%) scale(.96)}
+  .storySpinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;
+    border-radius:50%;animation:storySpin .8s linear infinite;display:none}
+  @keyframes storySpin{to{transform:rotate(360deg)}}
 
   .onboardOverlay{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;
     align-items:center;justify-content:center;padding:24px}
@@ -220,7 +223,7 @@
 <div class="storyOverlay" id="storyOverlay">
   <div class="storyProgress" id="storyProgress"></div>
   <button class="storyClose" onclick="closeStory()">✕</button>
-  <div class="storyImgWrap"><img id="storyImg" src="" alt=""></div>
+  <div class="storyImgWrap"><div class="storySpinner" id="storySpinner"></div><img id="storyImg" src="" alt=""></div>
   <div class="storyTapZones">
     <div class="storyTapPrev" onclick="prevStory()"></div>
     <div class="storyTapNext" onclick="nextStory()"></div>
@@ -358,21 +361,37 @@ function renderBusiness(cfgRaw){
   }
 }
 
+function stripStatusParam(){
+  try{
+    const url = new URL(location.href);
+    url.searchParams.delete('status');
+    history.replaceState({}, '', url.toString());
+  }catch(e){}
+}
+
 let statusDeepLinkHandled = false;
+let statusDeepLinkPending = false;
 function handleStatusDeepLink(){
   if (statusDeepLinkHandled) return;
   const statusId = params.get('status');
   if (!statusId) return;
+  if (!statusDeepLinkPending){
+    statusDeepLinkPending = true;
+    document.getElementById('storyOverlay').style.display = 'flex';
+    document.getElementById('storyImg').style.display = 'none';
+    document.getElementById('storySpinner').style.display = 'block';
+    document.getElementById('storyProgress').innerHTML = '';
+  }
   const idx = statusList.findIndex(s => s.id === statusId);
   if (idx !== -1){
     statusDeepLinkHandled = true;
-    setTimeout(()=>{
-      storyIndex = idx;
-      document.getElementById('storyProgress').innerHTML =
-        statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
-      showStory(idx);
-      document.getElementById('storyOverlay').style.display = 'flex';
-    }, 400);
+    document.getElementById('storySpinner').style.display = 'none';
+    document.getElementById('storyImg').style.display = 'block';
+    storyIndex = idx;
+    document.getElementById('storyProgress').innerHTML =
+      statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+    showStory(idx);
+    stripStatusParam();
   }
 }
 
@@ -506,6 +525,11 @@ async function loadStatus(){
 }
 
 window.openStatusFromNotification = async function(statusId){
+  document.getElementById('storyOverlay').style.display = 'flex';
+  document.getElementById('storyImg').style.display = 'none';
+  document.getElementById('storySpinner').style.display = 'block';
+  document.getElementById('storyProgress').innerHTML = '';
+
   let idx = statusList.findIndex(s => s.id === statusId);
   if (idx === -1 && db){
     try{
@@ -515,12 +539,16 @@ window.openStatusFromNotification = async function(statusId){
       idx = statusList.findIndex(s => s.id === statusId);
     }catch(e){}
   }
+
+  document.getElementById('storySpinner').style.display = 'none';
+  document.getElementById('storyImg').style.display = 'block';
   if (idx !== -1){
     storyIndex = idx;
     document.getElementById('storyProgress').innerHTML =
       statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
     showStory(idx);
-    document.getElementById('storyOverlay').style.display = 'flex';
+  } else {
+    closeStory();
   }
 };
 
@@ -568,6 +596,7 @@ function prevStory(){
 function closeStory(){
   clearTimeout(storyTimer);
   document.getElementById('storyOverlay').style.display = 'none';
+  statusDeepLinkPending = false;
 }
 
 async function loadLive(){
@@ -697,21 +726,17 @@ window.saveFcmToken = async function(installId, token){
   }catch(e){ console.error('fcm token save failed', e); }
 };
 
-async function checkBlocked(){
-  if (!db || !uid) return false;
-  try{
-    const snap = await db.collection('installs').doc(uid).get();
-    if (snap.exists && snap.data().blocked){
-      document.getElementById('blockedOverlay').style.display = 'flex';
-      return true;
-    }
-  }catch(e){ /* if this check fails, fail open — don't lock out real customers */ }
-  return false;
+function watchBlocked(){
+  if (!db || !uid) return;
+  db.collection('installs').doc(uid).onSnapshot(snap=>{
+    const isBlocked = snap.exists && !!snap.data().blocked;
+    document.getElementById('blockedOverlay').style.display = isBlocked ? 'flex' : 'none';
+  }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
 function initApp(){
   if (isConfigured && db) {
-    checkBlocked();
+    watchBlocked();
     if (uid && !hasProfileLocally()) document.getElementById('onboardOverlay').style.display = 'flex';
     loadLive();
   } else {
