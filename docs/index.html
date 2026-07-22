@@ -232,8 +232,8 @@
   <div class="onboardCard">
     <h2>Welcome 👋</h2>
     <p>Just so we know who's here — takes 10 seconds.</p>
-    <div class="obField"><label>Your ID name</label><input id="profileName" placeholder=""></div>
-    <div class="obField"><label>WhatsApp Number</label><input id="profilePhone" placeholder=""></div>
+    <div class="obField"><label>Your name</label><input id="profileName" placeholder="e.g. Ahmed"></div>
+    <div class="obField"><label>WhatsApp / phone number</label><input id="profilePhone" placeholder="e.g. 971501234567"></div>
     <div class="obErr" id="obErr">Please fill in both fields</div>
     <button class="obBtn" onclick="submitProfile()">Continue</button>
   </div>
@@ -490,12 +490,39 @@ function updateLogoRing(){
 async function loadStatus(){
   if (!db) { statusList = []; updateLogoRing(); return; }
   try{
+    const cacheSnap = await db.collection('status').orderBy('createdAt','desc').get({source:'cache'});
+    if (!cacheSnap.empty){
+      statusList = cacheSnap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
+      updateLogoRing();
+      handleStatusDeepLink();
+    }
+  }catch(e){ /* nothing cached yet — that's fine */ }
+  try{
     const snap = await db.collection('status').orderBy('createdAt','desc').get();
     statusList = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
   }catch(e){ statusList = []; }
   updateLogoRing();
   handleStatusDeepLink();
 }
+
+window.openStatusFromNotification = async function(statusId){
+  let idx = statusList.findIndex(s => s.id === statusId);
+  if (idx === -1 && db){
+    try{
+      const snap = await db.collection('status').orderBy('createdAt','desc').get();
+      statusList = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
+      updateLogoRing();
+      idx = statusList.findIndex(s => s.id === statusId);
+    }catch(e){}
+  }
+  if (idx !== -1){
+    storyIndex = idx;
+    document.getElementById('storyProgress').innerHTML =
+      statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+    showStory(idx);
+    document.getElementById('storyOverlay').style.display = 'flex';
+  }
+};
 
 function openStory(){
   if (!statusList.length) return;
@@ -692,4 +719,6 @@ function initApp(){
   }
 }
 initApp();
-
+</script>
+</body>
+</html>
