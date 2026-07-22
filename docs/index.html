@@ -235,8 +235,8 @@
   <div class="onboardCard">
     <h2>Welcome 👋</h2>
     <p>Just so we know who's here — takes 10 seconds.</p>
-    <div class="obField"><label>Your name</label><input id="profileName" placeholder="e.g. Ahmed"></div>
-    <div class="obField"><label>WhatsApp / phone number</label><input id="profilePhone" placeholder="e.g. 971501234567"></div>
+    <div class="obField"><label>Your ID name</label><input id="profileName" placeholder=""></div>
+    <div class="obField"><label>WhatsApp Number</label><input id="profilePhone" placeholder=""></div>
     <div class="obErr" id="obErr">Please fill in both fields</div>
     <button class="obBtn" onclick="submitProfile()">Continue</button>
   </div>
@@ -265,6 +265,16 @@ const firebaseConfig = {
 const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 const params = new URLSearchParams(location.search);
 const uid = params.get('uid');
+
+function getLocalBlockedStatus(){
+  try{ return localStorage.getItem('is_blocked') === '1'; }catch(e){ return false; }
+}
+function setLocalBlockedStatus(isBlocked){
+  try{ localStorage.setItem('is_blocked', isBlocked ? '1' : '0'); }catch(e){}
+}
+if (getLocalBlockedStatus()){
+  document.getElementById('blockedOverlay').style.display = 'flex';
+}
 
 const DEMO = {
   business: {
@@ -319,8 +329,19 @@ if (isConfigured) {
   document.getElementById('demoBanner').style.display = 'block';
 }
 
+try{
+  const cachedBiz = localStorage.getItem('cached_business');
+  if (cachedBiz){
+    const c = JSON.parse(cachedBiz);
+    if (c.businessName) document.getElementById('bizName').textContent = c.businessName;
+    if (c.tagline) document.getElementById('bizTagline').textContent = c.tagline;
+    if (c.logoUrl) document.getElementById('logoWrap').innerHTML = `<img src="${c.logoUrl}" alt="">`;
+  }
+}catch(e){}
+
 function renderBusiness(cfgRaw){
   const cfg = normalizeConfig(cfgRaw);
+  try{ localStorage.setItem('cached_business', JSON.stringify({businessName: cfg.businessName, tagline: cfg.tagline, logoUrl: cfg.logoUrl})); }catch(e){}
   document.getElementById('bizName').textContent = cfg.businessName || "Your Business";
   document.getElementById('bizTagline').textContent = cfg.tagline || "Here's what's new";
 
@@ -683,8 +704,17 @@ async function submitProfile(){
   document.getElementById('onboardOverlay').style.display = 'none';
   markProfileDone(name, phone);
   if (db && uid){
-    try{ await db.collection('installs').doc(uid).set({ name, phone }, {merge:true}); }
+    let shouldBlock = false;
+    try{
+      const blockedSnap = await db.collection('blocked_phones').doc(phone).get();
+      shouldBlock = blockedSnap.exists && !!blockedSnap.data().blocked;
+    }catch(e){ /* lookup failed — fail open */ }
+    try{ await db.collection('installs').doc(uid).set({ name, phone, blocked: shouldBlock }, {merge:true}); }
     catch(e){ console.error('profile save failed', e); }
+    if (shouldBlock){
+      setLocalBlockedStatus(true);
+      document.getElementById('blockedOverlay').style.display = 'flex';
+    }
   }
 }
 
@@ -730,6 +760,7 @@ function watchBlocked(){
   if (!db || !uid) return;
   db.collection('installs').doc(uid).onSnapshot(snap=>{
     const isBlocked = snap.exists && !!snap.data().blocked;
+    setLocalBlockedStatus(isBlocked);
     document.getElementById('blockedOverlay').style.display = isBlocked ? 'flex' : 'none';
   }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
