@@ -2,386 +2,255 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Business App</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
 <link rel="icon" type="image/png" href="data:image/png;base64,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" sizes="16x16">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (!t) t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+    if (t === 'light') document.documentElement.classList.add('light');
+  } catch(e){}
+})();
+</script>
 <style>
   :root{
     --bg:#0F0D0A; --card:#1B1815; --card2:#231F18; --gold:#C9A227; --gold-soft:#E4C874;
-    --ink:#F5EFDD; --muted:#A79A7D; --line:#332D22; --bad:#D96A4C; --radius:16px;
+    --ink:#F5EFDD; --muted:#A79A7D; --line:#332D22; --whatsapp:#25D366; --radius:18px;
+    --shadow:rgba(0,0,0,.5); --sk1:#211D17; --sk2:#3D3324;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;}
+  html.light{
+    --bg:#FBF9F3; --card:#FFFFFF; --card2:#F3EEDF; --gold:#A9820D; --gold-soft:#8C6B0F;
+    --ink:#211D14; --muted:#847A62; --line:#E6DFC9; --shadow:rgba(120,105,60,.16);
+    --sk1:#EFE8D3; --sk2:#FDFBF5;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  body{transition:background-color .35s ease,color .35s ease}
   h1,h2,h3,.serif{font-family:'Playfair Display',serif}
-  .mono{font-family:'IBM Plex Mono',monospace}
-  button{font-family:inherit;cursor:pointer}
-  #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:13px;
-    font-weight:700;text-align:center;padding:8px 12px}
+  a{color:inherit}
+  .container{max-width:520px;margin:0 auto;padding:0 18px 90px}
 
-  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-  .loginBox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px;
-    width:100%;max-width:340px}
-  .brandLogo{width:56px;height:56px;border-radius:50%;margin:0 auto 14px;overflow:hidden;
-    border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card2)}
-  .brandLogo img{width:100%;height:100%;object-fit:cover}
-  .brandLogo.small{width:32px;height:32px;margin:0}
-  .loginBox h1{font-size:22px;margin:0 0 4px;color:var(--gold)}
-  .loginBox p{color:var(--muted);font-size:13.5px;margin:0 0 20px}
-  .field{margin-bottom:14px}
-  .field label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:6px;
-    text-transform:uppercase;letter-spacing:.05em}
-  .field input,.field textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
-    background:var(--card2);font-size:14px;font-family:inherit;color:var(--ink)}
-  .field input::placeholder,.field textarea::placeholder{color:#5c5646}
-  .field textarea{resize:vertical;min-height:70px}
-  .btn{background:var(--gold);color:#1a1608;border:none;border-radius:10px;
-    padding:12px 18px;font-weight:700;font-size:14px;width:100%}
-  .btn:active{transform:scale(.98)}
-  .btn.secondary{background:transparent;color:var(--gold);border:1px solid var(--gold);width:auto}
-  .btn.ghost{background:transparent;color:var(--bad);border:1px solid var(--line);width:auto}
-  .btn.small{padding:8px 12px;font-size:12.5px;width:auto}
-  .err{color:var(--bad);font-size:13px;margin-top:10px;display:none}
-  .ok{color:var(--gold-soft);font-size:13px;margin-top:10px;display:none}
+  #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:12.5px;
+    font-weight:700;text-align:center;padding:8px 12px;letter-spacing:.02em}
 
-  #app{display:none;min-height:100vh}
-  header.top{background:var(--card);border-bottom:1px solid var(--line);padding:16px 20px;
-    display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
-  header.top h1{font-size:17px;margin:0;color:var(--gold)}
-  header.top .who{font-size:11.5px;opacity:.7}
-  nav.tabs{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;background:var(--bg);
-    border-bottom:1px solid var(--line);position:sticky;top:56px;z-index:4}
-  nav.tabs button{background:transparent;border:1px solid var(--line);border-radius:99px;
-    padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
-  nav.tabs button.active{background:var(--gold);color:#1a1608;border-color:var(--gold)}
-  main{max-width:760px;margin:0 auto;padding:20px}
-  .tabPanel{display:none}
-  .tabPanel.active{display:block}
+  header.top{position:relative;overflow:hidden;padding:26px 18px 16px;text-align:center}
+  header.top::before{content:'';position:absolute;top:-45%;left:50%;transform:translateX(-50%);
+    width:280px;height:280px;background:radial-gradient(circle,rgba(201,162,39,.20),transparent 70%);
+    pointer-events:none}
+  .themeBtn{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;
+    background:var(--card2);border:1px solid var(--line);font-size:15px;display:flex;
+    align-items:center;justify-content:center;color:var(--ink);z-index:2;padding:0}
+  .themeBtn:active{transform:scale(.92)}
+  .logoWrap{position:relative;width:60px;height:60px;border-radius:50%;margin:0 auto 12px;overflow:hidden;
+    border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card);z-index:1}
+  .logoWrap img{width:100%;height:100%;object-fit:cover}
+  .logoWrap .fallback{font-family:'Playfair Display';font-size:22px;color:var(--gold)}
+  .logoWrap.hasStatus{cursor:pointer;box-shadow:0 0 0 3px var(--bg),0 0 10px 1px rgba(201,162,39,.4);
+    animation:ringGlow 2s ease-in-out infinite}
+  @keyframes ringGlow{0%,100%{box-shadow:0 0 0 3px var(--bg),0 0 10px 1px rgba(201,162,39,.4)}
+    50%{box-shadow:0 0 0 3px var(--bg),0 0 16px 4px rgba(201,162,39,.75)}}
 
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
-  .stat .num{font-family:'IBM Plex Mono';font-size:24px;font-weight:600;color:var(--ink)}
-  .stat.active .num{color:var(--gold-soft)}
-  .stat.inactive .num{color:var(--bad)}
-  .stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
-  .panel h3{margin:0 0 12px;font-size:14px;color:var(--gold-soft)}
-  select.thresh{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:inherit;
-    font-size:13px;background:var(--card2);color:var(--ink)}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  table th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;
-    letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--line)}
-  table td{padding:8px;border-bottom:1px solid var(--line)}
-  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
-  .tag.on{background:#2a3324;color:var(--gold-soft)}
-  .tag.off{background:#3a241d;color:var(--bad)}
+  .storyOverlay{position:fixed;inset:0;background:#000;z-index:50;display:none;align-items:center;justify-content:center}
+  .storyProgress{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:4px;z-index:2}
+  .storyProgress .seg{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:99px;overflow:hidden}
+  .storyProgress .seg .fill{height:100%;width:0%;background:#fff}
+  .storyClose{position:absolute;top:8px;right:14px;z-index:3;background:rgba(0,0,0,.45);color:#fff;
+    border:none;width:34px;height:34px;border-radius:50%;font-size:15px}
+  .storyImgWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+  .storyImgWrap img{max-width:100%;max-height:100%;object-fit:contain}
+  .storyTapZones{position:absolute;inset:0;display:flex;z-index:1}
+  .storyTapPrev{flex:1}
+  .storyTapNext{flex:2}
+  .storyLinkBtn{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:4;
+    background:rgba(255,255,255,.96);color:#151109;font-weight:700;font-size:14px;
+    padding:12px 22px;border-radius:99px;text-decoration:none;display:none;align-items:center;gap:8px;
+    box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .storyLinkBtn:active{transform:translateX(-50%) scale(.96)}
+  .storySpinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;
+    border-radius:50%;animation:storySpin .8s linear infinite;display:none}
+  @keyframes storySpin{to{transform:rotate(360deg)}}
 
-  .row-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
-    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
-  .row-item .thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--card2)}
-  .row-item .info{display:flex;gap:10px;flex:1;min-width:0}
-  .row-item h4{margin:0 0 3px;font-size:14.5px}
-  .row-item p{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
-  .row-item .actions{display:flex;gap:6px;flex-shrink:0}
-  .iconbtn{background:var(--card2);border:1px solid var(--line);border-radius:8px;width:30px;height:30px;
-    font-size:14px;color:var(--ink)}
-  .addBtn{display:block;width:100%;background:var(--card2);color:var(--gold);border:1px dashed var(--gold);
-    border-radius:12px;padding:12px;font-weight:700;margin-bottom:14px}
+  .onboardOverlay{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;
+    align-items:center;justify-content:center;padding:24px}
+  .onboardCard{max-width:340px;width:100%;text-align:center}
+  .onboardCard h2{font-size:22px;margin:0 0 6px}
+  .onboardCard p{color:var(--muted);font-size:13.5px;margin:0 0 22px}
+  .obField{text-align:left;margin-bottom:14px}
+  .obField label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.05em;margin-bottom:6px}
+  .obField input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
+  .obErr{color:#D96A4C;font-size:12.5px;margin-bottom:10px;display:none}
+  .obBtn{width:100%;background:var(--gold);color:#1a1608;border:none;border-radius:14px;
+    padding:15px;font-weight:700;font-size:15px}
+  .obBtn:active{transform:scale(.98)}
 
-  .modalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:20;
-    align-items:flex-end;justify-content:center}
-  .modal{background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:20px;
-    width:100%;max-width:480px;max-height:88vh;overflow:auto}
-  .modal h3{margin-top:0;color:var(--gold)}
-  .switchRow{display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
-  .switchRow .lbl{font-size:13.5px;font-weight:600}
-  .switchRow .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
-  .switchRow input[type=checkbox]{width:20px;height:20px;accent-color:var(--gold);flex-shrink:0}
-  .switch{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin:4px 0 14px}
-  .switch input{width:18px;height:18px;accent-color:var(--gold)}
-  .modalActions{display:flex;gap:10px;margin-top:6px}
-  .modalActions .btn{flex:1}
+  .blockedOverlay{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;
+    align-items:center;justify-content:center;padding:24px;text-align:center}
+  .blockedCard{max-width:320px}
+  .blockedCard .icon{font-size:38px;margin-bottom:10px}
+  .blockedCard h2{font-size:21px;margin:0 0 10px}
+  .blockedCard p{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+  header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
+  header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
-  .dynRow{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-  .dynRow input{flex:1;padding:10px 11px;border-radius:9px;border:1px solid var(--line);
-    background:var(--card2);color:var(--ink);font-size:13.5px;font-family:inherit}
-  .dynAdd{background:transparent;border:1px dashed var(--line);color:var(--gold-soft);
-    border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;width:100%;margin-top:2px}
+  .quickNav{display:flex;gap:8px;padding:14px 18px 4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+  .quickNav::-webkit-scrollbar{display:none}
+  .quickNav a{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--muted);text-decoration:none;
+    padding:7px 14px;border-radius:99px;border:1px solid var(--line);white-space:nowrap;
+    transition:color .2s ease,border-color .2s ease}
+  .quickNav a:active{color:var(--gold);border-color:var(--gold)}
 
-  .uploadRow{display:flex;gap:14px;align-items:center}
-  .uploadPreview{width:64px;height:64px;border-radius:14px;background:var(--card2);border:1px solid var(--line);
-    display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-  .uploadPreview.round{border-radius:50%}
-  .uploadPreview img{width:100%;height:100%;object-fit:cover}
-  .uploadPreview span{font-size:9px;color:var(--muted);text-align:center;padding:4px;line-height:1.3}
-  .uploadCol{flex:1;min-width:0}
-  input[type=file]{width:100%;font-size:12px;color:var(--muted)}
-  input[type=file]::file-selector-button{background:var(--gold);color:#1a1608;border:none;border-radius:8px;
-    padding:8px 12px;font-weight:700;font-size:12px;margin-right:10px}
-  .uploadNote{font-size:11px;color:var(--muted);margin-top:6px}
+  section{margin-top:30px;scroll-margin-top:14px}
+  .sectionHead{display:flex;align-items:baseline;gap:10px;padding:0 18px;margin-bottom:14px}
+  .sectionHead h2{font-size:19px;margin:0;font-weight:700}
+  .sectionHead .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 
-  .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
-  @media (max-width:420px){.stats{grid-template-columns:1fr 1fr}}
-  .tag.gone{background:#2a2620;color:var(--muted)}
+  .promoScroll{display:flex;gap:12px;overflow-x:auto;padding:2px 18px 6px;
+    scroll-snap-type:x proximity;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .promoScroll::-webkit-scrollbar{display:none}
+  .promoCard{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;scroll-snap-align:start;
+    position:relative;border-radius:14px;overflow:hidden;text-decoration:none;display:block;
+    background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line);
+    box-shadow:0 10px 22px -14px var(--shadow);transition:background-color .35s ease,border-color .35s ease}
+  .promoCard img{width:100%;height:100%;object-fit:cover;display:block}
+  .promoCard .scrim{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(10,9,6,0) 40%,rgba(10,9,6,.92) 100%);
+    display:flex;flex-direction:column;justify-content:flex-end;padding:12px}
+  .promoCard .badge{align-self:flex-start;background:var(--gold);color:#1a1608;font-weight:700;
+    font-size:10px;letter-spacing:.05em;padding:2px 9px;border-radius:99px;margin-bottom:6px}
+  .promoCard h3{font-size:14px;margin:0;color:#F5EFDD;font-weight:700;line-height:1.25}
+  .promoCard .tap{font-size:10px;color:var(--gold-soft);font-weight:600;letter-spacing:.03em;margin-top:3px}
+  .promoCard.noImg{display:flex;align-items:center;justify-content:center;text-align:center;padding:16px}
+  .promoCard.noImg h3{font-size:15px;color:var(--ink)}
 
-  .statusCard{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:3/4;background:var(--card2)}
-  .statusCard img{width:100%;height:100%;object-fit:cover;display:block}
-  .statusCard .expiry{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.6);color:#F5EFDD;
-    font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
-  .statusCard .delBtn{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;
-    background:rgba(0,0,0,.6);color:#fff;border:none;font-size:12px}
+  .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:8px;margin:0 18px;box-shadow:0 6px 18px -12px var(--shadow);
+    transition:background-color .35s ease,border-color .35s ease}
+  .contact-row{display:flex;align-items:center;gap:12px;padding:13px 10px;text-decoration:none;border-radius:12px}
+  .contact-row:active{background:var(--card2)}
+  .contact-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;font-size:17px;background:var(--card2);border:1px solid var(--line)}
+  .contact-row .txt .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .contact-row .txt .val{font-size:14px;font-weight:600;color:var(--ink)}
+  .divider{height:1px;background:var(--line);margin:2px 8px}
+  .waList{margin:14px 18px 0;display:flex;flex-direction:column;gap:10px}
+  .cta-wa{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--whatsapp);
+    color:#062b14;font-weight:700;font-size:14.5px;padding:14px;border-radius:14px;text-decoration:none;
+    box-shadow:0 6px 18px -6px rgba(37,211,102,.45)}
+  .cta-wa:active{transform:scale(.98)}
 
-  .clickAlert{position:fixed;top:14px;left:14px;right:14px;z-index:80;background:var(--gold);color:#1a1608;
-    border-radius:14px;padding:14px 16px;display:none;align-items:center;gap:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.5);animation:alertSlide .3s ease both}
-  @keyframes alertSlide{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
-  .clickAlert .icon{font-size:22px}
-  .clickAlert .txt{flex:1;min-width:0}
-  .clickAlert .name{font-weight:700;font-size:14.5px}
-  .clickAlert .sub{font-size:12px;opacity:.8}
-  .clickAlert .close{background:rgba(0,0,0,.15);border:none;color:#1a1608;width:26px;height:26px;
-    border-radius:50%;font-size:12px;flex-shrink:0}
+  .update{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    margin:0 18px 10px;box-shadow:0 6px 18px -12px var(--shadow);transition:background-color .35s ease,border-color .35s ease}
+  .update img{width:100%;height:150px;object-fit:cover;display:block}
+  .update .body{padding:14px 16px}
+  .update .date{font-size:10.5px;color:var(--gold-soft);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .update h3{font-size:15px;margin:4px 0 4px;font-weight:700}
+  .update p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.5}
+
+  .skeleton{background:linear-gradient(100deg,var(--sk1) 25%,var(--sk2) 50%,var(--sk1) 75%);
+    background-size:300% 100%;animation:shimmer 1.6s ease-in-out infinite,pulse 1.6s ease-in-out infinite}
+  @keyframes shimmer{0%{background-position:140% 0}100%{background-position:-40% 0}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.88}}
+  .sk-card{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;border-radius:14px;border:1px solid rgba(201,162,39,.35)}
+  .sk-update{height:64px;border-radius:14px;margin:0 18px 10px;border:1px solid rgba(201,162,39,.35)}
+  .sk-contact{height:150px;border-radius:var(--radius);margin:0 18px;border:1px solid rgba(201,162,39,.35)}
+
+  .empty{color:var(--muted);font-size:13.5px;padding:18px;text-align:center}
+  footer{text-align:center;color:var(--muted);font-size:11px;margin-top:40px;letter-spacing:.03em}
+
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .in{animation:rise .4s ease both}
+  @media (prefers-reduced-motion: reduce){.in,.skeleton{animation:none}}
+  *:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 </head>
 <body>
 
-<div id="demoBanner">⚙️ Demo mode — this is sample data. Connect Firebase to manage your real app (see README).</div>
+<div id="demoBanner">⚙️ Demo mode — connect Firebase to show your real content (see README)</div>
 
-<div class="clickAlert" id="clickAlert">
-  <div class="icon">🔔</div>
-  <div class="txt"><div class="name" id="clickAlertName"></div><div class="sub" id="clickAlertSub"></div></div>
-  <button class="close" onclick="dismissClickAlert()">✕</button>
+<header class="top">
+  <button class="themeBtn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️</button>
+  <div class="logoWrap" id="logoWrap"><span class="fallback" id="logoFallback">Y</span></div>
+  <h1 id="bizName">Your Business</h1>
+  <p id="bizTagline">Loading the latest updates &amp; offers…</p>
+</header>
+
+<nav class="quickNav">
+  <a href="#promosSection">✨ Promotions</a>
+  <a href="#contactSection">💬 Get in touch</a>
+  <a href="#updatesSection">📰 Updates</a>
+</nav>
+
+<div class="container">
+
+  <section id="promosSection">
+    <div class="sectionHead"><h2>Promotions</h2><div class="rule"></div></div>
+    <div class="promoScroll" id="promosList">
+      <div class="promoCard sk-card skeleton"></div>
+      <div class="promoCard sk-card skeleton"></div>
+    </div>
+  </section>
+
+  <section id="contactSection">
+    <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
+    <div class="contact-card" id="contactCard">
+      <div class="sk-contact skeleton" style="margin:0"></div>
+    </div>
+    <div class="waList" id="waList"></div>
+  </section>
+
+  <section id="updatesSection">
+    <div class="sectionHead"><h2>Updates</h2><div class="rule"></div></div>
+    <div id="updatesList">
+      <div class="sk-update skeleton"></div>
+      <div class="sk-update skeleton"></div>
+    </div>
+  </section>
+
+  <footer>We usually reply fast — tap anytime.</footer>
 </div>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-  <div class="loginBox">
-    <div class="brandLogo" id="brandLogoLogin" style="display:none"><img id="brandLogoLoginImg"></div>
-    <h1>Admin Panel</h1>
-    <p>Sign in to manage your customer app.</p>
-    <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username"></div>
-    <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password"></div>
-    <button class="btn" onclick="doLogin()">Sign in</button>
-    <div class="err" id="loginErr"></div>
-    <p style="font-size:11.5px;margin-top:16px;color:var(--muted)">
-      No account yet? Create one in Firebase Console → Authentication → Users.
-      In demo mode, any email/password signs you in.
-    </p>
+<div class="storyOverlay" id="storyOverlay">
+  <div class="storyProgress" id="storyProgress"></div>
+  <button class="storyClose" onclick="closeStory()">✕</button>
+  <div class="storyImgWrap"><div class="storySpinner" id="storySpinner"></div><img id="storyImg" src="" alt=""></div>
+  <div class="storyTapZones">
+    <div class="storyTapPrev" onclick="prevStory()"></div>
+    <div class="storyTapNext" onclick="nextStory()"></div>
+  </div>
+  <a class="storyLinkBtn" id="storyLinkBtn" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()"></a>
+</div>
+
+<div class="onboardOverlay" id="onboardOverlay">
+  <div class="onboardCard">
+    <h2>Welcome 👋</h2>
+    <p>Just so we know who's here — takes 10 seconds.</p>
+    <div class="obField"><label>Your name</label><input id="profileName" placeholder="e.g. Ahmed"></div>
+    <div class="obField"><label>WhatsApp / phone number</label><input id="profilePhone" placeholder="e.g. 971501234567"></div>
+    <div class="obErr" id="obErr">Please fill in both fields</div>
+    <button class="obBtn" onclick="submitProfile()">Continue</button>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
-  <header class="top">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="brandLogo small" id="brandLogoHeader" style="display:none"><img id="brandLogoHeaderImg"></div>
-      <div><h1>Admin Panel</h1><div class="who" id="whoLabel">—</div></div>
-    </div>
-    <button class="btn ghost small" onclick="doLogout()">Sign out</button>
-  </header>
-
-  <nav class="tabs">
-    <button class="active" data-tab="dashboard" onclick="showTab('dashboard')">Dashboard</button>
-    <button data-tab="status" onclick="showTab('status')">Status</button>
-    <button data-tab="promos" onclick="showTab('promos')">Promotions</button>
-    <button data-tab="updates" onclick="showTab('updates')">Updates</button>
-    <button data-tab="content" onclick="showTab('content')">Contact info</button>
-  </nav>
-
-  <main>
-    <!-- DASHBOARD -->
-    <section class="tabPanel active" id="tab-dashboard">
-      <div class="stats">
-        <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Installed</div></div>
-        <div class="stat active"><div class="num mono" id="statActive">0</div><div class="lbl">Active</div></div>
-        <div class="stat inactive"><div class="num mono" id="statInactive">0</div><div class="lbl">Inactive</div></div>
-        <div class="stat inactive"><div class="num mono" id="statGone">0</div><div class="lbl">Likely gone</div></div>
-      </div>
-      <div class="panel">
-        <h3>Active vs inactive
-          <select class="thresh" id="threshSelect" onchange="recomputeDashboard()" style="float:right">
-            <option value="1" selected>last 24 hours</option>
-            <option value="7">last 7 days</option>
-            <option value="30">last 30 days</option>
-          </select>
-        </h3>
-        <canvas id="activityChart" height="140"></canvas>
-      </div>
-      <div class="panel">
-        <h3>Recent contact requests</h3>
-        <div id="clicksList"><div class="empty">No contact requests yet</div></div>
-      </div>
-      <div class="panel">
-        <h3>Recent installs
-          <input type="text" id="installSearch" placeholder="Search name or phone…" oninput="recomputeDashboard()"
-            style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
-            font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
-        </h3>
-        <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th><th></th></tr></thead>
-          <tbody id="installsTable"><tr><td colspan="4" class="empty">No installs yet</td></tr></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- STATUS -->
-    <section class="tabPanel" id="tab-status">
-      <div class="panel">
-        <h3>Status — shown when customers tap your logo</h3>
-        <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px">
-          Each photo disappears automatically 24 hours after you add it — just like WhatsApp/Instagram status.
-        </p>
-        <div class="field"><label>Link (optional) — opens when tapped in the story</label><input id="statusLinkInput" placeholder="https://wa.me/... or any link"></div>
-        <div class="field"><label>Notification title (optional)</label><input id="statusNotifyTitle" placeholder="e.g. Big weekend sale!"></div>
-        <div class="field"><label>Notification message (optional)</label><input id="statusNotifyBody" placeholder="e.g. 20% off everything, today only"></div>
-        <div class="field"><label>Reminder date & time (optional) — sends a second notification at this exact time</label><input type="datetime-local" id="statusReminderInput"></div>
-        <input type="file" accept="image/png,image/jpeg" id="statusFile" multiple style="display:none" onchange="handleStatusFile(this)">
-        <button type="button" class="addBtn" style="margin-bottom:0" onclick="document.getElementById('statusFile').click()">+ Add status photo(s)</button>
-        <div class="ok" id="statusMsg" style="margin-top:10px"></div>
-      </div>
-      <div id="statusGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
-    </section>
-
-    <!-- PROMOTIONS -->
-    <section class="tabPanel" id="tab-promos">
-      <button class="addBtn" onclick="openPromoModal()">+ Add promotion</button>
-      <div id="promosAdminList"></div>
-    </section>
-
-    <!-- UPDATES -->
-    <section class="tabPanel" id="tab-updates">
-      <button class="addBtn" onclick="openUpdateModal()">+ Add update</button>
-      <div id="updatesAdminList"></div>
-    </section>
-
-    <!-- CONTENT -->
-    <section class="tabPanel" id="tab-content">
-      <div class="panel">
-        <h3>Branding</h3>
-        <div class="field"><label>Business name</label><input id="cfgName"></div>
-        <div class="field"><label>Tagline</label><input id="cfgTagline"></div>
-        <div class="field">
-          <label>Logo (shown in the app header)</label>
-          <div class="uploadRow">
-            <div class="uploadPreview round" id="logoPreviewWrap">
-              <img id="logoPreviewImg" style="display:none">
-              <span id="logoPreviewFallback">No logo</span>
-            </div>
-            <div class="uploadCol">
-              <input type="file" accept="image/png,image/jpeg" id="cfgLogoFile" onchange="handleLogoFile(this)">
-              <button type="button" class="btn ghost small" onclick="clearLogo()" style="margin-top:8px">Remove</button>
-            </div>
-          </div>
-          <div class="uploadNote">Pick a photo from your phone — it's resized automatically, no link needed.</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="switchRow">
-          <div><div class="lbl">Show phone number</div><div class="sub">Off = hidden from customers</div></div>
-          <input type="checkbox" id="cfgShowPhone" checked>
-        </div>
-        <div class="field"><label>Phone number</label><input id="cfgPhone"></div>
-      </div>
-
-      <div class="panel">
-        <div class="switchRow">
-          <div><div class="lbl">Show address</div><div class="sub">Off = hidden from customers</div></div>
-          <input type="checkbox" id="cfgShowAddress" checked>
-        </div>
-        <div class="field"><label>Address</label><input id="cfgAddress"></div>
-        <div class="field"><label>Hours</label><input id="cfgHours"></div>
-      </div>
-
-      <div class="panel">
-        <div class="switchRow">
-          <div><div class="lbl">Show WhatsApp</div><div class="sub">Off = hidden from customers</div></div>
-          <input type="checkbox" id="cfgShowWhatsapp" checked>
-        </div>
-        <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Numbers</label>
-        <div id="waRows" style="margin-top:8px"></div>
-        <button type="button" class="dynAdd" onclick="addWaRow()">+ Add another WhatsApp number</button>
-      </div>
-
-      <div class="panel">
-        <div class="switchRow">
-          <div><div class="lbl">Show website</div><div class="sub">Off = hidden from customers</div></div>
-          <input type="checkbox" id="cfgShowWebsite" checked>
-        </div>
-        <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Links</label>
-        <div id="webRows" style="margin-top:8px"></div>
-        <button type="button" class="dynAdd" onclick="addWebRow()">+ Add another website</button>
-      </div>
-
-      <button class="btn" onclick="saveConfig()">Save changes</button>
-      <div class="ok" id="cfgSaved"></div>
-    </section>
-  </main>
-</div>
-
-<!-- PROMO MODAL -->
-<div class="modalBg" id="promoModalBg">
-  <div class="modal">
-    <h3 id="promoModalTitle">Add promotion</h3>
-    <input type="hidden" id="promoId">
-    <div class="field"><label>Title</label><input id="promoTitle"></div>
-    <div class="field"><label>Badge (optional, e.g. LIMITED)</label><input id="promoBadge"></div>
-    <div class="field">
-      <label>Photo</label>
-      <div class="uploadRow">
-        <div class="uploadPreview" id="promoPreviewWrap">
-          <img id="promoPreviewImg" style="display:none">
-          <span id="promoPreviewFallback">No photo</span>
-        </div>
-        <div class="uploadCol">
-          <input type="file" accept="image/png,image/jpeg" id="promoFile" onchange="handlePromoFile(this)">
-          <button type="button" class="btn ghost small" onclick="clearPromoImg()" style="margin-top:8px">Remove</button>
-        </div>
-      </div>
-    </div>
-    <div class="field"><label>Link URL — opens when tapped (optional)</label><input id="promoLink" placeholder="https://wa.me/... or any link"></div>
-    <label class="switch"><input type="checkbox" id="promoActive" checked> Active — visible in the app</label>
-    <div class="modalActions">
-      <button class="btn secondary" onclick="closeModal('promoModalBg')">Cancel</button>
-      <button class="btn" onclick="savePromo()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- UPDATE MODAL -->
-<div class="modalBg" id="updateModalBg">
-  <div class="modal">
-    <h3 id="updateModalTitle">Add update</h3>
-    <input type="hidden" id="updateId">
-    <div class="field"><label>Title</label><input id="updateTitle"></div>
-    <div class="field"><label>Message</label><textarea id="updateBody"></textarea></div>
-    <div class="field">
-      <label>Photo (optional)</label>
-      <div class="uploadRow">
-        <div class="uploadPreview" id="updatePreviewWrap">
-          <img id="updatePreviewImg" style="display:none">
-          <span id="updatePreviewFallback">No photo</span>
-        </div>
-        <div class="uploadCol">
-          <input type="file" accept="image/png,image/jpeg" id="updateFile" onchange="handleUpdateFile(this)">
-          <button type="button" class="btn ghost small" onclick="clearUpdateImg()" style="margin-top:8px">Remove</button>
-        </div>
-      </div>
-    </div>
-    <div class="modalActions">
-      <button class="btn secondary" onclick="closeModal('updateModalBg')">Cancel</button>
-      <button class="btn" onclick="saveUpdate()">Save</button>
-    </div>
+<div class="blockedOverlay" id="blockedOverlay">
+  <div class="blockedCard">
+    <div class="icon">🚫</div>
+    <h2>Access Restricted</h2>
+    <p>Your access to this app has been temporarily restricted. If you believe this is a mistake, please reach out to us through another channel.</p>
   </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig = {
@@ -392,640 +261,520 @@ const firebaseConfig = {
   messagingSenderId: "807801159763",
   appId: "1:807801159763:web:7cb5d7df63d089b59c06a6"
 };
+
 const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+const params = new URLSearchParams(location.search);
+const uid = params.get('uid');
 
-let db = null, auth = null;
-let state = { promos: [], updates: [], installs: [], config: {}, status: [] };
-let chart = null;
-let waRows = [];
-let webRows = [];
-let logoDataUrl = '';
-let promoImgDataUrl = '';
-let updateImgDataUrl = '';
-
-if (isConfigured) {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  auth = firebase.auth();
-  db.collection('config').doc('business').get().then(snap=>{
-    if (snap.exists && snap.data().logoUrl) showBrandLogo(snap.data().logoUrl);
-  }).catch(()=>{});
-} else {
-  document.getElementById('demoBanner').style.display = 'block';
+function getLocalBlockedStatus(){
+  try{ return localStorage.getItem('is_blocked') === '1'; }catch(e){ return false; }
+}
+function setLocalBlockedStatus(isBlocked){
+  try{ localStorage.setItem('is_blocked', isBlocked ? '1' : '0'); }catch(e){}
+}
+if (getLocalBlockedStatus()){
+  document.getElementById('blockedOverlay').style.display = 'flex';
 }
 
-function showBrandLogo(url){
-  ['Login','Header'].forEach(where=>{
-    const wrap = document.getElementById('brandLogo'+where);
-    const img = document.getElementById('brandLogo'+where+'Img');
-    if (wrap && img){ img.src = url; wrap.style.display = 'flex'; }
-  });
-}
+const DEMO = {
+  business: {
+    businessName: "Cedar & Co.", tagline: "Fresh updates from our team", logoUrl: "",
+    phone: "+971 4 000 0000", showPhone: true,
+    address: "Shop 4, Al Wasl Road, Dubai", hours: "Sat–Thu, 10am–10pm", showAddress: true,
+    whatsapps: [{label:"Sales", number:"971500000000"}, {label:"Support", number:"971500000001"}], showWhatsapp: true,
+    websites: [{label:"Main site", url:"https://example.com"}], showWebsite: true
+  },
+  promos: [
+    {title:"20% off this weekend", badge:"LIMITED", imageUrl:"", linkUrl:""},
+    {title:"Refer a friend, get AED 25", badge:"ONGOING", imageUrl:"", linkUrl:""}
+  ],
+  updates: [
+    {title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", date:"14 Jul", imageUrl:""},
+    {title:"Holiday hours", body:"We'll be closed Friday for a public holiday, back Saturday.", date:"10 Jul", imageUrl:""}
+  ],
+  status: []
+};
 
-function resizeImageFile(file, maxDim, mimeType, quality){
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onload = e=>{
-      const img = new Image();
-      img.onload = ()=>{
-        let w = img.width, h = img.height;
-        if (w > h){ if (w > maxDim){ h = Math.round(h*maxDim/w); w = maxDim; } }
-        else { if (h > maxDim){ w = Math.round(w*maxDim/h); h = maxDim; } }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL(mimeType, quality));
-      };
-      img.onerror = reject;
-      img.src = e.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+function updateThemeIcon(){
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = document.documentElement.classList.contains('light') ? '🌙' : '☀️';
 }
-
-async function handleLogoFile(input){
-  const file = input.files[0];
-  if (!file) return;
-  logoDataUrl = await resizeImageFile(file, 320, 'image/png', 1);
-  document.getElementById('logoPreviewImg').src = logoDataUrl;
-  document.getElementById('logoPreviewImg').style.display = 'block';
-  document.getElementById('logoPreviewFallback').style.display = 'none';
+function toggleTheme(){
+  const isLight = document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('theme', isLight ? 'light' : 'dark'); } catch(e){}
+  updateThemeIcon();
 }
-function clearLogo(){
-  logoDataUrl = '';
-  document.getElementById('logoPreviewImg').style.display = 'none';
-  document.getElementById('logoPreviewFallback').style.display = 'block';
-  document.getElementById('cfgLogoFile').value = '';
-}
-
-async function handlePromoFile(input){
-  const file = input.files[0];
-  if (!file) return;
-  promoImgDataUrl = await resizeImageFile(file, 900, 'image/jpeg', 0.75);
-  document.getElementById('promoPreviewImg').src = promoImgDataUrl;
-  document.getElementById('promoPreviewImg').style.display = 'block';
-  document.getElementById('promoPreviewFallback').style.display = 'none';
-}
-function clearPromoImg(){
-  promoImgDataUrl = '';
-  document.getElementById('promoPreviewImg').style.display = 'none';
-  document.getElementById('promoPreviewFallback').style.display = 'block';
-  document.getElementById('promoFile').value = '';
-}
-
-async function handleUpdateFile(input){
-  const file = input.files[0];
-  if (!file) return;
-  updateImgDataUrl = await resizeImageFile(file, 900, 'image/jpeg', 0.75);
-  document.getElementById('updatePreviewImg').src = updateImgDataUrl;
-  document.getElementById('updatePreviewImg').style.display = 'block';
-  document.getElementById('updatePreviewFallback').style.display = 'none';
-}
-function clearUpdateImg(){
-  updateImgDataUrl = '';
-  document.getElementById('updatePreviewImg').style.display = 'none';
-  document.getElementById('updatePreviewFallback').style.display = 'block';
-  document.getElementById('updateFile').value = '';
-}
-
-const STATUS_WINDOW_MS = 24 * 60 * 60 * 1000;
-
-async function handleStatusFile(input){
-  const files = Array.from(input.files || []);
-  if (!files.length) return;
-  const linkUrl = document.getElementById('statusLinkInput').value.trim();
-  const notifyTitle = document.getElementById('statusNotifyTitle').value.trim();
-  const notifyBody = document.getElementById('statusNotifyBody').value.trim();
-  const reminderVal = document.getElementById('statusReminderInput').value;
-  const reminderTime = reminderVal
-    ? (isConfigured ? firebase.firestore.Timestamp.fromDate(new Date(reminderVal)) : new Date(reminderVal).getTime())
-    : null;
-  const msg = document.getElementById('statusMsg');
-  const showMsg = (text, isError)=>{
-    if (!msg) return;
-    msg.textContent = text;
-    msg.style.color = isError ? 'var(--bad)' : 'var(--gold-soft)';
-    msg.style.display = 'block';
-  };
-  showMsg(`Uploading ${files.length} photo${files.length>1?'s':''}…`, false);
-  try{
-    for (const file of files){
-      const dataUrl = await resizeImageFile(file, 1080, 'image/jpeg', 0.8);
-      if (!isConfigured){
-        state.status.unshift({id:'s'+Date.now()+Math.random(), imageUrl:dataUrl, linkUrl, notifyTitle, notifyBody, reminderTime, notified:false, reminderSent:false, createdAt: Date.now()});
-      } else {
-        await db.collection('status').add({
-          imageUrl: dataUrl, linkUrl, notifyTitle, notifyBody, reminderTime,
-          notified: false, reminderSent: false,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      }
-    }
-    if (!isConfigured) renderStatusGrid();
-    showMsg(`${files.length} photo${files.length>1?'s':''} uploaded — notification will reach devices within ~5 min ✓`, false);
-    setTimeout(()=>{ if (msg) msg.style.display = 'none'; }, 4000);
-    document.getElementById('statusReminderInput').value = '';
-    document.getElementById('statusNotifyTitle').value = '';
-    document.getElementById('statusNotifyBody').value = '';
-  }catch(e){
-    console.error('status upload failed', e);
-    showMsg('Upload failed — check that Firestore Rules include the "status" section and are Published, then try again.', true);
-  }
-  input.value = '';
-}
-
-function statusCreatedMs(s){
-  if (s.createdAt && s.createdAt.toMillis) return s.createdAt.toMillis();
-  if (typeof s.createdAt === 'number') return s.createdAt;
-  return Date.now(); // timestamp still pending from the server — treat as just uploaded
-}
-function statusIsActive(s){
-  return (Date.now() - statusCreatedMs(s)) < STATUS_WINDOW_MS;
-}
-function statusExpiryLabel(s){
-  const remainingMs = STATUS_WINDOW_MS - (Date.now() - statusCreatedMs(s));
-  const h = Math.max(0, Math.floor(remainingMs / 3600000));
-  const m = Math.max(0, Math.floor((remainingMs % 3600000) / 60000));
-  return h > 0 ? `${h}h left` : `${m}m left`;
-}
-
-function renderStatusGrid(){
-  const el = document.getElementById('statusGrid');
-  const active = state.status.filter(statusIsActive);
-  if (!active.length){ el.innerHTML = '<div class="empty" style="grid-column:1/-1">No active status right now</div>'; return; }
-  el.innerHTML = active.map(s=>`
-    <div class="statusCard">
-      <img src="${s.imageUrl}">
-      <div class="expiry">${statusExpiryLabel(s)}</div>
-      ${s.linkUrl ? '<div class="expiry" style="left:auto;right:6px;top:auto;bottom:6px">🔗 linked</div>' : ''}
-      <button class="delBtn" onclick="deleteStatus('${s.id}')">🗑</button>
-    </div>`).join('');
-}
-function deleteStatus(id){
-  if (!confirm('Delete this status?')) return;
-  if (!isConfigured){ state.status = state.status.filter(s=>s.id!==id); renderStatusGrid(); return; }
-  db.collection('status').doc(id).delete();
-}
-function cleanupExpiredStatus(list){
-  if (!isConfigured) return;
-  list.filter(s=>!statusIsActive(s)).forEach(s=>{ db.collection('status').doc(s.id).delete().catch(()=>{}); });
-}
-
-// ---------- Real-time contact click alerts ----------
-let clickAlertTimer = null;
-function playSiren(){
-  try{
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, now);
-    osc.frequency.linearRampToValueAtTime(1000, now + 0.3);
-    osc.frequency.linearRampToValueAtTime(600, now + 0.6);
-    osc.frequency.linearRampToValueAtTime(1000, now + 0.9);
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
-    gain.gain.linearRampToValueAtTime(0.0001, now + 1.2);
-    osc.start(now);
-    osc.stop(now + 1.2);
-  }catch(e){ console.error('siren failed', e); }
-}
-function requestNotifyPermission(){
-  try{ if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); }
-  catch(e){}
-}
-function showClickAlert(data){
-  playSiren();
-  const name = data.name || 'A customer';
-  const channelPhrase = data.type === 'whatsapp'
-    ? (data.detail ? `your ${data.detail} number` : 'your WhatsApp')
-    : 'you by phone';
-  const label = `${name} tried to contact ${channelPhrase}`;
-  const sub = data.phone ? `📱 ${data.phone}` : 'No number on file yet';
-  document.getElementById('clickAlertName').textContent = label;
-  document.getElementById('clickAlertSub').textContent = sub;
-  document.getElementById('clickAlert').style.display = 'flex';
-  clearTimeout(clickAlertTimer);
-  clickAlertTimer = setTimeout(dismissClickAlert, 8000);
-  try{
-    if (window.Notification && Notification.permission === 'granted'){
-      new Notification('🔔 ' + label, { body: sub });
-    }
-  }catch(e){}
-}
-function dismissClickAlert(){
-  document.getElementById('clickAlert').style.display = 'none';
-}
-function renderClicksList(docs){
-  const el = document.getElementById('clicksList');
-  if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests in the last 24 hours</div>'; return; }
-  el.innerHTML = docs.map(d=>{
-    const v = d.data();
-    const ms = v.clickedAt && v.clickedAt.toMillis ? v.clickedAt.toMillis() : Date.now();
-    const name = v.name || 'Unknown customer';
-    const channelPhrase = v.type === 'whatsapp'
-      ? (v.detail ? `your ${v.detail} number` : 'your WhatsApp')
-      : 'you by phone';
-    return `<div class="row-item">
-      <div class="info"><div><h4>${name} tried to contact ${channelPhrase}</h4>
-      <p>${new Date(ms).toLocaleString()}${v.phone ? ' · '+v.phone : ''}</p></div></div>
-      ${v.phone ? `<a class="btn secondary small" href="https://wa.me/${v.phone.replace(/[^0-9]/g,'')}" target="_blank">Reply</a>` : ''}
-    </div>`;
-  }).join('');
-}
+updateThemeIcon();
 
 function normalizeConfig(cfg){
   const out = {...cfg};
   if (!out.whatsapps && out.whatsapp) out.whatsapps = [{label:'', number: out.whatsapp}];
   if (!out.websites && out.website) out.websites = [{label:'', url: out.website}];
-  if (!out.whatsapps) out.whatsapps = [];
-  if (!out.websites) out.websites = [];
   if (out.showPhone === undefined) out.showPhone = !!out.phone;
   if (out.showAddress === undefined) out.showAddress = !!out.address;
-  if (out.showWhatsapp === undefined) out.showWhatsapp = !!out.whatsapps.length;
-  if (out.showWebsite === undefined) out.showWebsite = !!out.websites.length;
+  if (out.showWhatsapp === undefined) out.showWhatsapp = !!(out.whatsapps && out.whatsapps.length);
+  if (out.showWebsite === undefined) out.showWebsite = !!(out.websites && out.websites.length);
   return out;
 }
 
-function demoInstalls(){
-  const now = Date.now(), day = 86400000, out = [];
-  for (let i=0;i<32;i++){
-    const agoDays = Math.random() < 0.6 ? Math.random()*6 : 8 + Math.random()*40;
-    out.push({ id: 'demo-'+i, installedAt: now - (agoDays + Math.random()*10) * day, lastActiveAt: now - agoDays * day });
+let db = null;
+if (isConfigured) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    db.enablePersistence().catch(()=>{ /* unsupported here, falls back to normal network mode */ });
   }
-  return out;
+  catch (e) { console.error('Firebase init failed', e); }
+} else {
+  document.getElementById('demoBanner').style.display = 'block';
 }
-const DEMO = {
-  config: {
-    businessName:"Cedar & Co.", tagline:"Fresh updates from our team", logoUrl:"",
-    phone:"+971 4 000 0000", showPhone:true,
-    address:"Shop 4, Al Wasl Road, Dubai", hours:"Sat–Thu, 10am–10pm", showAddress:true,
-    whatsapps:[{label:"Sales", number:"971500000000"}], showWhatsapp:true,
-    websites:[{label:"Main site", url:"https://example.com"}], showWebsite:true
-  },
-  promos: [
-    {id:'p1', title:"20% off this weekend", badge:"LIMITED", active:true, imageUrl:"", linkUrl:""},
-    {id:'p2', title:"Refer a friend, get AED 25", badge:"ONGOING", active:true, imageUrl:"", linkUrl:""}
-  ],
-  updates: [
-    {id:'u1', title:"New stock just arrived", body:"We've restocked the items everyone's been asking about.", createdAt:Date.now()-2*86400000, imageUrl:""},
-    {id:'u2', title:"Holiday hours", body:"Closed Friday for a public holiday, back Saturday as usual.", createdAt:Date.now()-6*86400000, imageUrl:""}
-  ],
-  installs: demoInstalls(),
-  status: []
+
+try{
+  const cachedBiz = localStorage.getItem('cached_business');
+  if (cachedBiz){
+    const c = JSON.parse(cachedBiz);
+    if (c.businessName) document.getElementById('bizName').textContent = c.businessName;
+    if (c.tagline) document.getElementById('bizTagline').textContent = c.tagline;
+    if (c.logoUrl) document.getElementById('logoWrap').innerHTML = `<img src="${c.logoUrl}" alt="">`;
+  }
+}catch(e){}
+
+function renderBusiness(cfgRaw){
+  const cfg = normalizeConfig(cfgRaw);
+  try{ localStorage.setItem('cached_business', JSON.stringify({businessName: cfg.businessName, tagline: cfg.tagline, logoUrl: cfg.logoUrl})); }catch(e){}
+  document.getElementById('bizName').textContent = cfg.businessName || "Your Business";
+  document.getElementById('bizTagline').textContent = cfg.tagline || "Here's what's new";
+
+  const logoWrap = document.getElementById('logoWrap');
+  if (cfg.logoUrl) {
+    logoWrap.innerHTML = `<img src="${cfg.logoUrl}" alt="">`;
+  } else {
+    const fb = document.getElementById('logoFallback');
+    if (fb) fb.textContent = (cfg.businessName||"Y").charAt(0).toUpperCase();
+  }
+
+  const rows = [];
+  if (cfg.showPhone && cfg.phone) rows.push(`<a class="contact-row" href="tel:${cfg.phone.replace(/\s/g,'')}" onclick="logContactClick('call','${cfg.phone}')">
+      <div class="icon">📞</div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a>`);
+  if (cfg.showWebsite && cfg.websites && cfg.websites.length){
+    cfg.websites.forEach(w=>{
+      if (!w.url) return;
+      rows.push(`<a class="contact-row" href="${w.url}" target="_blank" rel="noopener">
+        <div class="icon">🌐</div><div class="txt"><div class="label">${w.label || 'Website'}</div><div class="val">${w.url.replace(/^https?:\/\//,'')}</div></div></a>`);
+    });
+  }
+  if (cfg.showAddress && cfg.address) rows.push(`<a class="contact-row" href="https://maps.google.com/?q=${encodeURIComponent(cfg.address)}" target="_blank" rel="noopener">
+      <div class="icon">📍</div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
+  document.getElementById('contactCard').innerHTML = rows.length
+    ? rows.join('<div class="divider"></div>')
+    : '<div class="empty">Contact details coming soon</div>';
+
+  const waEl = document.getElementById('waList');
+  const validWa = (cfg.showWhatsapp && cfg.whatsapps) ? cfg.whatsapps.filter(w=>w.number || w.link) : [];
+  if (validWa.length){
+    waEl.innerHTML = validWa.map(w=>{
+      const href = w.link ? w.link : `https://wa.me/${(w.number||'').replace(/[^0-9]/g,'')}`;
+      return `<a class="cta-wa" href="${href}" target="_blank" rel="noopener" onclick="logContactClick('whatsapp','${(w.label||'WhatsApp').replace(/'/g,"")}')">
+        💬 ${w.label ? 'Chat — '+w.label : 'Chat on WhatsApp'}</a>`;
+    }).join('');
+  } else {
+    waEl.innerHTML = '';
+  }
+}
+
+function stripStatusParam(){
+  try{
+    const url = new URL(location.href);
+    url.searchParams.delete('status');
+    history.replaceState({}, '', url.toString());
+  }catch(e){}
+}
+
+let statusDeepLinkHandled = false;
+let statusDeepLinkPending = false;
+function handleStatusDeepLink(){
+  if (statusDeepLinkHandled) return;
+  const statusId = params.get('status');
+  if (!statusId) return;
+  if (!statusDeepLinkPending){
+    statusDeepLinkPending = true;
+    document.getElementById('storyOverlay').style.display = 'flex';
+    document.getElementById('storyImg').style.display = 'none';
+    document.getElementById('storySpinner').style.display = 'block';
+    document.getElementById('storyProgress').innerHTML = '';
+  }
+  const idx = statusList.findIndex(s => s.id === statusId);
+  if (idx !== -1){
+    statusDeepLinkHandled = true;
+    document.getElementById('storySpinner').style.display = 'none';
+    document.getElementById('storyImg').style.display = 'block';
+    storyIndex = idx;
+    document.getElementById('storyProgress').innerHTML =
+      statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+    showStory(idx);
+    stripStatusParam();
+  }
+}
+
+function renderPromos(list){
+  const el = document.getElementById('promosList');
+  if (!list.length){ el.innerHTML = '<div class="empty">No promotions right now — check back soon.</div>'; stopAutoScroll(); return; }
+  el.innerHTML = list.map((p,i)=>{
+    const inner = p.imageUrl
+      ? `<img src="${p.imageUrl}" alt=""><div class="scrim">${p.badge?`<span class="badge">${p.badge}</span>`:''}<h3>${p.title||''}</h3>${p.linkUrl?'<div class="tap">Tap to view →</div>':''}</div>`
+      : `${p.badge?`<span class="badge" style="position:absolute;top:10px;left:10px">${p.badge}</span>`:''}<h3>${p.title||''}</h3>`;
+    const tag = p.linkUrl ? 'a' : 'div';
+    const href = p.linkUrl ? ` href="${p.linkUrl}" target="_blank" rel="noopener"` : '';
+    return `<${tag} class="promoCard${p.imageUrl?'':' noImg'} in" style="animation-delay:${i*70}ms"${href}>${inner}</${tag}>`;
+  }).join('');
+  setupAutoScroll();
+}
+
+let autoScrollTimer = null;
+let autoScrollPaused = false;
+let autoScrollResumeTimer = null;
+let autoScrollIndex = 0;
+let autoScrollListenersBound = false;
+
+function stopAutoScroll(){
+  clearInterval(autoScrollTimer);
+  autoScrollTimer = null;
+}
+
+function setupAutoScroll(){
+  stopAutoScroll();
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const scrollEl = document.getElementById('promosList');
+  const cards = Array.from(scrollEl.querySelectorAll('.promoCard'));
+  if (cards.length <= 1) return;
+
+  autoScrollIndex = 0;
+  autoScrollTimer = setInterval(()=>{
+    if (autoScrollPaused) return;
+    autoScrollIndex = (autoScrollIndex + 1) % cards.length;
+    cards[autoScrollIndex].scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
+  }, 2000);
+
+  if (!autoScrollListenersBound){
+    const pause = ()=>{ autoScrollPaused = true; clearTimeout(autoScrollResumeTimer); };
+    const resume = ()=>{ autoScrollResumeTimer = setTimeout(()=>{ autoScrollPaused = false; }, 3000); };
+    scrollEl.addEventListener('touchstart', pause, {passive:true});
+    scrollEl.addEventListener('touchend', resume, {passive:true});
+    scrollEl.addEventListener('pointerdown', pause);
+    scrollEl.addEventListener('pointerup', resume);
+    autoScrollListenersBound = true;
+  }
+}
+
+function renderUpdates(list){
+  const el = document.getElementById('updatesList');
+  if (!list.length){ el.innerHTML = '<div class="empty">No updates yet.</div>'; return; }
+  el.innerHTML = list.map((u,i)=>`
+    <div class="update in" style="animation-delay:${i*70}ms">
+      ${u.imageUrl ? `<img src="${u.imageUrl}" alt="">` : ''}
+      <div class="body">
+        <div class="date">${u.date||''}</div>
+        <h3>${u.title||''}</h3>
+        <p>${u.body||''}</p>
+      </div>
+    </div>`).join('');
+}
+
+function fmtDate(ts){
+  try{ const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString(undefined,{day:'numeric',month:'short'});
+  }catch(e){ return ''; }
+}
+
+async function trackActivity(uid){
+  if (!uid || !db) return;
+  try{
+    const ref = db.collection('installs').doc(uid);
+    const snap = await ref.get();
+    if (!snap.exists){
+      await ref.set({
+        installedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastActiveAt: firebase.firestore.FieldValue.serverTimestamp(),
+        platform: 'android'
+      });
+    } else {
+      await ref.update({ lastActiveAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+  }catch(e){ console.error('activity tracking failed', e); }
+}
+
+// ---------- Status / stories (auto-expire after 24h, client-side) ----------
+let statusList = [];
+let storyIndex = 0;
+let storyTimer = null;
+const STORY_DURATION = 5000;
+const STORY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function isStatusActive(s){
+  const ms = (s.createdAt && s.createdAt.toMillis) ? s.createdAt.toMillis()
+    : (typeof s.createdAt === 'number' ? s.createdAt : Date.now());
+  return (Date.now() - ms) < STORY_WINDOW_MS;
+}
+
+function updateLogoRing(){
+  const wrap = document.getElementById('logoWrap');
+  if (statusList.length){
+    wrap.classList.add('hasStatus');
+    wrap.onclick = openStory;
+  } else {
+    wrap.classList.remove('hasStatus');
+    wrap.onclick = null;
+  }
+}
+
+async function loadStatus(){
+  if (!db) { statusList = []; updateLogoRing(); return; }
+  try{
+    const cacheSnap = await db.collection('status').orderBy('createdAt','desc').get({source:'cache'});
+    if (!cacheSnap.empty){
+      statusList = cacheSnap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
+      updateLogoRing();
+      handleStatusDeepLink();
+    }
+  }catch(e){ /* nothing cached yet — that's fine */ }
+  try{
+    const snap = await db.collection('status').orderBy('createdAt','desc').get();
+    statusList = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
+  }catch(e){ statusList = []; }
+  updateLogoRing();
+  handleStatusDeepLink();
+}
+
+window.openStatusFromNotification = async function(statusId){
+  document.getElementById('storyOverlay').style.display = 'flex';
+  document.getElementById('storyImg').style.display = 'none';
+  document.getElementById('storySpinner').style.display = 'block';
+  document.getElementById('storyProgress').innerHTML = '';
+
+  let idx = statusList.findIndex(s => s.id === statusId);
+  if (idx === -1 && db){
+    try{
+      const snap = await db.collection('status').orderBy('createdAt','desc').get();
+      statusList = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(isStatusActive);
+      updateLogoRing();
+      idx = statusList.findIndex(s => s.id === statusId);
+    }catch(e){}
+  }
+
+  document.getElementById('storySpinner').style.display = 'none';
+  document.getElementById('storyImg').style.display = 'block';
+  if (idx !== -1){
+    storyIndex = idx;
+    document.getElementById('storyProgress').innerHTML =
+      statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+    showStory(idx);
+  } else {
+    closeStory();
+  }
 };
 
-function doLogin(){
-  const email = document.getElementById('email').value.trim();
-  const pass = document.getElementById('password').value;
-  const errEl = document.getElementById('loginErr');
-  errEl.style.display = 'none';
-  if (!isConfigured){
-    if (!email || !pass){ errEl.textContent = 'Enter any email and password to preview.'; errEl.style.display='block'; return; }
-    enterApp(email);
-    return;
-  }
-  auth.signInWithEmailAndPassword(email, pass)
-    .then(cred => enterApp(cred.user.email))
-    .catch(e => { errEl.textContent = e.message; errEl.style.display = 'block'; });
+function openStory(){
+  if (!statusList.length) return;
+  storyIndex = 0;
+  document.getElementById('storyProgress').innerHTML =
+    statusList.map(()=>'<div class="seg"><div class="fill"></div></div>').join('');
+  showStory(0);
+  document.getElementById('storyOverlay').style.display = 'flex';
 }
-function doLogout(){
-  if (isConfigured) auth.signOut();
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-}
-function enterApp(label){
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('whoLabel').textContent = label;
-  requestNotifyPermission();
-  loadAll();
-}
-
-function showTab(name){
-  document.querySelectorAll('.tabPanel').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('nav.tabs button').forEach(el=>el.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  document.querySelector(`nav.tabs button[data-tab="${name}"]`).classList.add('active');
-}
-
-async function loadAll(){
-  if (!isConfigured){
-    state = JSON.parse(JSON.stringify(DEMO));
-    fillConfigForm(state.config);
-    renderPromosAdmin(); renderUpdatesAdmin(); recomputeDashboard(); renderStatusGrid();
-    return;
-  }
-  const cfgSnap = await db.collection('config').doc('business').get();
-  state.config = cfgSnap.exists ? cfgSnap.data() : {};
-  fillConfigForm(state.config);
-
-  db.collection('promotions').onSnapshot(snap=>{
-    state.promos = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderPromosAdmin();
+function showStory(i){
+  clearTimeout(storyTimer);
+  const segs = document.querySelectorAll('#storyProgress .seg');
+  segs.forEach((s,idx)=>{
+    const fill = s.querySelector('.fill');
+    fill.style.transition = 'none';
+    fill.style.width = idx < i ? '100%' : '0%';
   });
-  db.collection('updates').orderBy('createdAt','desc').onSnapshot(snap=>{
-    state.updates = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderUpdatesAdmin();
-  });
-  db.collection('installs').onSnapshot(snap=>{
-    state.installs = snap.docs.map(d=>{
-      const v = d.data();
-      return {id:d.id,
-        name: v.name || '',
-        phone: v.phone || '',
-        blocked: !!v.blocked,
-        installedAt: v.installedAt && v.installedAt.toMillis ? v.installedAt.toMillis() : Date.now(),
-        lastActiveAt: v.lastActiveAt && v.lastActiveAt.toMillis ? v.lastActiveAt.toMillis() : Date.now()};
+  document.getElementById('storyImg').src = statusList[i].imageUrl;
+  const linkBtn = document.getElementById('storyLinkBtn');
+  if (statusList[i].linkUrl){
+    linkBtn.href = statusList[i].linkUrl;
+    linkBtn.textContent = statusList[i].linkUrl.includes('wa.me') ? '💬 Chat on WhatsApp' : '🔗 Visit link';
+    linkBtn.style.display = 'flex';
+  } else {
+    linkBtn.style.display = 'none';
+  }
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const fill = segs[i].querySelector('.fill');
+      fill.style.transition = `width ${STORY_DURATION}ms linear`;
+      fill.style.width = '100%';
     });
-    recomputeDashboard();
   });
-  db.collection('status').orderBy('createdAt','desc').onSnapshot(snap=>{
-    state.status = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderStatusGrid();
-    cleanupExpiredStatus(state.status);
-  });
+  storyTimer = setTimeout(nextStory, STORY_DURATION);
+}
+function nextStory(){
+  if (storyIndex < statusList.length - 1){ storyIndex++; showStory(storyIndex); }
+  else { closeStory(); }
+}
+function prevStory(){
+  if (storyIndex > 0){ storyIndex--; showStory(storyIndex); }
+}
+function closeStory(){
+  clearTimeout(storyTimer);
+  document.getElementById('storyOverlay').style.display = 'none';
+  statusDeepLinkPending = false;
+}
 
-  let firstClickSnapshot = true;
-  const clicksDayAgo = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
-  db.collection('contact_clicks').where('clickedAt','>=',clicksDayAgo).orderBy('clickedAt','desc').limit(100).onSnapshot(snap=>{
-    if (firstClickSnapshot){
-      firstClickSnapshot = false;
-      renderClicksList(snap.docs);
-      return;
+async function loadLive(){
+  trackActivity(uid);
+  loadStatus();
+
+  // Instant paint from local cache if this device has opened the app before.
+  // First-ever open has nothing cached yet, so this quietly does nothing and
+  // the skeleton stays visible until the network fetch below completes.
+  try{
+    const [cfgC, promoC, upC] = await Promise.all([
+      db.collection('config').doc('business').get({source:'cache'}),
+      db.collection('promotions').where('active','==',true).get({source:'cache'}),
+      db.collection('updates').orderBy('createdAt','desc').limit(10).get({source:'cache'})
+    ]);
+    if (cfgC.exists) renderBusiness(cfgC.data());
+    if (!promoC.empty) renderPromos(promoC.docs.map(d=>({id:d.id, ...d.data()})));
+    if (!upC.empty) renderUpdates(upC.docs.map(d=>{
+      const u = d.data();
+      return {...u, date: u.createdAt ? fmtDate(u.createdAt) : ''};
+    }));
+  }catch(e){ /* nothing cached yet — that's fine */ }
+
+  // Always refresh from the server too, and update anything that changed.
+  const [cfgRes, promoRes, upRes] = await Promise.allSettled([
+    db.collection('config').doc('business').get(),
+    db.collection('promotions').where('active','==',true).get(),
+    db.collection('updates').orderBy('createdAt','desc').limit(10).get()
+  ]);
+
+  if (cfgRes.status === 'fulfilled') {
+    renderBusiness(cfgRes.value.exists ? cfgRes.value.data() : DEMO.business);
+  } else { renderBusiness(DEMO.business); }
+
+  if (promoRes.status === 'fulfilled') {
+    renderPromos(promoRes.value.docs.map(d=>({id:d.id, ...d.data()})));
+  } else { renderPromos([]); }
+
+  if (upRes.status === 'fulfilled') {
+    const updates = upRes.value.docs.map(d=>{
+      const u = d.data();
+      return {...u, date: u.createdAt ? fmtDate(u.createdAt) : ''};
+    });
+    renderUpdates(updates);
+  } else { renderUpdates([]); }
+}
+
+function loadDemo(){
+  renderBusiness(DEMO.business);
+  renderPromos(DEMO.promos);
+  renderUpdates(DEMO.updates);
+  statusList = DEMO.status.filter(isStatusActive);
+  updateLogoRing();
+}
+
+function isValidIndianMobile(raw){
+  const digits = (raw||'').replace(/\D/g,'');
+  let core = digits;
+  if (core.length === 12 && core.startsWith('91')) core = core.slice(2);
+  if (core.length === 11 && core.startsWith('0')) core = core.slice(1);
+  return /^[6-9]\d{9}$/.test(core);
+}
+function getLocalProfile(){
+  try { return { name: localStorage.getItem('profile_name')||'', phone: localStorage.getItem('profile_phone')||'' }; }
+  catch(e){ return {name:'',phone:''}; }
+}
+function hasProfileLocally(){
+  try { return localStorage.getItem('profile_done') === '1'; } catch(e){ return false; }
+}
+function markProfileDone(name, phone){
+  try {
+    localStorage.setItem('profile_done', '1');
+    localStorage.setItem('profile_name', name);
+    localStorage.setItem('profile_phone', phone);
+  } catch(e){}
+}
+async function submitProfile(){
+  const name = document.getElementById('profileName').value.trim();
+  const phone = document.getElementById('profilePhone').value.trim();
+  const err = document.getElementById('obErr');
+  if (!name || !phone){ err.textContent = 'Please fill in both fields'; err.style.display = 'block'; return; }
+  if (!isValidIndianMobile(phone)){ err.textContent = 'Please enter a valid 10-digit Indian mobile number'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  document.getElementById('onboardOverlay').style.display = 'none';
+  markProfileDone(name, phone);
+  if (db && uid){
+    let shouldBlock = false;
+    try{
+      const blockedSnap = await db.collection('blocked_phones').doc(phone).get();
+      shouldBlock = blockedSnap.exists && !!blockedSnap.data().blocked;
+    }catch(e){ /* lookup failed — fail open */ }
+    try{ await db.collection('installs').doc(uid).set({ name, phone, blocked: shouldBlock }, {merge:true}); }
+    catch(e){ console.error('profile save failed', e); }
+    if (shouldBlock){
+      setLocalBlockedStatus(true);
+      document.getElementById('blockedOverlay').style.display = 'flex';
     }
-    snap.docChanges().forEach(change=>{
-      if (change.type === 'added') showClickAlert(change.doc.data());
+  }
+}
+
+async function getProfileForClick(){
+  const cached = getLocalProfile();
+  if (cached.name || cached.phone) return cached;
+  if (db && uid){
+    try{
+      const snap = await db.collection('installs').doc(uid).get();
+      if (snap.exists){
+        const d = snap.data();
+        const profile = { name: d.name || '', phone: d.phone || '' };
+        if (profile.name || profile.phone){
+          try{ localStorage.setItem('profile_name', profile.name); localStorage.setItem('profile_phone', profile.phone); }catch(e){}
+        }
+        return profile;
+      }
+    }catch(e){ /* ignore */ }
+  }
+  return cached;
+}
+
+async function logContactClick(type, detail){
+  if (!db) return;
+  const profile = await getProfileForClick();
+  try{
+    await db.collection('contact_clicks').add({
+      type, detail: detail || '',
+      name: profile.name, phone: profile.phone,
+      clickedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    renderClicksList(snap.docs);
-  });
+  }catch(e){ console.error('click log failed', e); }
 }
 
-function recomputeDashboard(){
-  const days = parseInt(document.getElementById('threshSelect').value, 10);
-  const cutoff = Date.now() - days*86400000;
-  const GONE_DAYS = 30;
-  const goneCutoff = Date.now() - GONE_DAYS*86400000;
-  let active = 0, inactive = 0, gone = 0;
-  state.installs.forEach(i => {
-    if (i.lastActiveAt >= cutoff) active++;
-    else if (i.lastActiveAt >= goneCutoff) inactive++;
-    else gone++;
-  });
+window.saveFcmToken = async function(installId, token){
+  if (!db) return;
+  try{
+    await db.collection('installs').doc(installId).set({ fcmToken: token }, {merge:true});
+  }catch(e){ console.error('fcm token save failed', e); }
+};
 
-  document.getElementById('statTotal').textContent = state.installs.length;
-  document.getElementById('statActive').textContent = active;
-  document.getElementById('statInactive').textContent = inactive;
-  document.getElementById('statGone').textContent = gone;
-
-  try {
-    const ctx = document.getElementById('activityChart');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels: ['Active','Inactive','Likely gone'], datasets:[{ data:[active,inactive,gone],
-        backgroundColor:['#C9A227','#D96A4C','#5c5646'], borderWidth:0 }] },
-      options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
-    });
-  } catch(e) { console.error('chart render failed', e); }
-
-  try {
-    const searchEl = document.getElementById('installSearch');
-    const q = (searchEl ? searchEl.value : '').toLowerCase().trim();
-    const filtered = state.installs.filter(i =>
-      !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
-
-    const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
-      let tagClass, tagLabel;
-      if (i.blocked){ tagClass='off'; tagLabel='🚫 Blocked'; }
-      else if (i.lastActiveAt >= cutoff){ tagClass='on'; tagLabel='Active'; }
-      else if (i.lastActiveAt >= goneCutoff){ tagClass='off'; tagLabel='Inactive'; }
-      else { tagClass='gone'; tagLabel='Likely gone'; }
-      const nameCell = i.name ? i.name : '<span style="opacity:.5">Unknown</span>';
-      const phoneCell = i.phone
-        ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
-        : '—';
-      const blockBtn = i.blocked
-        ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock">✓</button>`
-        : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block">🚫</button>`;
-      return `<tr>
-        <td>${nameCell}</td>
-        <td>${phoneCell}</td>
-        <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
-        <td><span class="tag ${tagClass}">${tagLabel}</span></td>
-        <td>${blockBtn}</td>
-      </tr>`;
-    }).join('');
-    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No installs match</td></tr>';
-  } catch(e) {
-    console.error('table render failed', e);
-    document.getElementById('installsTable').innerHTML = '<tr><td colspan="5" class="empty">Error loading table — see browser console</td></tr>';
-  }
-}
-function toggleBlock(id, blockState){
-  if (!confirm(blockState ? 'Block this customer? They will lose access to the app.' : 'Unblock this customer?')) return;
-  if (!isConfigured){
-    const i = state.installs.find(x=>x.id===id);
-    if (i) i.blocked = blockState;
-    recomputeDashboard();
-    return;
-  }
-  db.collection('installs').doc(id).update({ blocked: blockState }).catch(e=>console.error('block toggle failed', e));
+function watchBlocked(){
+  if (!db || !uid) return;
+  db.collection('installs').doc(uid).onSnapshot(snap=>{
+    const isBlocked = snap.exists && !!snap.data().blocked;
+    setLocalBlockedStatus(isBlocked);
+    document.getElementById('blockedOverlay').style.display = isBlocked ? 'flex' : 'none';
+  }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
-function fillConfigForm(cRaw){
-  const c = normalizeConfig(cRaw);
-  document.getElementById('cfgName').value = c.businessName || '';
-  document.getElementById('cfgTagline').value = c.tagline || '';
-  logoDataUrl = c.logoUrl || '';
-  if (logoDataUrl){
-    document.getElementById('logoPreviewImg').src = logoDataUrl;
-    document.getElementById('logoPreviewImg').style.display = 'block';
-    document.getElementById('logoPreviewFallback').style.display = 'none';
+function initApp(){
+  if (isConfigured && db) {
+    watchBlocked();
+    if (uid && !hasProfileLocally()) document.getElementById('onboardOverlay').style.display = 'flex';
+    loadLive();
   } else {
-    document.getElementById('logoPreviewImg').style.display = 'none';
-    document.getElementById('logoPreviewFallback').style.display = 'block';
+    loadDemo();
   }
-  document.getElementById('cfgPhone').value = c.phone || '';
-  document.getElementById('cfgShowPhone').checked = !!c.showPhone;
-  document.getElementById('cfgAddress').value = c.address || '';
-  document.getElementById('cfgHours').value = c.hours || '';
-  document.getElementById('cfgShowAddress').checked = !!c.showAddress;
-  document.getElementById('cfgShowWhatsapp').checked = !!c.showWhatsapp;
-  document.getElementById('cfgShowWebsite').checked = !!c.showWebsite;
-  waRows = c.whatsapps.length ? [...c.whatsapps] : [{label:'',number:''}];
-  webRows = c.websites.length ? [...c.websites] : [{label:'',url:''}];
-  renderWaRows();
-  renderWebRows();
 }
-
-function renderWaRows(){
-  const el = document.getElementById('waRows');
-  el.innerHTML = waRows.map((w,i)=>`
-    <div class="dynRow" style="flex-wrap:wrap">
-      <input placeholder="Label (e.g. Sales)" value="${(w.label||'').replace(/"/g,'&quot;')}" oninput="waRows[${i}].label=this.value" style="flex:1 1 100%;margin-bottom:6px">
-      <input placeholder="971500000000" value="${(w.number||'').replace(/"/g,'&quot;')}" oninput="waRows[${i}].number=this.value">
-      <button type="button" class="iconbtn" onclick="removeWaRow(${i})">✕</button>
-      <input placeholder="Or custom WhatsApp link (optional)" value="${(w.link||'').replace(/"/g,'&quot;')}" oninput="waRows[${i}].link=this.value" style="flex:1 1 100%;margin-top:6px">
-    </div>`).join('');
-}
-function addWaRow(){ waRows.push({label:'',number:''}); renderWaRows(); }
-function removeWaRow(i){ waRows.splice(i,1); renderWaRows(); }
-
-function renderWebRows(){
-  const el = document.getElementById('webRows');
-  el.innerHTML = webRows.map((w,i)=>`
-    <div class="dynRow">
-      <input placeholder="Label (e.g. Main site)" value="${(w.label||'').replace(/"/g,'&quot;')}" oninput="webRows[${i}].label=this.value">
-      <input placeholder="https://..." value="${(w.url||'').replace(/"/g,'&quot;')}" oninput="webRows[${i}].url=this.value">
-      <button type="button" class="iconbtn" onclick="removeWebRow(${i})">✕</button>
-    </div>`).join('');
-}
-function addWebRow(){ webRows.push({label:'',url:''}); renderWebRows(); }
-function removeWebRow(i){ webRows.splice(i,1); renderWebRows(); }
-
-async function saveConfig(){
-  const data = {
-    businessName: document.getElementById('cfgName').value.trim(),
-    tagline: document.getElementById('cfgTagline').value.trim(),
-    logoUrl: logoDataUrl,
-    phone: document.getElementById('cfgPhone').value.trim(),
-    showPhone: document.getElementById('cfgShowPhone').checked,
-    address: document.getElementById('cfgAddress').value.trim(),
-    hours: document.getElementById('cfgHours').value.trim(),
-    showAddress: document.getElementById('cfgShowAddress').checked,
-    whatsapps: waRows.filter(w=>(w.number && w.number.trim()) || (w.link && w.link.trim())),
-    showWhatsapp: document.getElementById('cfgShowWhatsapp').checked,
-    websites: webRows.filter(w=>w.url && w.url.trim()),
-    showWebsite: document.getElementById('cfgShowWebsite').checked
-  };
-  const msg = document.getElementById('cfgSaved');
-  if (!isConfigured){ state.config = data; msg.textContent = 'Saved (demo mode — not persisted).'; msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); return; }
-  await db.collection('config').doc('business').set(data, {merge:true});
-  msg.textContent = 'Saved — customers will see this immediately.'; msg.style.display='block';
-  setTimeout(()=>msg.style.display='none', 2500);
-}
-
-function renderPromosAdmin(){
-  const el = document.getElementById('promosAdminList');
-  if (!state.promos.length){ el.innerHTML = '<div class="empty">No promotions yet</div>'; return; }
-  el.innerHTML = state.promos.map(p=>`
-    <div class="row-item">
-      <div class="info">
-        ${p.imageUrl ? `<img class="thumb" src="${p.imageUrl}">` : ''}
-        <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.badge||''}</p></div>
-      </div>
-      <div class="actions">
-        <button class="iconbtn" onclick='openPromoModal(${JSON.stringify(p).replace(/'/g,"&apos;")})'>✎</button>
-        <button class="iconbtn" onclick="deletePromo('${p.id}')">🗑</button>
-      </div>
-    </div>`).join('');
-}
-function openPromoModal(p){
-  document.getElementById('promoModalTitle').textContent = p ? 'Edit promotion' : 'Add promotion';
-  document.getElementById('promoId').value = p ? p.id : '';
-  document.getElementById('promoTitle').value = p ? p.title||'' : '';
-  document.getElementById('promoBadge').value = p ? p.badge||'' : '';
-  document.getElementById('promoLink').value = p ? p.linkUrl||'' : '';
-  document.getElementById('promoActive').checked = p ? !!p.active : true;
-  promoImgDataUrl = p ? (p.imageUrl||'') : '';
-  document.getElementById('promoFile').value = '';
-  if (promoImgDataUrl){
-    document.getElementById('promoPreviewImg').src = promoImgDataUrl;
-    document.getElementById('promoPreviewImg').style.display = 'block';
-    document.getElementById('promoPreviewFallback').style.display = 'none';
-  } else {
-    document.getElementById('promoPreviewImg').style.display = 'none';
-    document.getElementById('promoPreviewFallback').style.display = 'block';
-  }
-  document.getElementById('promoModalBg').style.display = 'flex';
-}
-async function savePromo(){
-  const id = document.getElementById('promoId').value;
-  const data = {
-    title: document.getElementById('promoTitle').value.trim(),
-    badge: document.getElementById('promoBadge').value.trim(),
-    imageUrl: promoImgDataUrl,
-    linkUrl: document.getElementById('promoLink').value.trim(),
-    active: document.getElementById('promoActive').checked
-  };
-  if (!isConfigured){
-    if (id){ const i=state.promos.findIndex(x=>x.id===id); state.promos[i]={...state.promos[i],...data}; }
-    else { state.promos.push({id:'p'+Date.now(), ...data}); }
-    renderPromosAdmin(); closeModal('promoModalBg'); return;
-  }
-  if (id) await db.collection('promotions').doc(id).set(data,{merge:true});
-  else await db.collection('promotions').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-  closeModal('promoModalBg');
-}
-function deletePromo(id){
-  if (!confirm('Delete this promotion?')) return;
-  if (!isConfigured){ state.promos = state.promos.filter(p=>p.id!==id); renderPromosAdmin(); return; }
-  db.collection('promotions').doc(id).delete();
-}
-
-function renderUpdatesAdmin(){
-  const el = document.getElementById('updatesAdminList');
-  if (!state.updates.length){ el.innerHTML = '<div class="empty">No updates yet</div>'; return; }
-  el.innerHTML = state.updates.map(u=>`
-    <div class="row-item">
-      <div class="info">
-        ${u.imageUrl ? `<img class="thumb" src="${u.imageUrl}">` : ''}
-        <div><h4>${u.title||''}</h4><p>${u.body||''}</p></div>
-      </div>
-      <div class="actions">
-        <button class="iconbtn" onclick='openUpdateModal(${JSON.stringify(u).replace(/'/g,"&apos;")})'>✎</button>
-        <button class="iconbtn" onclick="deleteUpdate('${u.id}')">🗑</button>
-      </div>
-    </div>`).join('');
-}
-function openUpdateModal(u){
-  document.getElementById('updateModalTitle').textContent = u ? 'Edit update' : 'Add update';
-  document.getElementById('updateId').value = u ? u.id : '';
-  document.getElementById('updateTitle').value = u ? u.title||'' : '';
-  document.getElementById('updateBody').value = u ? u.body||'' : '';
-  updateImgDataUrl = u ? (u.imageUrl||'') : '';
-  document.getElementById('updateFile').value = '';
-  if (updateImgDataUrl){
-    document.getElementById('updatePreviewImg').src = updateImgDataUrl;
-    document.getElementById('updatePreviewImg').style.display = 'block';
-    document.getElementById('updatePreviewFallback').style.display = 'none';
-  } else {
-    document.getElementById('updatePreviewImg').style.display = 'none';
-    document.getElementById('updatePreviewFallback').style.display = 'block';
-  }
-  document.getElementById('updateModalBg').style.display = 'flex';
-}
-async function saveUpdate(){
-  const id = document.getElementById('updateId').value;
-  const data = {
-    title: document.getElementById('updateTitle').value.trim(),
-    body: document.getElementById('updateBody').value.trim(),
-    imageUrl: updateImgDataUrl
-  };
-  if (!isConfigured){
-    if (id){ const i=state.updates.findIndex(x=>x.id===id); state.updates[i]={...state.updates[i],...data}; }
-    else { state.updates.unshift({id:'u'+Date.now(), ...data, createdAt: Date.now()}); }
-    renderUpdatesAdmin(); closeModal('updateModalBg'); return;
-  }
-  if (id) await db.collection('updates').doc(id).set(data,{merge:true});
-  else await db.collection('updates').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-  closeModal('updateModalBg');
-}
-function deleteUpdate(id){
-  if (!confirm('Delete this update?')) return;
-  if (!isConfigured){ state.updates = state.updates.filter(u=>u.id!==id); renderUpdatesAdmin(); return; }
-  db.collection('updates').doc(id).delete();
-}
-
-function closeModal(id){ document.getElementById(id).style.display = 'none'; }
-
-if (isConfigured){
-  auth.onAuthStateChanged(user => { if (user) enterApp(user.email); });
-}
+initApp();
 </script>
 </body>
 </html>
