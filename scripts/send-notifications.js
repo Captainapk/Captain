@@ -39,9 +39,10 @@ async function main() {
     .get();
 
   for (const doc of newStatusSnap.docs) {
+    const s = doc.data();
     await sendToAll({
-      title: 'New update just posted!',
-      body: 'Tap to view — it disappears in 24 hours.',
+      title: s.notifyTitle || 'New update just posted!',
+      body: s.notifyBody || 'Tap to view — it disappears in 24 hours.',
       statusId: doc.id
     });
     await doc.ref.update({ notified: true });
@@ -57,8 +58,8 @@ async function main() {
     const remMs = s.reminderTime.toMillis ? s.reminderTime.toMillis() : s.reminderTime;
     if (remMs <= now && remMs > now - 10 * 60000) {
       await sendToAll({
-        title: 'Reminder — last chance!',
-        body: 'Tap to view this before it disappears.',
+        title: s.notifyTitle ? `Reminder: ${s.notifyTitle}` : 'Reminder — last chance!',
+        body: s.notifyBody || 'Tap to view this before it disappears.',
         statusId: doc.id
       });
       await doc.ref.update({ reminderSent: true });
