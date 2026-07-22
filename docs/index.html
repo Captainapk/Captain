@@ -758,10 +758,18 @@ window.saveFcmToken = async function(installId, token){
 
 function watchBlocked(){
   if (!db || !uid) return;
-  db.collection('installs').doc(uid).onSnapshot(snap=>{
+  db.collection('installs').doc(uid).onSnapshot({includeMetadataChanges: true}, snap=>{
     const isBlocked = snap.exists && !!snap.data().blocked;
-    setLocalBlockedStatus(isBlocked);
-    document.getElementById('blockedOverlay').style.display = isBlocked ? 'flex' : 'none';
+    if (isBlocked){
+      setLocalBlockedStatus(true);
+      document.getElementById('blockedOverlay').style.display = 'flex';
+    } else if (!snap.metadata.fromCache){
+      setLocalBlockedStatus(false);
+      document.getElementById('blockedOverlay').style.display = 'none';
+    }
+    // If not blocked but this reading came from local cache, we deliberately
+    // do nothing — that cache may predate a block that just happened, and we
+    // don't want stale "not blocked" data to hide a real, current restriction.
   }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
