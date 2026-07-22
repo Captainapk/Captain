@@ -237,6 +237,8 @@
           Each photo disappears automatically 24 hours after you add it — just like WhatsApp/Instagram status.
         </p>
         <div class="field"><label>Link (optional) — opens when tapped in the story</label><input id="statusLinkInput" placeholder="https://wa.me/... or any link"></div>
+        <div class="field"><label>Notification title (optional)</label><input id="statusNotifyTitle" placeholder="e.g. Big weekend sale!"></div>
+        <div class="field"><label>Notification message (optional)</label><input id="statusNotifyBody" placeholder="e.g. 20% off everything, today only"></div>
         <div class="field"><label>Reminder date & time (optional) — sends a second notification at this exact time</label><input type="datetime-local" id="statusReminderInput"></div>
         <input type="file" accept="image/png,image/jpeg" id="statusFile" multiple style="display:none" onchange="handleStatusFile(this)">
         <button type="button" class="addBtn" style="margin-bottom:0" onclick="document.getElementById('statusFile').click()">+ Add status photo(s)</button>
@@ -493,6 +495,8 @@ async function handleStatusFile(input){
   const files = Array.from(input.files || []);
   if (!files.length) return;
   const linkUrl = document.getElementById('statusLinkInput').value.trim();
+  const notifyTitle = document.getElementById('statusNotifyTitle').value.trim();
+  const notifyBody = document.getElementById('statusNotifyBody').value.trim();
   const reminderVal = document.getElementById('statusReminderInput').value;
   const reminderTime = reminderVal
     ? (isConfigured ? firebase.firestore.Timestamp.fromDate(new Date(reminderVal)) : new Date(reminderVal).getTime())
@@ -509,10 +513,10 @@ async function handleStatusFile(input){
     for (const file of files){
       const dataUrl = await resizeImageFile(file, 1080, 'image/jpeg', 0.8);
       if (!isConfigured){
-        state.status.unshift({id:'s'+Date.now()+Math.random(), imageUrl:dataUrl, linkUrl, reminderTime, notified:false, reminderSent:false, createdAt: Date.now()});
+        state.status.unshift({id:'s'+Date.now()+Math.random(), imageUrl:dataUrl, linkUrl, notifyTitle, notifyBody, reminderTime, notified:false, reminderSent:false, createdAt: Date.now()});
       } else {
         await db.collection('status').add({
-          imageUrl: dataUrl, linkUrl, reminderTime,
+          imageUrl: dataUrl, linkUrl, notifyTitle, notifyBody, reminderTime,
           notified: false, reminderSent: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -522,6 +526,8 @@ async function handleStatusFile(input){
     showMsg(`${files.length} photo${files.length>1?'s':''} uploaded — notification will reach devices within ~5 min ✓`, false);
     setTimeout(()=>{ if (msg) msg.style.display = 'none'; }, 4000);
     document.getElementById('statusReminderInput').value = '';
+    document.getElementById('statusNotifyTitle').value = '';
+    document.getElementById('statusNotifyBody').value = '';
   }catch(e){
     console.error('status upload failed', e);
     showMsg('Upload failed — check that Firestore Rules include the "status" section and are Published, then try again.', true);
