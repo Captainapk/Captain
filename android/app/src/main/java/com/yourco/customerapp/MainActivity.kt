@@ -95,6 +95,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val statusId = intent.getStringExtra("statusId")
+        if (statusId != null) {
+            val js = "if (window.openStatusFromNotification) { window.openStatusFromNotification('$statusId'); }"
+            webView.evaluateJavascript(js, null)
+        }
+    }
+
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
