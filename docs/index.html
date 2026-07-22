@@ -682,10 +682,9 @@ async function checkBlocked(){
   return false;
 }
 
-async function initApp(){
+function initApp(){
   if (isConfigured && db) {
-    const blocked = await checkBlocked();
-    if (blocked) return;
+    checkBlocked();
     if (uid && !hasProfileLocally()) document.getElementById('onboardOverlay').style.display = 'flex';
     loadLive();
   } else {
@@ -693,7 +692,4 @@ async function initApp(){
   }
 }
 initApp();
-</script>
-</body>
-</html>
 
