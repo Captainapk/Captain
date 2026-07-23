@@ -217,6 +217,10 @@
         <div id="clicksList"><div class="empty">No contact requests yet</div></div>
       </div>
       <div class="panel">
+        <h3>Recent wallet claims</h3>
+        <div id="walletClaimsList"><div class="empty">No claims yet</div></div>
+      </div>
+      <div class="panel">
         <h3>Recent installs
           <input type="text" id="installSearch" placeholder="Search name or phone…" oninput="recomputeDashboard()"
             style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
@@ -624,6 +628,34 @@ function showClickAlert(data){
 function dismissClickAlert(){
   document.getElementById('clickAlert').style.display = 'none';
 }
+function showWalletClaimAlert(data){
+  playSiren();
+  const label = `${data.name || 'A customer'} claimed ₹${data.amount}`;
+  const sub = `${data.phone ? '📱 '+data.phone : 'No number on file'} · Signup bonus`;
+  document.getElementById('clickAlertName').textContent = label;
+  document.getElementById('clickAlertSub').textContent = sub;
+  document.getElementById('clickAlert').style.display = 'flex';
+  clearTimeout(clickAlertTimer);
+  clickAlertTimer = setTimeout(dismissClickAlert, 8000);
+  try{
+    if (window.Notification && Notification.permission === 'granted'){
+      new Notification('🎉 ' + label, { body: sub });
+    }
+  }catch(e){}
+}
+function renderWalletClaimsList(docs){
+  const el = document.getElementById('walletClaimsList');
+  if (!docs.length){ el.innerHTML = '<div class="empty">No claims in the last 24 hours</div>'; return; }
+  el.innerHTML = docs.map(d=>{
+    const v = d.data();
+    const ms = v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : Date.now();
+    return `<div class="row-item">
+      <div class="info"><div><h4>${v.name || 'Unknown customer'} claimed ₹${v.amount}</h4>
+      <p>${new Date(ms).toLocaleString()}${v.phone ? ' · '+v.phone : ''}</p></div></div>
+      ${v.phone ? `<a class="btn secondary small" href="https://wa.me/${v.phone.replace(/[^0-9]/g,'')}" target="_blank">Reply</a>` : ''}
+    </div>`;
+  }).join('');
+}
 function renderClicksList(docs){
   const el = document.getElementById('clicksList');
   if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests in the last 24 hours</div>'; return; }
@@ -768,6 +800,21 @@ async function loadAll(){
     });
     renderClicksList(snap.docs);
   });
+
+  let firstWalletSnapshot = true;
+  const walletDayAgo = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
+  db.collection('wallet_transactions').where('createdAt','>=',walletDayAgo).orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
+    const claimDocs = snap.docs.filter(d => d.data().type === 'bonus_claim');
+    if (firstWalletSnapshot){
+      firstWalletSnapshot = false;
+      renderWalletClaimsList(claimDocs);
+      return;
+    }
+    snap.docChanges().forEach(change=>{
+      if (change.type === 'added' && change.doc.data().type === 'bonus_claim') showWalletClaimAlert(change.doc.data());
+    });
+    renderWalletClaimsList(claimDocs);
+  });
 }
 
 function recomputeDashboard(){
@@ -837,9 +884,9 @@ function recomputeDashboard(){
 }
 function redeemWallet(id, amount){
   if (!confirm(`Mark ₹${amount} as redeemed for this customer?`)) return;
+  const inst = state.installs.find(x=>x.id===id);
   if (!isConfigured){
-    const i = state.installs.find(x=>x.id===id);
-    if (i) i.walletBalance = 0;
+    if (inst) inst.walletBalance = 0;
     recomputeDashboard();
     return;
   }
@@ -847,6 +894,13 @@ function redeemWallet(id, amount){
     walletBalance: 0,
     redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
   }).catch(e=>console.error('redeem failed', e));
+  if (inst){
+    db.collection('wallet_transactions').add({
+      uid: id, name: inst.name, phone: inst.phone,
+      amount, type: 'redeemed', description: 'Redeemed in-store',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(()=>{});
+  }
 }
 function toggleBlock(id, blockState){
   if (!confirm(blockState ? 'Block this customer? They will lose access to the app.' : 'Unblock this customer?')) return;
