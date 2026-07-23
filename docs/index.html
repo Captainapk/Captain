@@ -100,6 +100,11 @@
   .blockedCard .icon{font-size:38px;margin-bottom:10px}
   .blockedCard h2{font-size:21px;margin:0 0 10px}
   .blockedCard p{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+  .walletCard{display:none;align-items:center;justify-content:space-between;gap:14px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-soft));color:#1a1608;
+    margin:16px 18px 0;padding:16px 18px;border-radius:16px;box-shadow:0 8px 20px -8px rgba(201,162,39,.5)}
+  .walletAmount{font-family:'Playfair Display';font-size:26px;font-weight:700;white-space:nowrap}
+  .walletLabel{font-size:12px;font-weight:600;text-align:right;line-height:1.4}
   header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
   header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
@@ -191,6 +196,11 @@
   <a href="#updatesSection">📰 Updates</a>
 </nav>
 
+<div class="walletCard" id="walletCard">
+  <div class="walletAmount" id="walletAmount">₹0</div>
+  <div class="walletLabel">Your reward balance —<br>show this at the counter</div>
+</div>
+
 <div class="container">
 
   <section id="promosSection">
@@ -235,8 +245,8 @@
   <div class="onboardCard">
     <h2>Welcome 👋</h2>
     <p>Just so we know who's here — takes 10 seconds.</p>
-    <div class="obField"><label>Your ID name</label><input id="profileName" placeholder=""></div>
-    <div class="obField"><label>WhatsApp Number</label><input id="profilePhone" placeholder=""></div>
+    <div class="obField"><label>Your name</label><input id="profileName" placeholder="e.g. Ahmed"></div>
+    <div class="obField"><label>WhatsApp / phone number</label><input id="profilePhone" placeholder="e.g. 971501234567"></div>
     <div class="obErr" id="obErr">Please fill in both fields</div>
     <button class="obBtn" onclick="submitProfile()">Continue</button>
   </div>
@@ -318,6 +328,7 @@ function normalizeConfig(cfg){
 }
 
 let db = null;
+let signupBonusAmount = 100;
 if (isConfigured) {
   try {
     firebase.initializeApp(firebaseConfig);
@@ -341,6 +352,7 @@ try{
 
 function renderBusiness(cfgRaw){
   const cfg = normalizeConfig(cfgRaw);
+  signupBonusAmount = cfg.bonusAmount || 100;
   try{ localStorage.setItem('cached_business', JSON.stringify({businessName: cfg.businessName, tagline: cfg.tagline, logoUrl: cfg.logoUrl})); }catch(e){}
   document.getElementById('bizName').textContent = cfg.businessName || "Your Business";
   document.getElementById('bizTagline').textContent = cfg.tagline || "Here's what's new";
@@ -709,7 +721,12 @@ async function submitProfile(){
       const blockedSnap = await db.collection('blocked_phones').doc(phone).get();
       shouldBlock = blockedSnap.exists && !!blockedSnap.data().blocked;
     }catch(e){ /* lookup failed — fail open */ }
-    try{ await db.collection('installs').doc(uid).set({ name, phone, blocked: shouldBlock }, {merge:true}); }
+    try{
+      await db.collection('installs').doc(uid).set({
+        name, phone, blocked: shouldBlock,
+        walletBalance: signupBonusAmount, bonusGranted: true
+      }, {merge:true});
+    }
     catch(e){ console.error('profile save failed', e); }
     if (shouldBlock){
       setLocalBlockedStatus(true);
@@ -756,10 +773,13 @@ window.saveFcmToken = async function(installId, token){
   }catch(e){ console.error('fcm token save failed', e); }
 };
 
-function watchBlocked(){
+function watchMyInstallDoc(){
   if (!db || !uid) return;
   db.collection('installs').doc(uid).onSnapshot({includeMetadataChanges: true}, snap=>{
-    const isBlocked = snap.exists && !!snap.data().blocked;
+    if (!snap.exists) return;
+    const data = snap.data();
+
+    const isBlocked = !!data.blocked;
     if (isBlocked){
       setLocalBlockedStatus(true);
       document.getElementById('blockedOverlay').style.display = 'flex';
@@ -767,15 +787,23 @@ function watchBlocked(){
       setLocalBlockedStatus(false);
       document.getElementById('blockedOverlay').style.display = 'none';
     }
-    // If not blocked but this reading came from local cache, we deliberately
-    // do nothing — that cache may predate a block that just happened, and we
-    // don't want stale "not blocked" data to hide a real, current restriction.
+
+    const bal = data.walletBalance || 0;
+    const card = document.getElementById('walletCard');
+    if (card){
+      if (bal > 0){
+        document.getElementById('walletAmount').textContent = '₹' + bal;
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    }
   }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
 function initApp(){
   if (isConfigured && db) {
-    watchBlocked();
+    watchMyInstallDoc();
     if (uid && !hasProfileLocally()) document.getElementById('onboardOverlay').style.display = 'flex';
     loadLive();
   } else {
