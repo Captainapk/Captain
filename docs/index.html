@@ -50,6 +50,12 @@
     background:var(--card2);border:1px solid var(--line);font-size:15px;display:flex;
     align-items:center;justify-content:center;color:var(--ink);z-index:2;padding:0}
   .themeBtn:active{transform:scale(.92)}
+  .profileBtn{position:absolute;top:16px;left:16px;width:38px;height:38px;border-radius:50%;
+    background:var(--card2);border:1px solid var(--line);font-size:15px;display:flex;
+    align-items:center;justify-content:center;color:var(--ink);z-index:2;padding:0}
+  .profileBtn:active{transform:scale(.92)}
+  .profileBadge{position:absolute;top:-4px;right:-4px;background:var(--gold);color:#1a1608;
+    font-size:9px;font-weight:800;border-radius:99px;padding:2px 5px;display:none;white-space:nowrap}
   .logoWrap{position:relative;width:60px;height:60px;border-radius:50%;margin:0 auto 12px;overflow:hidden;
     border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;background:var(--card);z-index:1}
   .logoWrap img{width:100%;height:100%;object-fit:cover}
@@ -105,6 +111,41 @@
     margin:16px 18px 0;padding:16px 18px;border-radius:16px;box-shadow:0 8px 20px -8px rgba(201,162,39,.5)}
   .walletAmount{font-family:'Playfair Display';font-size:26px;font-weight:700;white-space:nowrap}
   .walletLabel{font-size:12px;font-weight:600;text-align:right;line-height:1.4}
+
+  .bonusOverlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:65;display:none;
+    align-items:center;justify-content:center;padding:24px}
+  .bonusCard{max-width:320px;width:100%;background:var(--card);border:1px solid var(--gold);
+    border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+  .bonusIcon{font-size:44px;margin-bottom:10px}
+  .bonusCard h2{font-size:20px;margin:0 0 8px;color:var(--gold-soft)}
+  .bonusCard p{color:var(--muted);font-size:13.5px;margin:0 0 18px;line-height:1.5}
+  .bonusBtn{display:block;width:100%;background:var(--gold);color:#1a1608;border:none;border-radius:14px;
+    padding:14px;font-weight:700;font-size:15px;margin-bottom:10px;text-decoration:none;box-sizing:border-box}
+  .bonusBtn.wa{background:var(--whatsapp);color:#062b14}
+  .bonusBtn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+
+  .profileOverlay{position:fixed;inset:0;background:var(--bg);z-index:65;display:none;
+    flex-direction:column;overflow-y:auto}
+  .profileOverlay .top{padding:20px 18px;display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid var(--line)}
+  .profileOverlay .top h2{margin:0;font-size:18px}
+  .profileBody{padding:20px 18px 60px}
+  .profileRow{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .profileRow .lbl{color:var(--muted)}
+  .profileRow .val{font-weight:600}
+  .walletBig{background:linear-gradient(135deg,var(--gold),var(--gold-soft));color:#1a1608;
+    border-radius:18px;padding:22px;text-align:center;margin:20px 0}
+  .walletBig .amt{font-family:'Playfair Display';font-size:36px;font-weight:700}
+  .walletBig .lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+  .histSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}
+  .histSummary div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+  .histSummary .n{font-family:'IBM Plex Mono';font-size:15px;font-weight:600}
+  .histSummary .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
+  .histItem{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .histItem .desc{color:var(--ink)}
+  .histItem .date{color:var(--muted);font-size:11px}
+  .histItem .amt{font-weight:700;color:var(--gold-soft)}
+  .histItem .amt.neg{color:var(--muted)}
   header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
   header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
@@ -185,6 +226,9 @@
 
 <header class="top">
   <button class="themeBtn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️</button>
+  <button class="profileBtn" id="profileBtn" onclick="openProfile()" aria-label="My profile">
+    👤<span class="profileBadge" id="profileBadge"></span>
+  </button>
   <div class="logoWrap" id="logoWrap"><span class="fallback" id="logoFallback">Y</span></div>
   <h1 id="bizName">Your Business</h1>
   <p id="bizTagline">Loading the latest updates &amp; offers…</p>
@@ -195,11 +239,6 @@
   <a href="#contactSection">💬 Get in touch</a>
   <a href="#updatesSection">📰 Updates</a>
 </nav>
-
-<div class="walletCard" id="walletCard">
-  <div class="walletAmount" id="walletAmount">₹0</div>
-  <div class="walletLabel">Your reward balance —<br>show this at the counter</div>
-</div>
 
 <div class="container">
 
@@ -257,6 +296,39 @@
     <div class="icon">🚫</div>
     <h2>Access Restricted</h2>
     <p>Your access to this app has been temporarily restricted. If you believe this is a mistake, please reach out to us through another channel.</p>
+  </div>
+</div>
+
+<div class="bonusOverlay" id="bonusOverlay">
+  <div class="bonusCard">
+    <div class="bonusIcon">🎉</div>
+    <h2 id="bonusTitle">You've received a free bonus!</h2>
+    <p id="bonusSubtitle">Claim it now to add it to your wallet.</p>
+    <button class="bonusBtn" id="bonusClaimBtn" onclick="claimBonus()">Claim Now</button>
+    <a class="bonusBtn wa" id="bonusAvailBtn" href="#" target="_blank" rel="noopener" style="display:none">💬 Avail Now — Message us</a>
+    <button class="bonusBtn ghost" id="bonusContinueBtn" onclick="closeBonusOverlay()" style="display:none">Continue to app</button>
+  </div>
+</div>
+
+<div class="profileOverlay" id="profileOverlay">
+  <div class="top">
+    <h2>My Profile</h2>
+    <button class="storyClose" style="position:static" onclick="closeProfile()">✕</button>
+  </div>
+  <div class="profileBody">
+    <div class="profileRow"><span class="lbl">Name</span><span class="val" id="profileViewName">—</span></div>
+    <div class="profileRow"><span class="lbl">WhatsApp Number</span><span class="val" id="profileViewPhone">—</span></div>
+    <div class="walletBig">
+      <div class="amt" id="profileWalletAmt">₹0</div>
+      <div class="lbl">Wallet Balance</div>
+    </div>
+    <h3 style="margin:0 0 4px">Reward history</h3>
+    <div class="histSummary">
+      <div><div class="n" id="histToday">₹0</div><div class="l">Today</div></div>
+      <div><div class="n" id="histWeek">₹0</div><div class="l">This week</div></div>
+      <div><div class="n" id="histMonth">₹0</div><div class="l">This month</div></div>
+    </div>
+    <div id="historyList"><div class="empty">No history yet</div></div>
   </div>
 </div>
 
@@ -329,6 +401,7 @@ function normalizeConfig(cfg){
 
 let db = null;
 let signupBonusAmount = 100;
+let primaryWhatsapp = '';
 if (isConfigured) {
   try {
     firebase.initializeApp(firebaseConfig);
@@ -384,6 +457,7 @@ function renderBusiness(cfgRaw){
   const waEl = document.getElementById('waList');
   const validWa = (cfg.showWhatsapp && cfg.whatsapps) ? cfg.whatsapps.filter(w=>w.number || w.link) : [];
   if (validWa.length){
+    primaryWhatsapp = validWa[0].link ? validWa[0].link : `https://wa.me/${(validWa[0].number||'').replace(/[^0-9]/g,'')}`;
     waEl.innerHTML = validWa.map(w=>{
       const href = w.link ? w.link : `https://wa.me/${(w.number||'').replace(/[^0-9]/g,'')}`;
       return `<a class="cta-wa" href="${href}" target="_blank" rel="noopener" onclick="logContactClick('whatsapp','${(w.label||'WhatsApp').replace(/'/g,"")}')">
@@ -721,18 +795,89 @@ async function submitProfile(){
       const blockedSnap = await db.collection('blocked_phones').doc(phone).get();
       shouldBlock = blockedSnap.exists && !!blockedSnap.data().blocked;
     }catch(e){ /* lookup failed — fail open */ }
-    try{
-      await db.collection('installs').doc(uid).set({
-        name, phone, blocked: shouldBlock,
-        walletBalance: signupBonusAmount, bonusGranted: true
-      }, {merge:true});
-    }
+    try{ await db.collection('installs').doc(uid).set({ name, phone, blocked: shouldBlock }, {merge:true}); }
     catch(e){ console.error('profile save failed', e); }
     if (shouldBlock){
       setLocalBlockedStatus(true);
       document.getElementById('blockedOverlay').style.display = 'flex';
+    } else {
+      document.getElementById('bonusTitle').textContent = `You've received ₹${signupBonusAmount} free!`;
+      document.getElementById('bonusOverlay').style.display = 'flex';
     }
   }
+}
+
+async function claimBonus(){
+  if (!db || !uid) return;
+  const profile = getLocalProfile();
+  try{
+    await db.collection('installs').doc(uid).set({
+      walletBalance: firebase.firestore.FieldValue.increment(signupBonusAmount),
+      bonusClaimed: true
+    }, {merge:true});
+    await db.collection('wallet_transactions').add({
+      uid, name: profile.name, phone: profile.phone,
+      amount: signupBonusAmount, type: 'bonus_claim',
+      description: 'Signup bonus',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){ console.error('claim failed', e); }
+  document.getElementById('bonusTitle').textContent = `₹${signupBonusAmount} added to your wallet! 🎉`;
+  document.getElementById('bonusSubtitle').textContent = 'Come say hi and let us know — we\'ll get you sorted.';
+  document.getElementById('bonusClaimBtn').style.display = 'none';
+  const availBtn = document.getElementById('bonusAvailBtn');
+  if (primaryWhatsapp){ availBtn.href = primaryWhatsapp; availBtn.style.display = 'block'; }
+  document.getElementById('bonusContinueBtn').style.display = 'block';
+}
+function closeBonusOverlay(){
+  document.getElementById('bonusOverlay').style.display = 'none';
+}
+
+function computeHistorySummary(list){
+  const now = Date.now(), day = 86400000;
+  let today=0, week=0, month=0;
+  list.forEach(t=>{
+    if (t.type === 'redeemed') return;
+    const ms = t.createdAt && t.createdAt.toMillis ? t.createdAt.toMillis() : (t.createdAt || 0);
+    const age = now - ms;
+    if (age < day) today += t.amount;
+    if (age < 7*day) week += t.amount;
+    if (age < 30*day) month += t.amount;
+  });
+  return {today, week, month};
+}
+function renderHistoryList(list){
+  const el = document.getElementById('historyList');
+  if (!list.length){ el.innerHTML = '<div class="empty">No history yet</div>'; return; }
+  el.innerHTML = list.map(t=>{
+    const ms = t.createdAt && t.createdAt.toMillis ? t.createdAt.toMillis() : (t.createdAt || Date.now());
+    const isNeg = t.type === 'redeemed';
+    return `<div class="histItem">
+      <div><div class="desc">${t.description || (isNeg?'Redeemed in-store':'Reward earned')}</div>
+      <div class="date">${new Date(ms).toLocaleString()}</div></div>
+      <div class="amt${isNeg?' neg':''}">${isNeg?'−':'+'}₹${t.amount}</div>
+    </div>`;
+  }).join('');
+}
+async function openProfile(){
+  const profile = getLocalProfile();
+  document.getElementById('profileViewName').textContent = profile.name || '—';
+  document.getElementById('profileViewPhone').textContent = profile.phone || '—';
+  document.getElementById('profileOverlay').style.display = 'flex';
+  if (db && uid){
+    try{
+      const snap = await db.collection('wallet_transactions').where('uid','==',uid).orderBy('createdAt','desc').limit(50).get();
+      const list = snap.docs.map(d=>d.data());
+      const sum = computeHistorySummary(list);
+      document.getElementById('histToday').textContent = '₹'+sum.today;
+      document.getElementById('histWeek').textContent = '₹'+sum.week;
+      document.getElementById('histMonth').textContent = '₹'+sum.month;
+      renderHistoryList(list);
+    }catch(e){ console.error('history load failed', e); }
+  }
+}
+function closeProfile(){
+  document.getElementById('profileOverlay').style.display = 'none';
 }
 
 async function getProfileForClick(){
@@ -789,15 +934,13 @@ function watchMyInstallDoc(){
     }
 
     const bal = data.walletBalance || 0;
-    const card = document.getElementById('walletCard');
-    if (card){
-      if (bal > 0){
-        document.getElementById('walletAmount').textContent = '₹' + bal;
-        card.style.display = 'flex';
-      } else {
-        card.style.display = 'none';
-      }
+    const badge = document.getElementById('profileBadge');
+    if (badge){
+      if (bal > 0){ badge.textContent = '₹'+bal; badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
     }
+    const bigAmt = document.getElementById('profileWalletAmt');
+    if (bigAmt) bigAmt.textContent = '₹' + bal;
   }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
