@@ -223,8 +223,8 @@
             font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
         </h3>
         <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th><th></th></tr></thead>
-          <tbody id="installsTable"><tr><td colspan="4" class="empty">No installs yet</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Phone</th><th>Wallet</th><th>Last active</th><th>Status</th><th></th></tr></thead>
+          <tbody id="installsTable"><tr><td colspan="6" class="empty">No installs yet</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -316,6 +316,11 @@
         <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Links</label>
         <div id="webRows" style="margin-top:8px"></div>
         <button type="button" class="dynAdd" onclick="addWebRow()">+ Add another website</button>
+      </div>
+
+      <div class="panel">
+        <h3>Rewards</h3>
+        <div class="field"><label>Signup bonus amount (₹)</label><input type="number" id="cfgBonusAmount" placeholder="100"></div>
       </div>
 
       <button class="btn" onclick="saveConfig()">Save changes</button>
@@ -738,6 +743,7 @@ async function loadAll(){
         name: v.name || '',
         phone: v.phone || '',
         blocked: !!v.blocked,
+        walletBalance: v.walletBalance || 0,
         installedAt: v.installedAt && v.installedAt.toMillis ? v.installedAt.toMillis() : Date.now(),
         lastActiveAt: v.lastActiveAt && v.lastActiveAt.toMillis ? v.lastActiveAt.toMillis() : Date.now()};
     });
@@ -811,19 +817,36 @@ function recomputeDashboard(){
       const blockBtn = i.blocked
         ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock">✓</button>`
         : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block">🚫</button>`;
+      const walletCell = i.walletBalance > 0
+        ? `₹${i.walletBalance} <button class="iconbtn" onclick="redeemWallet('${i.id}',${i.walletBalance})" title="Mark as redeemed">💰</button>`
+        : '—';
       return `<tr>
         <td>${nameCell}</td>
         <td>${phoneCell}</td>
+        <td>${walletCell}</td>
         <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
         <td><span class="tag ${tagClass}">${tagLabel}</span></td>
         <td>${blockBtn}</td>
       </tr>`;
     }).join('');
-    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No installs match</td></tr>';
+    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="6" class="empty">No installs match</td></tr>';
   } catch(e) {
     console.error('table render failed', e);
-    document.getElementById('installsTable').innerHTML = '<tr><td colspan="5" class="empty">Error loading table — see browser console</td></tr>';
+    document.getElementById('installsTable').innerHTML = '<tr><td colspan="6" class="empty">Error loading table — see browser console</td></tr>';
   }
+}
+function redeemWallet(id, amount){
+  if (!confirm(`Mark ₹${amount} as redeemed for this customer?`)) return;
+  if (!isConfigured){
+    const i = state.installs.find(x=>x.id===id);
+    if (i) i.walletBalance = 0;
+    recomputeDashboard();
+    return;
+  }
+  db.collection('installs').doc(id).update({
+    walletBalance: 0,
+    redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(e=>console.error('redeem failed', e));
 }
 function toggleBlock(id, blockState){
   if (!confirm(blockState ? 'Block this customer? They will lose access to the app.' : 'Unblock this customer?')) return;
@@ -863,6 +886,7 @@ function fillConfigForm(cRaw){
   document.getElementById('cfgShowAddress').checked = !!c.showAddress;
   document.getElementById('cfgShowWhatsapp').checked = !!c.showWhatsapp;
   document.getElementById('cfgShowWebsite').checked = !!c.showWebsite;
+  document.getElementById('cfgBonusAmount').value = c.bonusAmount || 100;
   waRows = c.whatsapps.length ? [...c.whatsapps] : [{label:'',number:''}];
   webRows = c.websites.length ? [...c.websites] : [{label:'',url:''}];
   renderWaRows();
@@ -907,7 +931,8 @@ async function saveConfig(){
     whatsapps: waRows.filter(w=>(w.number && w.number.trim()) || (w.link && w.link.trim())),
     showWhatsapp: document.getElementById('cfgShowWhatsapp').checked,
     websites: webRows.filter(w=>w.url && w.url.trim()),
-    showWebsite: document.getElementById('cfgShowWebsite').checked
+    showWebsite: document.getElementById('cfgShowWebsite').checked,
+    bonusAmount: parseInt(document.getElementById('cfgBonusAmount').value, 10) || 100
   };
   const msg = document.getElementById('cfgSaved');
   if (!isConfigured){ state.config = data; msg.textContent = 'Saved (demo mode — not persisted).'; msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); return; }
