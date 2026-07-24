@@ -911,7 +911,11 @@ async function openProfile(){
       document.getElementById('histWeek').textContent = '₹'+sum.week;
       document.getElementById('histMonth').textContent = '₹'+sum.month;
       renderHistoryList(list);
-    }catch(e){ console.error('history load failed', e); }
+    }catch(e){
+      console.error('history load failed', e);
+      document.getElementById('historyList').innerHTML =
+        `<div class="empty" style="color:#D96A4C">Error: ${e.message || e.code || 'unknown error'}</div>`;
+    }
   }
 }
 function closeProfile(){
