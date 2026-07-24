@@ -831,7 +831,7 @@ async function claimBonus(){
   }catch(e){
     console.error('claim failed', e);
     document.getElementById('bonusTitle').textContent = 'Something went wrong';
-    document.getElementById('bonusSubtitle').textContent = 'Please check your connection and try again.';
+    document.getElementById('bonusSubtitle').textContent = 'Error: ' + (e.message || e.code || 'unknown error');
     claimBtn.disabled = false;
     claimBtn.textContent = 'Claim Now';
   }
