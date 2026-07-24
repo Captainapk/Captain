@@ -793,8 +793,9 @@ async function submitProfile(){
   if (!isValidIndianMobile(rawPhone)){ err.textContent = 'Please enter a valid 10-digit Indian mobile number'; err.style.display = 'block'; return; }
   const phone = normalizePhone(rawPhone);
   err.style.display = 'none';
-  document.getElementById('onboardOverlay').style.display = 'none';
-  markProfileDone(name, phone);
+  const continueBtn = document.querySelector('#onboardOverlay .obBtn');
+  if (continueBtn){ continueBtn.disabled = true; continueBtn.textContent = 'Please wait…'; }
+
   if (db && uid){
     let shouldBlock = false;
     try{
@@ -814,8 +815,17 @@ async function submitProfile(){
       const installData = { name, phone, blocked: shouldBlock };
       if (alreadyRegistered){ installData.walletBalance = existingBalance; installData.bonusClaimed = true; }
       await db.collection('installs').doc(uid).set(installData, {merge:true});
+    }catch(e){
+      console.error('profile save failed', e);
+      err.textContent = 'Could not save — check your connection and try again.';
+      err.style.display = 'block';
+      if (continueBtn){ continueBtn.disabled = false; continueBtn.textContent = 'Continue'; }
+      return;
     }
-    catch(e){ console.error('profile save failed', e); }
+
+    markProfileDone(name, phone);
+    document.getElementById('onboardOverlay').style.display = 'none';
+    if (continueBtn){ continueBtn.disabled = false; continueBtn.textContent = 'Continue'; }
 
     if (shouldBlock){
       setLocalBlockedStatus(true);
