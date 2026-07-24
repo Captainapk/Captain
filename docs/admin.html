@@ -218,18 +218,14 @@
         <div id="clicksList"><div class="empty">No contact requests yet</div></div>
       </div>
       <div class="panel">
-        <h3>Recent wallet claims</h3>
-        <div id="walletClaimsList"><div class="empty">No claims yet</div></div>
-      </div>
-      <div class="panel">
         <h3>Recent installs
           <input type="text" id="installSearch" placeholder="Search name or phone…" oninput="recomputeDashboard()"
             style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
             font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
         </h3>
         <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Wallet</th><th>Last active</th><th>Status</th><th></th></tr></thead>
-          <tbody id="installsTable"><tr><td colspan="6" class="empty">No installs yet</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th><th></th></tr></thead>
+          <tbody id="installsTable"><tr><td colspan="5" class="empty">No installs yet</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -267,15 +263,16 @@
     <!-- REWARDS -->
     <section class="tabPanel" id="tab-rewards">
       <div class="panel">
-        <h3>Adjust a customer's wallet
+        <h3>Customers & wallets
           <input type="text" id="rewardSearch" placeholder="Search name or phone…" oninput="renderRewardCustomers()"
             style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
             font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
         </h3>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 14px">One record per phone number — stays consistent even if a customer reinstalls the app.</p>
         <div id="rewardCustomerList"></div>
       </div>
       <div class="panel">
-        <h3>All reward activity</h3>
+        <h3>Activity feed</h3>
         <div id="allRewardsList"><div class="empty">No activity yet</div></div>
       </div>
     </section>
@@ -437,7 +434,7 @@ const firebaseConfig = {
 const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 
 let db = null, auth = null;
-let state = { promos: [], updates: [], installs: [], config: {}, status: [] };
+let state = { promos: [], updates: [], installs: [], config: {}, status: [], rewardCustomers: [] };
 let chart = null;
 let waRows = [];
 let webRows = [];
@@ -676,18 +673,20 @@ function showWalletClaimAlert(data){
     }
   }catch(e){}
 }
-function renderWalletClaimsList(docs){
-  const el = document.getElementById('walletClaimsList');
-  if (!docs.length){ el.innerHTML = '<div class="empty">No claims in the last 24 hours</div>'; return; }
-  el.innerHTML = docs.map(d=>{
-    const v = d.data();
-    const ms = v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : Date.now();
-    return `<div class="row-item">
-      <div class="info"><div><h4>${v.name || 'Unknown customer'} claimed ₹${v.amount}</h4>
-      <p>${new Date(ms).toLocaleString()}${v.phone ? ' · '+v.phone : ''}</p></div></div>
-      ${v.phone ? `<a class="btn secondary small" href="https://wa.me/${v.phone.replace(/[^0-9]/g,'')}" target="_blank">Reply</a>` : ''}
-    </div>`;
-  }).join('');
+function showReturnLoginAlert(data){
+  playSiren();
+  const label = `${data.name || 'A customer'} has logged in again`;
+  const sub = `${data.phone ? '📱 '+data.phone : 'No number on file'} · Returning customer`;
+  document.getElementById('clickAlertName').textContent = label;
+  document.getElementById('clickAlertSub').textContent = sub;
+  document.getElementById('clickAlert').style.display = 'flex';
+  clearTimeout(clickAlertTimer);
+  clickAlertTimer = setTimeout(dismissClickAlert, 8000);
+  try{
+    if (window.Notification && Notification.permission === 'granted'){
+      new Notification('👋 ' + label, { body: sub });
+    }
+  }catch(e){}
 }
 function renderClicksList(docs){
   const el = document.getElementById('clicksList');
@@ -815,6 +814,11 @@ async function loadAll(){
     recomputeDashboard();
     renderRewardCustomers();
   });
+
+  db.collection('registered_phones').onSnapshot(snap=>{
+    state.rewardCustomers = snap.docs.map(d=>({phone:d.id, ...d.data()}));
+    renderRewardCustomers();
+  });
   db.collection('status').orderBy('createdAt','desc').onSnapshot(snap=>{
     state.status = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderStatusGrid();
@@ -838,16 +842,16 @@ async function loadAll(){
   let firstWalletSnapshot = true;
   const walletDayAgo = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
   db.collection('wallet_transactions').where('createdAt','>=',walletDayAgo).orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
-    const claimDocs = snap.docs.filter(d => d.data().type === 'bonus_claim');
     if (firstWalletSnapshot){
       firstWalletSnapshot = false;
-      renderWalletClaimsList(claimDocs);
       return;
     }
     snap.docChanges().forEach(change=>{
-      if (change.type === 'added' && change.doc.data().type === 'bonus_claim') showWalletClaimAlert(change.doc.data());
+      if (change.type !== 'added') return;
+      const d = change.doc.data();
+      if (d.type === 'bonus_claim') showWalletClaimAlert(d);
+      else if (d.type === 'return_login') showReturnLoginAlert(d);
     });
-    renderWalletClaimsList(claimDocs);
   });
 
   db.collection('wallet_transactions').orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
@@ -902,69 +906,69 @@ function recomputeDashboard(){
       const blockBtn = i.blocked
         ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock">✓</button>`
         : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block">🚫</button>`;
-      const walletCell = i.walletBalance > 0
-        ? `₹${i.walletBalance} <button class="iconbtn" onclick="redeemWallet('${i.id}',${i.walletBalance})" title="Mark as redeemed">💰</button>`
-        : '—';
       return `<tr>
         <td>${nameCell}</td>
         <td>${phoneCell}</td>
-        <td>${walletCell}</td>
         <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
         <td><span class="tag ${tagClass}">${tagLabel}</span></td>
         <td>${blockBtn}</td>
       </tr>`;
     }).join('');
-    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="6" class="empty">No installs match</td></tr>';
+    document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No installs match</td></tr>';
   } catch(e) {
     console.error('table render failed', e);
-    document.getElementById('installsTable').innerHTML = '<tr><td colspan="6" class="empty">Error loading table — see browser console</td></tr>';
+    document.getElementById('installsTable').innerHTML = '<tr><td colspan="5" class="empty">Error loading table — see browser console</td></tr>';
   }
 }
-function redeemWallet(id, amount){
+async function redeemWallet(phone, amount){
   if (!confirm(`Mark ₹${amount} as redeemed for this customer?`)) return;
-  const inst = state.installs.find(x=>x.id===id);
+  const cust = state.rewardCustomers.find(c=>c.phone===phone);
   if (!isConfigured){
-    if (inst) inst.walletBalance = 0;
-    recomputeDashboard();
+    if (cust) cust.walletBalance = 0;
+    renderRewardCustomers();
     return;
   }
-  db.collection('installs').doc(id).update({
-    walletBalance: 0,
-    redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(e=>console.error('redeem failed', e));
-  if (inst){
-    db.collection('wallet_transactions').add({
-      uid: id, name: inst.name, phone: inst.phone,
+  try{
+    const batch = db.batch();
+    batch.set(db.collection('registered_phones').doc(phone), { walletBalance: 0 }, {merge:true});
+    const matching = await db.collection('installs').where('phone','==',phone).get();
+    matching.docs.forEach(d=>{
+      batch.set(d.ref, { walletBalance: 0, redeemedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true});
+    });
+    batch.set(db.collection('wallet_transactions').doc(), {
+      uid: matching.docs[0] ? matching.docs[0].id : '', name: cust ? cust.name : '', phone,
       amount, type: 'redeemed', description: 'Redeemed in-store',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(()=>{});
-    if (inst.phone){
-      db.collection('registered_phones').doc(inst.phone).set({ walletBalance: 0 }, {merge:true}).catch(()=>{});
-    }
-  }
+    });
+    await batch.commit();
+  }catch(e){ console.error('redeem failed', e); alert('Failed to redeem — please try again.'); }
 }
 
 function renderRewardCustomers(){
   const q = (document.getElementById('rewardSearch').value || '').toLowerCase().trim();
-  const filtered = state.installs.filter(i =>
-    !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
+  const filtered = (state.rewardCustomers||[]).filter(c =>
+    !q || (c.name||'').toLowerCase().includes(q) || (c.phone||'').includes(q));
   const el = document.getElementById('rewardCustomerList');
   if (!filtered.length){ el.innerHTML = '<div class="empty">No customers match</div>'; return; }
-  el.innerHTML = filtered.slice(0,50).map(i=>`
+  el.innerHTML = [...filtered].sort((a,b)=>(b.walletBalance||0)-(a.walletBalance||0)).slice(0,50).map(c=>{
+    const bal = c.walletBalance || 0;
+    return `
     <div class="row-item">
       <div class="info"><div>
-        <h4>${i.name || '<span style="opacity:.5">Unknown</span>'}</h4>
-        <p>${i.phone || '—'} · Balance: ₹${i.walletBalance||0}</p>
+        <h4>${c.name || '<span style="opacity:.5">Unknown</span>'}</h4>
+        <p><a href="https://wa.me/${(c.phone||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${c.phone}</a> · Balance: ₹${bal}</p>
       </div></div>
       <div class="actions">
-        <button class="btn secondary small" onclick='openWalletAdjustModal("${i.id}", ${JSON.stringify(i.name||"Customer")}, "add")'>+ Add</button>
-        <button class="btn ghost small" onclick='openWalletAdjustModal("${i.id}", ${JSON.stringify(i.name||"Customer")}, "remove")'>− Remove</button>
+        <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "add")' title="Add">➕</button>
+        <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "remove")' title="Remove">➖</button>
+        ${bal > 0 ? `<button class="iconbtn" onclick='redeemWallet(${JSON.stringify(c.phone)}, ${bal})' title="Mark redeemed">💰</button>` : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-function openWalletAdjustModal(customerId, customerName, mode){
-  document.getElementById('walletModalCustomerId').value = customerId;
+function openWalletAdjustModal(phone, customerName, mode){
+  document.getElementById('walletModalCustomerId').value = phone;
   document.getElementById('walletModalMode').value = mode;
   document.getElementById('walletModalTitle').textContent = mode === 'add' ? 'Add to wallet' : 'Remove from wallet';
   document.getElementById('walletModalCustomerName').textContent = customerName || 'Customer';
@@ -974,33 +978,31 @@ function openWalletAdjustModal(customerId, customerName, mode){
 }
 
 async function saveWalletAdjustment(){
-  const customerId = document.getElementById('walletModalCustomerId').value;
+  const phone = document.getElementById('walletModalCustomerId').value;
   const mode = document.getElementById('walletModalMode').value;
   const amount = parseInt(document.getElementById('walletModalAmount').value, 10);
   const comment = document.getElementById('walletModalComment').value.trim();
   if (!amount || amount <= 0){ alert('Please enter a valid amount'); return; }
-  const inst = state.installs.find(x=>x.id===customerId);
+  const cust = state.rewardCustomers.find(c=>c.phone===phone);
   const signedAmount = mode === 'add' ? amount : -amount;
   const type = mode === 'add' ? 'admin_add' : 'admin_remove';
   const defaultDesc = mode === 'add' ? 'Added by admin' : 'Removed by admin';
   if (!isConfigured){
-    if (inst) inst.walletBalance = (inst.walletBalance||0) + signedAmount;
-    recomputeDashboard(); renderRewardCustomers(); closeModal('walletModalBg'); return;
+    if (cust) cust.walletBalance = (cust.walletBalance||0) + signedAmount;
+    renderRewardCustomers(); closeModal('walletModalBg'); return;
   }
   try{
     const batch = db.batch();
-    const installRef = db.collection('installs').doc(customerId);
-    batch.set(installRef, { walletBalance: firebase.firestore.FieldValue.increment(signedAmount) }, {merge:true});
-    const txnRef = db.collection('wallet_transactions').doc();
-    batch.set(txnRef, {
-      uid: customerId, name: inst ? inst.name : '', phone: inst ? inst.phone : '',
-      amount: amount, type, description: comment || defaultDesc,
+    batch.set(db.collection('registered_phones').doc(phone), { walletBalance: firebase.firestore.FieldValue.increment(signedAmount) }, {merge:true});
+    const matching = await db.collection('installs').where('phone','==',phone).get();
+    matching.docs.forEach(d=>{
+      batch.set(d.ref, { walletBalance: firebase.firestore.FieldValue.increment(signedAmount) }, {merge:true});
+    });
+    batch.set(db.collection('wallet_transactions').doc(), {
+      uid: matching.docs[0] ? matching.docs[0].id : '', name: cust ? cust.name : '', phone,
+      amount, type, description: comment || defaultDesc,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    if (inst && inst.phone){
-      const regRef = db.collection('registered_phones').doc(inst.phone);
-      batch.set(regRef, { walletBalance: firebase.firestore.FieldValue.increment(signedAmount) }, {merge:true});
-    }
     await batch.commit();
     closeModal('walletModalBg');
   }catch(e){
@@ -1016,18 +1018,24 @@ function renderAllRewardsList(docs){
     const v = d.data();
     const ms = v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : Date.now();
     const isNeg = v.type === 'redeemed' || v.type === 'admin_remove';
-    let typeLabel;
-    if (v.type === 'bonus_claim') typeLabel = 'Signup claim';
-    else if (v.type === 'redeemed') typeLabel = 'Redeemed';
-    else if (v.type === 'admin_add') typeLabel = 'Admin added';
-    else if (v.type === 'admin_remove') typeLabel = 'Admin removed';
+    let typeLabel, amtBadge;
+    if (v.type === 'bonus_claim') typeLabel = '🎉 Claimed signup bonus';
+    else if (v.type === 'redeemed') typeLabel = '💰 Redeemed';
+    else if (v.type === 'admin_add') typeLabel = '➕ Admin added';
+    else if (v.type === 'admin_remove') typeLabel = '➖ Admin removed';
+    else if (v.type === 'return_login') typeLabel = '👋 Returned / logged in again';
     else typeLabel = v.type || 'Activity';
+    if (v.type === 'return_login'){
+      amtBadge = '';
+    } else {
+      amtBadge = `<div style="font-weight:700;color:${isNeg?'var(--bad)':'var(--gold-soft)'};white-space:nowrap">${isNeg?'−':'+'}₹${v.amount}</div>`;
+    }
     return `<div class="row-item">
       <div class="info"><div>
         <h4>${v.name || 'Unknown'} — ${typeLabel}</h4>
         <p>${v.description ? v.description+' · ' : ''}${new Date(ms).toLocaleString()}</p>
       </div></div>
-      <div style="font-weight:700;color:${isNeg?'var(--bad)':'var(--gold-soft)'};white-space:nowrap">${isNeg?'−':'+'}₹${v.amount}</div>
+      ${amtBadge}
     </div>`;
   }).join('');
 }
