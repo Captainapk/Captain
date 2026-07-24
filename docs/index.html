@@ -810,6 +810,9 @@ async function submitProfile(){
 async function claimBonus(){
   if (!db || !uid) return;
   const profile = getLocalProfile();
+  const claimBtn = document.getElementById('bonusClaimBtn');
+  claimBtn.disabled = true;
+  claimBtn.textContent = 'Claiming…';
   try{
     await db.collection('installs').doc(uid).set({
       walletBalance: firebase.firestore.FieldValue.increment(signupBonusAmount),
@@ -818,14 +821,20 @@ async function claimBonus(){
     await db.collection('wallet_transactions').add({
       uid, name: profile.name, phone: profile.phone,
       amount: signupBonusAmount, type: 'bonus_claim',
-      description: 'Signup bonus',
+      description: 'New login bonus',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-  }catch(e){ console.error('claim failed', e); }
-  document.getElementById('bonusTitle').textContent = `Congratulations! ₹${signupBonusAmount} added to your wallet 🎉`;
-  document.getElementById('bonusSubtitle').textContent = 'Open your Wallet anytime to use it.';
-  document.getElementById('bonusClaimBtn').style.display = 'none';
-  document.getElementById('bonusContinueBtn').style.display = 'block';
+    document.getElementById('bonusTitle').textContent = `Congratulations! ₹${signupBonusAmount} added to your wallet 🎉`;
+    document.getElementById('bonusSubtitle').textContent = 'Open your Wallet anytime to use it.';
+    claimBtn.style.display = 'none';
+    document.getElementById('bonusContinueBtn').style.display = 'block';
+  }catch(e){
+    console.error('claim failed', e);
+    document.getElementById('bonusTitle').textContent = 'Something went wrong';
+    document.getElementById('bonusSubtitle').textContent = 'Please check your connection and try again.';
+    claimBtn.disabled = false;
+    claimBtn.textContent = 'Claim Now';
+  }
 }
 function closeBonusOverlay(){
   document.getElementById('bonusOverlay').style.display = 'none';
@@ -851,7 +860,7 @@ function renderHistoryList(list){
     const ms = t.createdAt && t.createdAt.toMillis ? t.createdAt.toMillis() : (t.createdAt || Date.now());
     const isNeg = t.type === 'redeemed';
     let desc;
-    if (t.type === 'bonus_claim') desc = `You claimed ₹${t.amount} free on signup`;
+    if (t.type === 'bonus_claim') desc = `New login bonus — ₹${t.amount}`;
     else if (t.type === 'redeemed') desc = `Redeemed ₹${t.amount} in-store`;
     else desc = t.description || 'Reward update';
     return `<div class="histItem">
