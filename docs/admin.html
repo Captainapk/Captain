@@ -190,6 +190,7 @@
     <button data-tab="status" onclick="showTab('status')">Status</button>
     <button data-tab="promos" onclick="showTab('promos')">Promotions</button>
     <button data-tab="updates" onclick="showTab('updates')">Updates</button>
+    <button data-tab="rewards" onclick="showTab('rewards')">Rewards</button>
     <button data-tab="content" onclick="showTab('content')">Contact info</button>
   </nav>
 
@@ -263,6 +264,22 @@
       <div id="updatesAdminList"></div>
     </section>
 
+    <!-- REWARDS -->
+    <section class="tabPanel" id="tab-rewards">
+      <div class="panel">
+        <h3>Adjust a customer's wallet
+          <input type="text" id="rewardSearch" placeholder="Search name or phone…" oninput="renderRewardCustomers()"
+            style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
+            font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
+        </h3>
+        <div id="rewardCustomerList"></div>
+      </div>
+      <div class="panel">
+        <h3>All reward activity</h3>
+        <div id="allRewardsList"><div class="empty">No activity yet</div></div>
+      </div>
+    </section>
+
     <!-- CONTENT -->
     <section class="tabPanel" id="tab-content">
       <div class="panel">
@@ -331,6 +348,22 @@
       <div class="ok" id="cfgSaved"></div>
     </section>
   </main>
+</div>
+
+<!-- WALLET ADJUSTMENT MODAL -->
+<div class="modalBg" id="walletModalBg">
+  <div class="modal">
+    <h3 id="walletModalTitle">Add to wallet</h3>
+    <input type="hidden" id="walletModalCustomerId">
+    <input type="hidden" id="walletModalMode">
+    <p style="font-size:13px;color:var(--muted);margin:-6px 0 14px" id="walletModalCustomerName"></p>
+    <div class="field"><label>Amount (₹)</label><input type="number" id="walletModalAmount" placeholder="e.g. 50"></div>
+    <div class="field"><label>Comment (optional) — customer sees this in their history too</label><input id="walletModalComment" placeholder="e.g. Referral bonus"></div>
+    <div class="modalActions">
+      <button class="btn secondary" onclick="closeModal('walletModalBg')">Cancel</button>
+      <button class="btn" onclick="saveWalletAdjustment()">Save</button>
+    </div>
+  </div>
 </div>
 
 <!-- PROMO MODAL -->
@@ -780,6 +813,7 @@ async function loadAll(){
         lastActiveAt: v.lastActiveAt && v.lastActiveAt.toMillis ? v.lastActiveAt.toMillis() : Date.now()};
     });
     recomputeDashboard();
+    renderRewardCustomers();
   });
   db.collection('status').orderBy('createdAt','desc').onSnapshot(snap=>{
     state.status = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -814,6 +848,10 @@ async function loadAll(){
       if (change.type === 'added' && change.doc.data().type === 'bonus_claim') showWalletClaimAlert(change.doc.data());
     });
     renderWalletClaimsList(claimDocs);
+  });
+
+  db.collection('wallet_transactions').orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
+    renderAllRewardsList(snap.docs);
   });
 }
 
@@ -901,6 +939,90 @@ function redeemWallet(id, amount){
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(()=>{});
   }
+}
+
+function renderRewardCustomers(){
+  const q = (document.getElementById('rewardSearch').value || '').toLowerCase().trim();
+  const filtered = state.installs.filter(i =>
+    !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
+  const el = document.getElementById('rewardCustomerList');
+  if (!filtered.length){ el.innerHTML = '<div class="empty">No customers match</div>'; return; }
+  el.innerHTML = filtered.slice(0,50).map(i=>`
+    <div class="row-item">
+      <div class="info"><div>
+        <h4>${i.name || '<span style="opacity:.5">Unknown</span>'}</h4>
+        <p>${i.phone || '—'} · Balance: ₹${i.walletBalance||0}</p>
+      </div></div>
+      <div class="actions">
+        <button class="btn secondary small" onclick='openWalletAdjustModal("${i.id}", ${JSON.stringify(i.name||"Customer")}, "add")'>+ Add</button>
+        <button class="btn ghost small" onclick='openWalletAdjustModal("${i.id}", ${JSON.stringify(i.name||"Customer")}, "remove")'>− Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function openWalletAdjustModal(customerId, customerName, mode){
+  document.getElementById('walletModalCustomerId').value = customerId;
+  document.getElementById('walletModalMode').value = mode;
+  document.getElementById('walletModalTitle').textContent = mode === 'add' ? 'Add to wallet' : 'Remove from wallet';
+  document.getElementById('walletModalCustomerName').textContent = customerName || 'Customer';
+  document.getElementById('walletModalAmount').value = '';
+  document.getElementById('walletModalComment').value = '';
+  document.getElementById('walletModalBg').style.display = 'flex';
+}
+
+async function saveWalletAdjustment(){
+  const customerId = document.getElementById('walletModalCustomerId').value;
+  const mode = document.getElementById('walletModalMode').value;
+  const amount = parseInt(document.getElementById('walletModalAmount').value, 10);
+  const comment = document.getElementById('walletModalComment').value.trim();
+  if (!amount || amount <= 0){ alert('Please enter a valid amount'); return; }
+  const inst = state.installs.find(x=>x.id===customerId);
+  const signedAmount = mode === 'add' ? amount : -amount;
+  const type = mode === 'add' ? 'admin_add' : 'admin_remove';
+  const defaultDesc = mode === 'add' ? 'Added by admin' : 'Removed by admin';
+  if (!isConfigured){
+    if (inst) inst.walletBalance = (inst.walletBalance||0) + signedAmount;
+    recomputeDashboard(); renderRewardCustomers(); closeModal('walletModalBg'); return;
+  }
+  try{
+    const batch = db.batch();
+    const installRef = db.collection('installs').doc(customerId);
+    batch.set(installRef, { walletBalance: firebase.firestore.FieldValue.increment(signedAmount) }, {merge:true});
+    const txnRef = db.collection('wallet_transactions').doc();
+    batch.set(txnRef, {
+      uid: customerId, name: inst ? inst.name : '', phone: inst ? inst.phone : '',
+      amount: amount, type, description: comment || defaultDesc,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await batch.commit();
+    closeModal('walletModalBg');
+  }catch(e){
+    console.error('wallet adjustment failed', e);
+    alert('Failed to save — please try again.');
+  }
+}
+
+function renderAllRewardsList(docs){
+  const el = document.getElementById('allRewardsList');
+  if (!docs.length){ el.innerHTML = '<div class="empty">No activity yet</div>'; return; }
+  el.innerHTML = docs.map(d=>{
+    const v = d.data();
+    const ms = v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : Date.now();
+    const isNeg = v.type === 'redeemed' || v.type === 'admin_remove';
+    let typeLabel;
+    if (v.type === 'bonus_claim') typeLabel = 'Signup claim';
+    else if (v.type === 'redeemed') typeLabel = 'Redeemed';
+    else if (v.type === 'admin_add') typeLabel = 'Admin added';
+    else if (v.type === 'admin_remove') typeLabel = 'Admin removed';
+    else typeLabel = v.type || 'Activity';
+    return `<div class="row-item">
+      <div class="info"><div>
+        <h4>${v.name || 'Unknown'} — ${typeLabel}</h4>
+        <p>${v.description ? v.description+' · ' : ''}${new Date(ms).toLocaleString()}</p>
+      </div></div>
+      <div style="font-weight:700;color:${isNeg?'var(--bad)':'var(--gold-soft)'};white-space:nowrap">${isNeg?'−':'+'}₹${v.amount}</div>
+    </div>`;
+  }).join('');
 }
 function toggleBlock(id, blockState){
   if (!confirm(blockState ? 'Block this customer? They will lose access to the app.' : 'Unblock this customer?')) return;
