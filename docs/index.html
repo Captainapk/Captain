@@ -958,9 +958,9 @@ async function openProfile(){
   document.getElementById('profileViewName').textContent = profile.name || '—';
   document.getElementById('profileViewPhone').textContent = profile.phone || '—';
   document.getElementById('profileOverlay').style.display = 'flex';
-  if (db && uid){
+  if (db && profile.phone){
     try{
-      const snap = await db.collection('wallet_transactions').where('uid','==',uid).limit(50).get();
+      const snap = await db.collection('wallet_transactions').where('phone','==',profile.phone).limit(100).get();
       const list = snap.docs.map(d=>d.data()).sort((a,b)=>{
         const msA = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
         const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
