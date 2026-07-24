@@ -304,7 +304,7 @@
 
 <div class="bonusOverlay" id="bonusOverlay">
   <div class="bonusCard">
-    <div class="bonusIcon">🎉</div>
+    <div class="bonusIcon" id="bonusIcon">🎉</div>
     <h2 id="bonusTitle">You've received a free bonus!</h2>
     <p id="bonusSubtitle">Claim it now to add it to your wallet.</p>
     <button class="bonusBtn" id="bonusClaimBtn" onclick="claimBonus()">Claim Now</button>
@@ -793,13 +793,42 @@ async function submitProfile(){
       const blockedSnap = await db.collection('blocked_phones').doc(phone).get();
       shouldBlock = blockedSnap.exists && !!blockedSnap.data().blocked;
     }catch(e){ /* lookup failed — fail open */ }
-    try{ await db.collection('installs').doc(uid).set({ name, phone, blocked: shouldBlock }, {merge:true}); }
+
+    let alreadyRegistered = false;
+    let existingBalance = 0;
+    try{
+      const regSnap = await db.collection('registered_phones').doc(phone).get();
+      alreadyRegistered = regSnap.exists;
+      if (alreadyRegistered) existingBalance = regSnap.data().walletBalance || 0;
+    }catch(e){ /* lookup failed — treat as new */ }
+
+    try{
+      const installData = { name, phone, blocked: shouldBlock };
+      if (alreadyRegistered){ installData.walletBalance = existingBalance; installData.bonusClaimed = true; }
+      await db.collection('installs').doc(uid).set(installData, {merge:true});
+    }
     catch(e){ console.error('profile save failed', e); }
+
     if (shouldBlock){
       setLocalBlockedStatus(true);
       document.getElementById('blockedOverlay').style.display = 'flex';
+    } else if (alreadyRegistered){
+      document.getElementById('bonusIcon').textContent = '👋';
+      document.getElementById('bonusTitle').textContent = `Welcome back, ${name}!`;
+      document.getElementById('bonusSubtitle').textContent = existingBalance > 0
+        ? `Your ₹${existingBalance} balance is still here — check your wallet.`
+        : 'Good to see you again.';
+      document.getElementById('bonusClaimBtn').style.display = 'none';
+      document.getElementById('bonusContinueBtn').style.display = 'block';
+      document.getElementById('bonusOverlay').style.display = 'flex';
     } else {
+      document.getElementById('bonusIcon').textContent = '🎉';
       document.getElementById('bonusTitle').textContent = `You've received ₹${signupBonusAmount} free!`;
+      document.getElementById('bonusSubtitle').textContent = 'Claim it now to add it to your wallet.';
+      document.getElementById('bonusClaimBtn').style.display = 'block';
+      document.getElementById('bonusClaimBtn').disabled = false;
+      document.getElementById('bonusClaimBtn').textContent = 'Claim Now';
+      document.getElementById('bonusContinueBtn').style.display = 'none';
       document.getElementById('bonusOverlay').style.display = 'flex';
     }
   }
@@ -825,6 +854,14 @@ async function claimBonus(){
       description: 'New login bonus',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    if (profile.phone){
+      const regRef = db.collection('registered_phones').doc(profile.phone);
+      batch.set(regRef, {
+        name: profile.name, firstUid: uid,
+        walletBalance: signupBonusAmount,
+        claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
     await batch.commit();
     document.getElementById('bonusTitle').textContent = `Congratulations! ₹${signupBonusAmount} added to your wallet 🎉`;
     document.getElementById('bonusSubtitle').textContent = 'You can redeem this from your Wallet.';
