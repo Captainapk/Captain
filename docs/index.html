@@ -305,7 +305,6 @@
     <h2 id="bonusTitle">You've received a free bonus!</h2>
     <p id="bonusSubtitle">Claim it now to add it to your wallet.</p>
     <button class="bonusBtn" id="bonusClaimBtn" onclick="claimBonus()">Claim Now</button>
-    <a class="bonusBtn wa" id="bonusAvailBtn" href="#" target="_blank" rel="noopener" style="display:none">💬 Avail Now — Message us</a>
     <button class="bonusBtn ghost" id="bonusContinueBtn" onclick="closeBonusOverlay()" style="display:none">Continue to app</button>
   </div>
 </div>
@@ -322,6 +321,7 @@
       <div class="amt" id="profileWalletAmt">₹0</div>
       <div class="lbl">Wallet Balance</div>
     </div>
+    <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none;margin-bottom:20px">💬 Avail Now — Message us</a>
     <h3 style="margin:0 0 4px">Reward history</h3>
     <div class="histSummary">
       <div><div class="n" id="histToday">₹0</div><div class="l">Today</div></div>
@@ -822,15 +822,9 @@ async function claimBonus(){
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }catch(e){ console.error('claim failed', e); }
-  document.getElementById('bonusTitle').textContent = `₹${signupBonusAmount} added to your wallet! 🎉`;
-  document.getElementById('bonusSubtitle').textContent = 'Come say hi and let us know — we\'ll get you sorted.';
+  document.getElementById('bonusTitle').textContent = `Congratulations! ₹${signupBonusAmount} added to your wallet 🎉`;
+  document.getElementById('bonusSubtitle').textContent = 'Open your Wallet anytime to use it.';
   document.getElementById('bonusClaimBtn').style.display = 'none';
-  const availBtn = document.getElementById('bonusAvailBtn');
-  if (primaryWhatsapp){
-    availBtn.href = primaryWhatsapp;
-    availBtn.textContent = `💬 To use this ₹${signupBonusAmount}, message us`;
-    availBtn.style.display = 'block';
-  }
   document.getElementById('bonusContinueBtn').style.display = 'block';
 }
 function closeBonusOverlay(){
@@ -949,6 +943,15 @@ function watchMyInstallDoc(){
     }
     const bigAmt = document.getElementById('profileWalletAmt');
     if (bigAmt) bigAmt.textContent = '₹' + bal;
+    const profileAvailBtn = document.getElementById('profileAvailBtn');
+    if (profileAvailBtn){
+      if (bal > 0 && primaryWhatsapp){
+        profileAvailBtn.href = primaryWhatsapp;
+        profileAvailBtn.style.display = 'block';
+      } else {
+        profileAvailBtn.style.display = 'none';
+      }
+    }
   }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
