@@ -324,9 +324,18 @@
       <div class="amt" id="profileWalletAmt">₹0</div>
       <div class="lbl">Wallet Balance</div>
     </div>
-    <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none;margin-bottom:20px">💬 Redeem Now</a>
-    <h3 style="margin:0 0 4px">Reward history</h3>
-    <div id="historyList"><div class="empty">No history yet</div></div>
+    <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none">💬 Redeem Now</a>
+    <button class="bonusBtn ghost" onclick="openMyStatement()">📄 View Statement</button>
+  </div>
+</div>
+
+<div class="profileOverlay" id="statementOverlay">
+  <div class="top">
+    <h2>My Statement</h2>
+    <button class="storyClose" style="position:static" onclick="closeStatement()">✕</button>
+  </div>
+  <div class="profileBody">
+    <div id="historyList"><div class="empty">Loading…</div></div>
   </div>
 </div>
 
@@ -953,11 +962,20 @@ function renderHistoryList(list){
     return `<div class="histDateGroup"><div class="histDateHeader">${g.dateKey}</div>${rows}</div>`;
   }).join('');
 }
-async function openProfile(){
+function openProfile(){
   const profile = getLocalProfile();
   document.getElementById('profileViewName').textContent = profile.name || '—';
   document.getElementById('profileViewPhone').textContent = profile.phone || '—';
   document.getElementById('profileOverlay').style.display = 'flex';
+}
+function closeProfile(){
+  document.getElementById('profileOverlay').style.display = 'none';
+}
+
+async function openMyStatement(){
+  const profile = getLocalProfile();
+  document.getElementById('historyList').innerHTML = '<div class="empty">Loading…</div>';
+  document.getElementById('statementOverlay').style.display = 'flex';
   if (db && profile.phone){
     try{
       const snap = await db.collection('wallet_transactions').where('phone','==',profile.phone).limit(100).get();
@@ -966,7 +984,6 @@ async function openProfile(){
         const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
         return msB - msA;
       });
-      const sum = computeHistorySummary(list);
       renderHistoryList(list);
     }catch(e){
       console.error('history load failed', e);
@@ -975,8 +992,8 @@ async function openProfile(){
     }
   }
 }
-function closeProfile(){
-  document.getElementById('profileOverlay').style.display = 'none';
+function closeStatement(){
+  document.getElementById('statementOverlay').style.display = 'none';
 }
 
 async function getProfileForClick(){
