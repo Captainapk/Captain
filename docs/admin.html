@@ -370,6 +370,18 @@
   </div>
 </div>
 
+<!-- CUSTOMER STATEMENT MODAL -->
+<div class="modalBg" id="statementModalBg">
+  <div class="modal">
+    <h3 id="statementModalTitle">Customer Statement</h3>
+    <p style="font-size:13px;color:var(--muted);margin:-6px 0 14px" id="statementModalPhone"></p>
+    <div id="statementList" style="max-height:50vh;overflow-y:auto"></div>
+    <div class="modalActions">
+      <button class="btn secondary" onclick="closeModal('statementModalBg')" style="width:100%">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- WALLET ADJUSTMENT MODAL -->
 <div class="modalBg" id="walletModalBg">
   <div class="modal">
@@ -974,6 +986,51 @@ async function redeemWallet(phone, amount){
   }catch(e){ console.error('redeem failed', e); alert('Failed to redeem — please try again.'); }
 }
 
+async function openCustomerStatement(phone, name){
+  document.getElementById('statementModalTitle').textContent = `${name || 'Customer'}'s Statement`;
+  document.getElementById('statementModalPhone').textContent = phone;
+  document.getElementById('statementList').innerHTML = '<div class="empty">Loading…</div>';
+  document.getElementById('statementModalBg').style.display = 'flex';
+  if (!isConfigured){ document.getElementById('statementList').innerHTML = '<div class="empty">Demo mode — no data</div>'; return; }
+  try{
+    const snap = await db.collection('wallet_transactions').where('phone','==',phone).get();
+    const list = snap.docs.map(d=>d.data()).sort((a,b)=>{
+      const msA = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+      const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+      return msB - msA;
+    });
+    renderStatementList(list);
+  }catch(e){
+    console.error('statement load failed', e);
+    document.getElementById('statementList').innerHTML = '<div class="empty" style="color:var(--bad)">Error: '+(e.message||e.code||'unknown error')+'</div>';
+  }
+}
+
+function renderStatementList(list){
+  const el = document.getElementById('statementList');
+  if (!list.length){ el.innerHTML = '<div class="empty">No activity yet</div>'; return; }
+  el.innerHTML = list.map(v=>{
+    const ms = v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : Date.now();
+    const isNeg = v.type === 'redeemed' || v.type === 'admin_remove';
+    let typeLabel;
+    if (v.type === 'bonus_claim') typeLabel = '🎉 Claimed signup bonus';
+    else if (v.type === 'redeemed') typeLabel = '💰 Redeemed in-store';
+    else if (v.type === 'admin_add') typeLabel = '➕ Bonus added by admin';
+    else if (v.type === 'admin_remove') typeLabel = '➖ Amount removed by admin';
+    else if (v.type === 'return_login') typeLabel = '👋 Logged in again';
+    else typeLabel = v.type || 'Activity';
+    const amtBadge = v.type === 'return_login' ? '' :
+      `<div style="font-weight:700;color:${isNeg?'var(--bad)':'var(--gold-soft)'};white-space:nowrap">${isNeg?'−':'+'}₹${v.amount}</div>`;
+    return `<div class="row-item">
+      <div class="info"><div>
+        <h4 style="font-size:13.5px">${typeLabel}</h4>
+        <p>${v.description ? v.description+' · ' : ''}${new Date(ms).toLocaleString()}</p>
+      </div></div>
+      ${amtBadge}
+    </div>`;
+  }).join('');
+}
+
 function renderRewardCustomers(){
   const q = (document.getElementById('rewardSearch').value || '').toLowerCase().trim();
   const filtered = (state.rewardCustomers||[]).filter(c =>
@@ -989,6 +1046,7 @@ function renderRewardCustomers(){
         <p><a href="https://wa.me/${(c.phone||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${c.phone}</a> · Balance: ₹${bal}</p>
       </div></div>
       <div class="actions">
+        <button class="iconbtn" onclick='openCustomerStatement(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")})' title="Statement">📄</button>
         <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "add")' title="Add">➕</button>
         <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "remove")' title="Remove">➖</button>
         ${bal > 0 ? `<button class="iconbtn" onclick='redeemWallet(${JSON.stringify(c.phone)}, ${bal})' title="Mark redeemed">💰</button>` : ''}
