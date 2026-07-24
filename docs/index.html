@@ -321,7 +321,7 @@
       <div class="amt" id="profileWalletAmt">₹0</div>
       <div class="lbl">Wallet Balance</div>
     </div>
-    <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none;margin-bottom:20px">💬 Avail Now — Message us</a>
+    <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none;margin-bottom:20px">💬 Redeem Now</a>
     <h3 style="margin:0 0 4px">Reward history</h3>
     <div class="histSummary">
       <div><div class="n" id="histToday">₹0</div><div class="l">Today</div></div>
@@ -825,7 +825,7 @@ async function claimBonus(){
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     document.getElementById('bonusTitle').textContent = `Congratulations! ₹${signupBonusAmount} added to your wallet 🎉`;
-    document.getElementById('bonusSubtitle').textContent = 'Open your Wallet anytime to use it.';
+    document.getElementById('bonusSubtitle').textContent = 'You can redeem this from your Wallet.';
     claimBtn.style.display = 'none';
     document.getElementById('bonusContinueBtn').style.display = 'block';
   }catch(e){
