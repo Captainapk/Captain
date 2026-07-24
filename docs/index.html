@@ -900,8 +900,12 @@ async function openProfile(){
   document.getElementById('profileOverlay').style.display = 'flex';
   if (db && uid){
     try{
-      const snap = await db.collection('wallet_transactions').where('uid','==',uid).orderBy('createdAt','desc').limit(50).get();
-      const list = snap.docs.map(d=>d.data());
+      const snap = await db.collection('wallet_transactions').where('uid','==',uid).limit(50).get();
+      const list = snap.docs.map(d=>d.data()).sort((a,b)=>{
+        const msA = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+        const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+        return msB - msA;
+      });
       const sum = computeHistorySummary(list);
       document.getElementById('histToday').textContent = '₹'+sum.today;
       document.getElementById('histWeek').textContent = '₹'+sum.week;
