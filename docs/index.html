@@ -326,11 +326,6 @@
     </div>
     <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none;margin-bottom:20px">💬 Redeem Now</a>
     <h3 style="margin:0 0 4px">Reward history</h3>
-    <div class="histSummary">
-      <div><div class="n" id="histToday">₹0</div><div class="l">Today</div></div>
-      <div><div class="n" id="histWeek">₹0</div><div class="l">This week</div></div>
-      <div><div class="n" id="histMonth">₹0</div><div class="l">This month</div></div>
-    </div>
     <div id="historyList"><div class="empty">No history yet</div></div>
   </div>
 </div>
@@ -907,9 +902,6 @@ async function openProfile(){
         return msB - msA;
       });
       const sum = computeHistorySummary(list);
-      document.getElementById('histToday').textContent = '₹'+sum.today;
-      document.getElementById('histWeek').textContent = '₹'+sum.week;
-      document.getElementById('histMonth').textContent = '₹'+sum.month;
       renderHistoryList(list);
     }catch(e){
       console.error('history load failed', e);
