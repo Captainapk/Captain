@@ -938,6 +938,9 @@ function redeemWallet(id, amount){
       amount, type: 'redeemed', description: 'Redeemed in-store',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(()=>{});
+    if (inst.phone){
+      db.collection('registered_phones').doc(inst.phone).set({ walletBalance: 0 }, {merge:true}).catch(()=>{});
+    }
   }
 }
 
@@ -994,6 +997,10 @@ async function saveWalletAdjustment(){
       amount: amount, type, description: comment || defaultDesc,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    if (inst && inst.phone){
+      const regRef = db.collection('registered_phones').doc(inst.phone);
+      batch.set(regRef, { walletBalance: firebase.firestore.FieldValue.increment(signedAmount) }, {merge:true});
+    }
     await batch.commit();
     closeModal('walletModalBg');
   }catch(e){
