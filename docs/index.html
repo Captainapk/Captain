@@ -764,6 +764,13 @@ function isValidIndianMobile(raw){
   if (core.length === 11 && core.startsWith('0')) core = core.slice(1);
   return /^[6-9]\d{9}$/.test(core);
 }
+function normalizePhone(raw){
+  const digits = (raw||'').replace(/\D/g,'');
+  let core = digits;
+  if (core.length === 12 && core.startsWith('91')) core = core.slice(2);
+  if (core.length === 11 && core.startsWith('0')) core = core.slice(1);
+  return core;
+}
 function getLocalProfile(){
   try { return { name: localStorage.getItem('profile_name')||'', phone: localStorage.getItem('profile_phone')||'' }; }
   catch(e){ return {name:'',phone:''}; }
@@ -780,10 +787,11 @@ function markProfileDone(name, phone){
 }
 async function submitProfile(){
   const name = document.getElementById('profileName').value.trim();
-  const phone = document.getElementById('profilePhone').value.trim();
+  const rawPhone = document.getElementById('profilePhone').value.trim();
   const err = document.getElementById('obErr');
-  if (!name || !phone){ err.textContent = 'Please fill in both fields'; err.style.display = 'block'; return; }
-  if (!isValidIndianMobile(phone)){ err.textContent = 'Please enter a valid 10-digit Indian mobile number'; err.style.display = 'block'; return; }
+  if (!name || !rawPhone){ err.textContent = 'Please fill in both fields'; err.style.display = 'block'; return; }
+  if (!isValidIndianMobile(rawPhone)){ err.textContent = 'Please enter a valid 10-digit Indian mobile number'; err.style.display = 'block'; return; }
+  const phone = normalizePhone(rawPhone);
   err.style.display = 'none';
   document.getElementById('onboardOverlay').style.display = 'none';
   markProfileDone(name, phone);
@@ -821,6 +829,14 @@ async function submitProfile(){
       document.getElementById('bonusClaimBtn').style.display = 'none';
       document.getElementById('bonusContinueBtn').style.display = 'block';
       document.getElementById('bonusOverlay').style.display = 'flex';
+      try{
+        await db.collection('registered_phones').doc(phone).set({ lastLoginAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true});
+        await db.collection('wallet_transactions').add({
+          uid, name, phone, amount: 0, type: 'return_login',
+          description: 'Returned and logged in again',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }catch(e){ console.error('return-login log failed', e); }
     } else {
       document.getElementById('bonusIcon').textContent = '🎉';
       document.getElementById('bonusTitle').textContent = `You've received ₹${signupBonusAmount} free!`;
