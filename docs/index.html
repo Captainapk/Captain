@@ -146,6 +146,9 @@
   .histItem .date{color:var(--muted);font-size:11px}
   .histItem .amt{font-weight:700;color:var(--gold-soft)}
   .histItem .amt.neg{color:var(--muted)}
+  .histDateGroup{margin-bottom:6px}
+  .histDateHeader{font-size:11px;font-weight:700;color:var(--gold-soft);text-transform:uppercase;
+    letter-spacing:.05em;margin:16px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--line)}
   header.top h1{position:relative;z-index:1;font-size:22px;margin:0 0 3px;font-weight:700;letter-spacing:.01em}
   header.top p{position:relative;z-index:1;margin:0;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
 
@@ -814,16 +817,20 @@ async function claimBonus(){
   claimBtn.disabled = true;
   claimBtn.textContent = 'Claiming…';
   try{
-    await db.collection('installs').doc(uid).set({
+    const batch = db.batch();
+    const installRef = db.collection('installs').doc(uid);
+    batch.set(installRef, {
       walletBalance: firebase.firestore.FieldValue.increment(signupBonusAmount),
       bonusClaimed: true
     }, {merge:true});
-    await db.collection('wallet_transactions').add({
+    const txnRef = db.collection('wallet_transactions').doc();
+    batch.set(txnRef, {
       uid, name: profile.name, phone: profile.phone,
       amount: signupBonusAmount, type: 'bonus_claim',
       description: 'New login bonus',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    await batch.commit();
     document.getElementById('bonusTitle').textContent = `Congratulations! ₹${signupBonusAmount} added to your wallet 🎉`;
     document.getElementById('bonusSubtitle').textContent = 'You can redeem this from your Wallet.';
     claimBtn.style.display = 'none';
@@ -856,18 +863,34 @@ function computeHistorySummary(list){
 function renderHistoryList(list){
   const el = document.getElementById('historyList');
   if (!list.length){ el.innerHTML = '<div class="empty">No history yet</div>'; return; }
-  el.innerHTML = list.map(t=>{
+
+  const groups = [];
+  const groupIndex = {};
+  list.forEach(t=>{
     const ms = t.createdAt && t.createdAt.toMillis ? t.createdAt.toMillis() : (t.createdAt || Date.now());
-    const isNeg = t.type === 'redeemed';
-    let desc;
-    if (t.type === 'bonus_claim') desc = `New login bonus — ₹${t.amount}`;
-    else if (t.type === 'redeemed') desc = `Redeemed ₹${t.amount} in-store`;
-    else desc = t.description || 'Reward update';
-    return `<div class="histItem">
-      <div><div class="desc">${desc}</div>
-      <div class="date">${new Date(ms).toLocaleString()}</div></div>
-      <div class="amt${isNeg?' neg':''}">${isNeg?'−':'+'}₹${t.amount}</div>
-    </div>`;
+    const dateKey = new Date(ms).toLocaleDateString(undefined, {day:'2-digit', month:'2-digit', year:'numeric'});
+    if (!(dateKey in groupIndex)){
+      groupIndex[dateKey] = groups.length;
+      groups.push({ dateKey, items: [] });
+    }
+    groups[groupIndex[dateKey]].items.push({...t, ms});
+  });
+
+  el.innerHTML = groups.map(g=>{
+    const rows = g.items.map(t=>{
+      const isNeg = t.type === 'redeemed';
+      let desc;
+      if (t.type === 'bonus_claim') desc = 'New login bonus';
+      else if (t.type === 'redeemed') desc = 'Redeemed in-store';
+      else if (t.type === 'quiz_reward') desc = t.description || 'Quiz reward';
+      else desc = t.description || 'Reward update';
+      const time = new Date(t.ms).toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+      return `<div class="histItem">
+        <div><div class="desc">${desc}</div><div class="date">${time}</div></div>
+        <div class="amt${isNeg?' neg':''}">${isNeg?'−':'+'}₹${t.amount}</div>
+      </div>`;
+    }).join('');
+    return `<div class="histDateGroup"><div class="histDateHeader">${g.dateKey}</div>${rows}</div>`;
   }).join('');
 }
 async function openProfile(){
