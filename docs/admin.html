@@ -304,14 +304,16 @@
     <!-- QUIZ -->
     <section class="tabPanel" id="tab-quiz">
       <div class="panel">
-        <h3>Create a quiz</h3>
+        <h3 id="quizFormTitle">Create a quiz</h3>
+        <input type="hidden" id="quizEditId">
         <div class="field"><label>Question</label><input id="quizQuestion" placeholder="e.g. What year did we open?"></div>
         <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Answer options</label>
         <div id="quizOptionRows" style="margin-top:8px"></div>
         <button type="button" class="dynAdd" onclick="addQuizOptionRow()">+ Add another option</button>
         <div class="field" style="margin-top:14px"><label>Deadline</label><input type="datetime-local" id="quizDeadline"></div>
         <div class="field"><label>Points for correct answer (₹)</label><input type="number" id="quizPoints" placeholder="50"></div>
-        <button class="btn" onclick="createQuiz()">Publish quiz</button>
+        <button class="btn" id="quizSubmitLabel" onclick="createQuiz()">Publish quiz</button>
+        <button class="btn secondary" id="quizCancelEditBtn" onclick="cancelQuizEdit()" style="display:none;margin-top:8px">Cancel edit</button>
         <div class="ok" id="quizSaved"></div>
       </div>
       <div class="panel">
@@ -388,6 +390,17 @@
       <div class="ok" id="cfgSaved"></div>
     </section>
   </main>
+  </div>
+</div>
+
+<!-- QUIZ RESPONSES MODAL -->
+<div class="modalBg" id="quizResponsesModalBg">
+  <div class="modal">
+    <h3 id="quizResponsesTitle">Responses</h3>
+    <div id="quizResponsesList" style="max-height:55vh;overflow-y:auto"></div>
+    <div class="modalActions">
+      <button class="btn secondary" onclick="closeModal('quizResponsesModalBg')" style="width:100%">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1124,6 +1137,7 @@ function removeQuizOptionRow(i){ quizOptionRows.splice(i,1); renderQuizOptionRow
 renderQuizOptionRows();
 
 async function createQuiz(){
+  const editId = document.getElementById('quizEditId').value;
   const question = document.getElementById('quizQuestion').value.trim();
   const options = quizOptionRows.map(o=>o.trim()).filter(Boolean);
   const deadlineVal = document.getElementById('quizDeadline').value;
@@ -1135,24 +1149,112 @@ async function createQuiz(){
   }
   if (!isConfigured){ msg.textContent = 'Saved (demo mode — not persisted).'; msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); return; }
   try{
-    await db.collection('quizzes').add({
-      question, options, points,
-      deadline: firebase.firestore.Timestamp.fromDate(new Date(deadlineVal)),
-      correctAnswerIndex: null,
-      pointsAwarded: false,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    document.getElementById('quizQuestion').value = '';
-    quizOptionRows = ['', ''];
-    renderQuizOptionRows();
-    document.getElementById('quizDeadline').value = '';
-    document.getElementById('quizPoints').value = '';
-    msg.textContent = 'Quiz published — customers will see it now.';
+    if (editId){
+      await db.collection('quizzes').doc(editId).update({
+        question, options, points,
+        deadline: firebase.firestore.Timestamp.fromDate(new Date(deadlineVal))
+      });
+      msg.textContent = 'Quiz updated.';
+    } else {
+      await db.collection('quizzes').add({
+        question, options, points,
+        deadline: firebase.firestore.Timestamp.fromDate(new Date(deadlineVal)),
+        correctAnswerIndex: null,
+        pointsAwarded: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      msg.textContent = 'Quiz published — customers will see it now.';
+    }
+    cancelQuizEdit();
     msg.style.display = 'block';
     setTimeout(()=>msg.style.display='none', 3000);
   }catch(e){
-    console.error('quiz create failed', e);
-    alert('Failed to publish — please try again.');
+    console.error('quiz save failed', e);
+    alert('Failed to save — please try again.');
+  }
+}
+
+async function viewQuizResponses(quizId){
+  const q = state_quizzes.find(x=>x.id===quizId);
+  document.getElementById('quizResponsesTitle').textContent = q ? q.question : 'Responses';
+  document.getElementById('quizResponsesList').innerHTML = '<div class="empty">Loading…</div>';
+  document.getElementById('quizResponsesModalBg').style.display = 'flex';
+  if (!isConfigured){ document.getElementById('quizResponsesList').innerHTML = '<div class="empty">Demo mode — no data</div>'; return; }
+  try{
+    const snap = await db.collection('quiz_answers').where('quizId','==',quizId).get();
+    const answers = snap.docs.map(d=>d.data()).sort((a,b)=>{
+      const msA = a.answeredAt && a.answeredAt.toMillis ? a.answeredAt.toMillis() : 0;
+      const msB = b.answeredAt && b.answeredAt.toMillis ? b.answeredAt.toMillis() : 0;
+      return msB - msA;
+    });
+    const el = document.getElementById('quizResponsesList');
+    if (!answers.length){ el.innerHTML = '<div class="empty">No one has answered yet</div>'; return; }
+    el.innerHTML = answers.map(a=>{
+      const ms = a.answeredAt && a.answeredAt.toMillis ? a.answeredAt.toMillis() : Date.now();
+      const chosenText = (q && q.options && q.options[a.selectedAnswerIndex] !== undefined) ? q.options[a.selectedAnswerIndex] : `Option ${a.selectedAnswerIndex+1}`;
+      const isCorrect = q && q.correctAnswerIndex !== null && q.correctAnswerIndex !== undefined;
+      const gotItRight = isCorrect && a.selectedAnswerIndex === q.correctAnswerIndex;
+      const badge = isCorrect ? `<span class="tag ${gotItRight?'on':'off'}">${gotItRight?'Correct':'Wrong'}</span>` : '';
+      return `<div class="row-item">
+        <div class="info"><div>
+          <h4>${a.name || 'Unknown'} <span style="font-weight:400;color:var(--muted)">— ${a.phone||''}</span></h4>
+          <p>Answered: <strong style="color:var(--gold-soft)">${chosenText}</strong> · ${new Date(ms).toLocaleString()}</p>
+        </div></div>
+        ${badge}
+      </div>`;
+    }).join('');
+  }catch(e){
+    console.error('quiz responses load failed', e);
+    document.getElementById('quizResponsesList').innerHTML = '<div class="empty" style="color:var(--bad)">Error: '+(e.message||e.code||'unknown error')+'</div>';
+  }
+}
+
+function editQuiz(quizId){
+  const q = state_quizzes.find(x=>x.id===quizId);
+  if (!q) return;
+  document.getElementById('quizEditId').value = quizId;
+  document.getElementById('quizFormTitle').textContent = 'Edit quiz';
+  document.getElementById('quizQuestion').value = q.question || '';
+  quizOptionRows = [...(q.options || ['',''])];
+  renderQuizOptionRows();
+  const deadlineMs = q.deadline && q.deadline.toMillis ? q.deadline.toMillis() : Date.now();
+  const d = new Date(deadlineMs);
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('quizDeadline').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  document.getElementById('quizPoints').value = q.points || '';
+  document.getElementById('quizSubmitLabel').textContent = 'Update quiz';
+  document.getElementById('quizCancelEditBtn').style.display = 'block';
+  document.getElementById('quizFormTitle').scrollIntoView({behavior:'smooth'});
+}
+
+function cancelQuizEdit(){
+  document.getElementById('quizEditId').value = '';
+  document.getElementById('quizFormTitle').textContent = 'Create a quiz';
+  document.getElementById('quizQuestion').value = '';
+  quizOptionRows = ['', ''];
+  renderQuizOptionRows();
+  document.getElementById('quizDeadline').value = '';
+  document.getElementById('quizPoints').value = '';
+  document.getElementById('quizSubmitLabel').textContent = 'Publish quiz';
+  document.getElementById('quizCancelEditBtn').style.display = 'none';
+}
+
+async function deleteQuiz(quizId){
+  if (!confirm('Delete this quiz? This also removes all submitted answers for it and cannot be undone.')) return;
+  if (!isConfigured){
+    state_quizzes = state_quizzes.filter(q=>q.id!==quizId);
+    renderQuizList();
+    return;
+  }
+  try{
+    const answersSnap = await db.collection('quiz_answers').where('quizId','==',quizId).get();
+    const batch = db.batch();
+    answersSnap.docs.forEach(d=>batch.delete(d.ref));
+    batch.delete(db.collection('quizzes').doc(quizId));
+    await batch.commit();
+  }catch(e){
+    console.error('quiz delete failed', e);
+    alert('Failed to delete — please try again.');
   }
 }
 
@@ -1194,6 +1296,11 @@ async function renderQuizList(){
       <p>Deadline: ${new Date(deadlineMs).toLocaleString()} · ${answered} answered</p>
       ${correctLine}
       ${answerControls}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="iconbtn" onclick='viewQuizResponses(${JSON.stringify(q.id)})' title="View responses">👥</button>
+        <button class="iconbtn" onclick='editQuiz(${JSON.stringify(q.id)})' title="Edit">✎</button>
+        <button class="iconbtn" onclick='deleteQuiz(${JSON.stringify(q.id)})' title="Delete">🗑</button>
+      </div>
     </div>`;
   }).join('');
 }
