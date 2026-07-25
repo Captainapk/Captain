@@ -1353,6 +1353,7 @@ function renderQuizHistory(){
           <strong style="font-size:13.5px">${q.question}</strong>${deletedBadge}
         </div>
         <div style="color:var(--muted);font-size:12px;margin-top:3px">${answered} participated${correctText}</div>
+        <button class="btn secondary small" style="margin-top:8px" onclick='viewQuizResponses(${JSON.stringify(q.id)})'>👥 View who answered what</button>
       </div>`;
     }).join('');
     return `<div class="histDateGroup"><div class="histDateHeader">${g.dateKey}</div>${rows}</div>`;
