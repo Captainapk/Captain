@@ -75,7 +75,7 @@ async function scoreQuizzes() {
       }
     }
 
-    await quizDoc.ref.update({ pointsAwarded: true });
+    await quizDoc.ref.update({ pointsAwarded: true, scoredAt: admin.firestore.FieldValue.serverTimestamp() });
     console.log(`Quiz scored: ${correctCount} correct, ${incorrectCount} incorrect`);
   }
 }
