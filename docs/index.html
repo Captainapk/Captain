@@ -38,6 +38,17 @@
   h1,h2,h3,.serif{font-family:'Montserrat',sans-serif;font-weight:800}
   a{color:inherit}
   .container{max-width:520px;margin:0 auto;padding:0 18px 90px}
+  .appView{display:none}
+  .appView.active{display:block}
+  .bottomNav{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;
+    background:var(--card);border-top:1px solid var(--line);display:flex;z-index:40;
+    padding-bottom:env(safe-area-inset-bottom)}
+  .navTab{flex:1;background:transparent;border:none;padding:10px 4px 8px;display:flex;
+    flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:10.5px;font-weight:700}
+  .navTab .navIcon{font-size:19px}
+  .navTab.active{color:var(--gold)}
+  .quizCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
+    margin-bottom:14px;box-shadow:0 6px 18px -12px var(--shadow)}
 
   #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:12.5px;
     font-weight:700;text-align:center;padding:8px 12px;letter-spacing:.02em}
@@ -242,48 +253,55 @@
 
 <nav class="quickNav">
   <a href="#promosSection">✨ Promotions</a>
-  <a href="#contactSection">💬 Get in touch</a>
   <a href="#updatesSection">📰 Updates</a>
 </nav>
 
 <div class="container">
 
-  <section id="promosSection">
-    <div class="sectionHead"><h2>Promotions</h2><div class="rule"></div></div>
-    <div class="promoScroll" id="promosList">
-      <div class="promoCard sk-card skeleton"></div>
-      <div class="promoCard sk-card skeleton"></div>
-    </div>
-  </section>
+  <div class="appView active" id="view-home">
+    <section id="promosSection">
+      <div class="sectionHead"><h2>Promotions</h2><div class="rule"></div></div>
+      <div class="promoScroll" id="promosList">
+        <div class="promoCard sk-card skeleton"></div>
+        <div class="promoCard sk-card skeleton"></div>
+      </div>
+    </section>
 
-  <section id="quizSection" style="display:none">
-    <div class="sectionHead"><h2>🧩 Quiz</h2><div class="rule"></div></div>
-    <div class="contact-card" style="padding:18px">
-      <h3 id="quizQuestionText" style="margin:0 0 12px;font-size:16px"></h3>
-      <div id="quizOptionsDisplay" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
-      <p id="quizStatusText" style="font-size:13px;color:var(--muted);margin:0 0 12px"></p>
-      <button class="obBtn" id="quizSubmitBtn" onclick="submitQuizAnswer()" style="display:none">Submit Answer</button>
-    </div>
-  </section>
+    <section id="updatesSection">
+      <div class="sectionHead"><h2>Updates</h2><div class="rule"></div></div>
+      <div id="updatesList">
+        <div class="sk-update skeleton"></div>
+        <div class="sk-update skeleton"></div>
+      </div>
+    </section>
 
-  <section id="contactSection">
-    <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
-    <div class="contact-card" id="contactCard">
-      <div class="sk-contact skeleton" style="margin:0"></div>
-    </div>
-    <div class="waList" id="waList"></div>
-  </section>
+    <footer>We usually reply fast — tap anytime.</footer>
+  </div>
 
-  <section id="updatesSection">
-    <div class="sectionHead"><h2>Updates</h2><div class="rule"></div></div>
-    <div id="updatesList">
-      <div class="sk-update skeleton"></div>
-      <div class="sk-update skeleton"></div>
-    </div>
-  </section>
+  <div class="appView" id="view-support">
+    <section id="contactSection">
+      <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
+      <div class="contact-card" id="contactCard">
+        <div class="sk-contact skeleton" style="margin:0"></div>
+      </div>
+      <div class="waList" id="waList"></div>
+    </section>
+  </div>
 
-  <footer>We usually reply fast — tap anytime.</footer>
+  <div class="appView" id="view-quiz">
+    <section id="quizSection">
+      <div class="sectionHead"><h2>🧩 Quiz</h2><div class="rule"></div></div>
+      <div id="quizListWrap"><div class="empty">No quizzes right now — check back soon.</div></div>
+    </section>
+  </div>
+
 </div>
+
+<nav class="bottomNav" id="bottomNav">
+  <button class="navTab active" data-view="home" onclick="switchView('home')"><span class="navIcon">🏠</span>Home</button>
+  <button class="navTab" data-view="support" onclick="switchView('support')"><span class="navIcon">💬</span>Support</button>
+  <button class="navTab" data-view="quiz" onclick="switchView('quiz')"><span class="navIcon">🧩</span>Quiz</button>
+</nav>
 
 <div class="storyOverlay" id="storyOverlay">
   <div class="storyProgress" id="storyProgress"></div>
@@ -780,86 +798,103 @@ function loadDemo(){
   updateLogoRing();
 }
 
-// ---------- Quiz ----------
-let currentQuiz = null;
-let myQuizAnswer = null;
+// ---------- View switching (bottom nav) ----------
+function switchView(view){
+  document.querySelectorAll('.appView').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.navTab').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.navTab[data-view="${view}"]`).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ---------- Quiz (supports several quizzes at once) ----------
+let allQuizzes = [];
+let myQuizAnswers = {};
 
 async function loadQuiz(){
   if (!db) return;
   try{
-    const snap = await db.collection('quizzes').orderBy('createdAt','desc').limit(1).get();
-    if (snap.empty){ document.getElementById('quizSection').style.display = 'none'; return; }
-    currentQuiz = { id: snap.docs[0].id, ...snap.docs[0].data() };
+    const snap = await db.collection('quizzes').orderBy('createdAt','desc').limit(20).get();
+    allQuizzes = snap.docs.map(d=>({id:d.id, ...d.data()}));
 
     const profile = getLocalProfile();
     if (profile.phone){
-      try{
-        const ansSnap = await db.collection('quiz_answers').doc(currentQuiz.id + '_' + profile.phone).get();
-        myQuizAnswer = ansSnap.exists ? ansSnap.data() : null;
-      }catch(e){ myQuizAnswer = null; }
+      await Promise.all(allQuizzes.map(async q=>{
+        try{
+          const ansSnap = await db.collection('quiz_answers').doc(q.id + '_' + profile.phone).get();
+          if (ansSnap.exists) myQuizAnswers[q.id] = ansSnap.data();
+        }catch(e){}
+      }));
     }
-    renderQuiz();
+    renderQuizList();
   }catch(e){ console.error('quiz load failed', e); }
 }
 
-function renderQuiz(){
-  const section = document.getElementById('quizSection');
-  if (!currentQuiz){ section.style.display = 'none'; return; }
-  section.style.display = 'block';
+function renderQuizList(){
+  const el = document.getElementById('quizListWrap');
+  if (!allQuizzes.length){ el.innerHTML = '<div class="empty">No quizzes right now — check back soon.</div>'; return; }
+  el.innerHTML = allQuizzes.map(q=>renderSingleQuizCard(q)).join('');
+}
 
-  const deadlineMs = currentQuiz.deadline && currentQuiz.deadline.toMillis ? currentQuiz.deadline.toMillis() : 0;
+function renderSingleQuizCard(q){
+  const deadlineMs = q.deadline && q.deadline.toMillis ? q.deadline.toMillis() : 0;
   const isPast = Date.now() > deadlineMs;
-  const hasCorrectAnswer = currentQuiz.correctAnswerIndex !== null && currentQuiz.correctAnswerIndex !== undefined;
+  const hasCorrectAnswer = q.correctAnswerIndex !== null && q.correctAnswerIndex !== undefined;
+  const myAnswer = myQuizAnswers[q.id];
 
-  document.getElementById('quizQuestionText').textContent = currentQuiz.question;
-  const optionsEl = document.getElementById('quizOptionsDisplay');
-  const statusEl = document.getElementById('quizStatusText');
-  const submitBtn = document.getElementById('quizSubmitBtn');
+  let optionsHtml, statusText, submitBtnHtml = '';
 
-  if (myQuizAnswer){
-    optionsEl.innerHTML = currentQuiz.options.map((opt,i)=>{
-      const isMine = i === myQuizAnswer.selectedAnswerIndex;
-      const isCorrect = hasCorrectAnswer && i === currentQuiz.correctAnswerIndex;
+  if (myAnswer){
+    optionsHtml = q.options.map((opt,i)=>{
+      const isMine = i === myAnswer.selectedAnswerIndex;
+      const isCorrect = hasCorrectAnswer && i === q.correctAnswerIndex;
       let style = '';
       if (hasCorrectAnswer && isCorrect) style = 'border-color:var(--gold);background:rgba(201,162,39,.12)';
       else if (hasCorrectAnswer && isMine) style = 'border-color:var(--bad)';
       else if (isMine) style = 'border-color:var(--gold)';
       return `<div class="quizOption" style="${style}">${opt}${isMine?' — your answer':''}</div>`;
     }).join('');
-    submitBtn.style.display = 'none';
     if (hasCorrectAnswer){
-      const won = myQuizAnswer.selectedAnswerIndex === currentQuiz.correctAnswerIndex;
-      statusEl.textContent = won ? `🎉 Correct! ₹${currentQuiz.points} added to your wallet.` : 'Results are in — better luck next time!';
+      const won = myAnswer.selectedAnswerIndex === q.correctAnswerIndex;
+      statusText = won ? `🎉 Correct! ₹${q.points} added to your wallet.` : 'Results are in — better luck next time!';
     } else if (isPast){
-      statusEl.textContent = 'Quiz closed — results coming soon!';
+      statusText = 'Quiz closed — results coming soon!';
     } else {
-      statusEl.textContent = `You've answered. Results after ${new Date(deadlineMs).toLocaleString()}.`;
+      statusText = `You've answered. Results after ${new Date(deadlineMs).toLocaleString()}.`;
     }
   } else if (isPast){
-    optionsEl.innerHTML = currentQuiz.options.map(opt=>`<div class="quizOption">${opt}</div>`).join('');
-    submitBtn.style.display = 'none';
-    statusEl.textContent = 'This quiz has closed.';
+    optionsHtml = q.options.map(opt=>`<div class="quizOption">${opt}</div>`).join('');
+    statusText = 'This quiz has closed.';
   } else {
-    optionsEl.innerHTML = currentQuiz.options.map((opt,i)=>
-      `<label class="quizOption"><input type="radio" name="quizChoice" value="${i}"> ${opt}</label>`).join('');
-    submitBtn.style.display = 'block';
-    statusEl.textContent = `Answer by ${new Date(deadlineMs).toLocaleString()} to win ₹${currentQuiz.points}!`;
+    optionsHtml = q.options.map((opt,i)=>
+      `<label class="quizOption"><input type="radio" name="quizChoice_${q.id}" value="${i}"> ${opt}</label>`).join('');
+    statusText = `Answer by ${new Date(deadlineMs).toLocaleString()} to win ₹${q.points}!`;
+    submitBtnHtml = `<button class="obBtn" onclick="submitQuizAnswer('${q.id}')" style="margin-top:10px">Submit Answer</button>`;
   }
+
+  return `<div class="quizCard">
+    <h3 style="margin:0 0 12px;font-size:16px">${q.question}</h3>
+    <div style="display:flex;flex-direction:column;gap:8px">${optionsHtml}</div>
+    <p style="font-size:13px;color:var(--muted);margin:12px 0 0">${statusText}</p>
+    ${submitBtnHtml}
+  </div>`;
 }
 
-async function submitQuizAnswer(){
-  const selected = document.querySelector('input[name="quizChoice"]:checked');
+async function submitQuizAnswer(quizId){
+  const selected = document.querySelector(`input[name="quizChoice_${quizId}"]:checked`);
   if (!selected){ alert('Please select an answer'); return; }
   const profile = getLocalProfile();
-  if (!profile.phone || !currentQuiz || !db) return;
+  if (!profile.phone || !db) return;
+  const quiz = allQuizzes.find(q=>q.id===quizId);
+  if (!quiz) return;
   try{
-    await db.collection('quiz_answers').doc(currentQuiz.id + '_' + profile.phone).set({
-      quizId: currentQuiz.id, phone: profile.phone, name: profile.name,
+    await db.collection('quiz_answers').doc(quizId + '_' + profile.phone).set({
+      quizId, phone: profile.phone, name: profile.name,
       selectedAnswerIndex: parseInt(selected.value, 10),
       answeredAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    myQuizAnswer = { selectedAnswerIndex: parseInt(selected.value, 10) };
-    renderQuiz();
+    myQuizAnswers[quizId] = { selectedAnswerIndex: parseInt(selected.value, 10) };
+    renderQuizList();
   }catch(e){
     console.error('quiz submit failed', e);
     alert('Failed to submit — please check your connection and try again.');
