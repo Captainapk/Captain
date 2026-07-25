@@ -31,9 +31,59 @@ async function sendToAll({ title, body, statusId }) {
   }
 }
 
+async function scoreQuizzes() {
+  const quizzesSnap = await db.collection('quizzes').where('pointsAwarded', '==', false).get();
+
+  for (const quizDoc of quizzesSnap.docs) {
+    const quiz = quizDoc.data();
+    if (quiz.correctAnswerIndex === null || quiz.correctAnswerIndex === undefined) continue;
+
+    console.log(`Scoring quiz: "${quiz.question}"`);
+    const answersSnap = await db.collection('quiz_answers').where('quizId', '==', quizDoc.id).get();
+
+    let correctCount = 0, incorrectCount = 0;
+    for (const answerDoc of answersSnap.docs) {
+      const answer = answerDoc.data();
+      if (answer.selectedAnswerIndex !== quiz.correctAnswerIndex) {
+        incorrectCount++;
+        continue;
+      }
+      correctCount++;
+      try {
+        const batch = db.batch();
+        batch.set(db.collection('registered_phones').doc(answer.phone), {
+          walletBalance: admin.firestore.FieldValue.increment(quiz.points)
+        }, { merge: true });
+        batch.set(db.collection('wallet_transactions').doc(), {
+          uid: '', name: answer.name || '', phone: answer.phone,
+          amount: quiz.points, type: 'quiz_reward',
+          description: `Correct answer: "${quiz.question}"`,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        await batch.commit();
+
+        const matching = await db.collection('installs').where('phone', '==', answer.phone).get();
+        if (!matching.empty) {
+          const installBatch = db.batch();
+          matching.docs.forEach(d => {
+            installBatch.set(d.ref, { walletBalance: admin.firestore.FieldValue.increment(quiz.points) }, { merge: true });
+          });
+          await installBatch.commit();
+        }
+      } catch (e) {
+        console.error(`Failed to award points to ${answer.phone}: ${e.message}`);
+      }
+    }
+
+    await quizDoc.ref.update({ pointsAwarded: true });
+    console.log(`Quiz scored: ${correctCount} correct, ${incorrectCount} incorrect`);
+  }
+}
+
 async function main() {
   const now = Date.now();
 
+  // 1. Notify as soon as possible about newly added status photos
   const newStatusSnap = await db.collection('status')
     .where('notified', '==', false)
     .get();
@@ -48,6 +98,7 @@ async function main() {
     await doc.ref.update({ notified: true });
   }
 
+  // 2. Send a reminder at the exact time the admin chose
   const reminderSnap = await db.collection('status')
     .where('reminderSent', '==', false)
     .get();
@@ -65,6 +116,9 @@ async function main() {
       await doc.ref.update({ reminderSent: true });
     }
   }
+
+  // 3. Score any quiz that has a correct answer set but hasn't paid out yet
+  await scoreQuizzes();
 
   console.log('Done.');
 }
