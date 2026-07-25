@@ -834,6 +834,7 @@ function renderQuizList(){
   const el = document.getElementById('quizListWrap');
   const THIRTY_MIN = 30 * 60 * 1000;
   const visible = allQuizzes.filter(q=>{
+    if (q.deleted) return false;
     if (!q.pointsAwarded) return true;
     const scoredMs = q.scoredAt && q.scoredAt.toMillis ? q.scoredAt.toMillis() : 0;
     if (!scoredMs) return true;
