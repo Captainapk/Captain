@@ -145,6 +145,10 @@
   .uploadNote{font-size:11px;color:var(--muted);margin-top:6px}
 
   .empty{color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
+  .paginationBar{display:flex;align-items:center;justify-content:center;gap:16px;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .paginationBar .pageInfo{font-size:12.5px;color:var(--muted);font-weight:600}
+  .paginationBar .iconbtn:disabled{opacity:.3}
   @media (max-width:420px){.stats{grid-template-columns:1fr 1fr}}
   .tag.gone{background:#2a2620;color:var(--muted)}
 
@@ -286,16 +290,13 @@
     <section class="tabPanel" id="tab-rewards">
       <div class="panel">
         <h3>Customers & wallets
-          <input type="text" id="rewardSearch" placeholder="Search name or phone…" oninput="renderRewardCustomers()"
+          <input type="text" id="rewardSearch" placeholder="Search name or phone…" oninput="rewardCustomersPage=0; renderRewardCustomers()"
             style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
             font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
         </h3>
-        <p style="font-size:12px;color:var(--muted);margin:0 0 14px">One record per phone number — stays consistent even if a customer reinstalls the app.</p>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 14px">One record per phone number — stays consistent even if a customer reinstalls the app. Tap 📄 on any customer, or in Dashboard → Recent installs, to see their full statement.</p>
         <div id="rewardCustomerList"></div>
-      </div>
-      <div class="panel">
-        <h3>Activity feed</h3>
-        <div id="allRewardsList"><div class="empty">No activity yet</div></div>
+        <div id="rewardPagination"></div>
       </div>
     </section>
 
@@ -895,10 +896,6 @@ async function loadAll(){
       else if (d.type === 'return_login') showReturnLoginAlert(d);
     });
   });
-
-  db.collection('wallet_transactions').orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
-    renderAllRewardsList(snap.docs);
-  });
 }
 
 function recomputeDashboard(){
@@ -948,12 +945,15 @@ function recomputeDashboard(){
       const blockBtn = i.blocked
         ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock">✓</button>`
         : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block">🚫</button>`;
+      const statementBtn = i.phone
+        ? `<button class="iconbtn" onclick='openCustomerStatement(${JSON.stringify(i.phone)}, ${JSON.stringify(i.name||"Customer")})' title="Statement">📄</button>`
+        : '';
       return `<tr>
         <td>${nameCell}</td>
         <td>${phoneCell}</td>
         <td>${new Date(i.lastActiveAt).toLocaleDateString()}</td>
         <td><span class="tag ${tagClass}">${tagLabel}</span></td>
-        <td>${blockBtn}</td>
+        <td style="white-space:nowrap">${statementBtn}${blockBtn}</td>
       </tr>`;
     }).join('');
     document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No installs match</td></tr>';
@@ -1031,13 +1031,26 @@ function renderStatementList(list){
   }).join('');
 }
 
+let rewardCustomersPage = 0;
+const REWARD_PAGE_SIZE = 10;
+
 function renderRewardCustomers(){
   const q = (document.getElementById('rewardSearch').value || '').toLowerCase().trim();
   const filtered = (state.rewardCustomers||[]).filter(c =>
     !q || (c.name||'').toLowerCase().includes(q) || (c.phone||'').includes(q));
+  const sorted = [...filtered].sort((a,b)=>(b.walletBalance||0)-(a.walletBalance||0));
+
   const el = document.getElementById('rewardCustomerList');
-  if (!filtered.length){ el.innerHTML = '<div class="empty">No customers match</div>'; return; }
-  el.innerHTML = [...filtered].sort((a,b)=>(b.walletBalance||0)-(a.walletBalance||0)).slice(0,50).map(c=>{
+  const pagEl = document.getElementById('rewardPagination');
+  if (!sorted.length){ el.innerHTML = '<div class="empty">No customers match</div>'; pagEl.innerHTML = ''; return; }
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / REWARD_PAGE_SIZE));
+  if (rewardCustomersPage >= totalPages) rewardCustomersPage = totalPages - 1;
+  if (rewardCustomersPage < 0) rewardCustomersPage = 0;
+  const start = rewardCustomersPage * REWARD_PAGE_SIZE;
+  const pageItems = sorted.slice(start, start + REWARD_PAGE_SIZE);
+
+  el.innerHTML = pageItems.map(c=>{
     const bal = c.walletBalance || 0;
     return `
     <div class="row-item">
@@ -1053,6 +1066,20 @@ function renderRewardCustomers(){
       </div>
     </div>`;
   }).join('');
+
+  if (totalPages > 1){
+    pagEl.innerHTML = `<div class="paginationBar">
+      <button class="iconbtn" onclick="changeRewardPage(-1)" ${rewardCustomersPage===0?'disabled':''}>‹</button>
+      <span class="pageInfo">Page ${rewardCustomersPage+1} of ${totalPages} · ${sorted.length} customers</span>
+      <button class="iconbtn" onclick="changeRewardPage(1)" ${rewardCustomersPage>=totalPages-1?'disabled':''}>›</button>
+    </div>`;
+  } else {
+    pagEl.innerHTML = '';
+  }
+}
+function changeRewardPage(delta){
+  rewardCustomersPage += delta;
+  renderRewardCustomers();
 }
 
 function openWalletAdjustModal(phone, customerName, mode){
@@ -1099,34 +1126,6 @@ async function saveWalletAdjustment(){
   }
 }
 
-function renderAllRewardsList(docs){
-  const el = document.getElementById('allRewardsList');
-  if (!docs.length){ el.innerHTML = '<div class="empty">No activity yet</div>'; return; }
-  el.innerHTML = docs.map(d=>{
-    const v = d.data();
-    const ms = v.createdAt && v.createdAt.toMillis ? v.createdAt.toMillis() : Date.now();
-    const isNeg = v.type === 'redeemed' || v.type === 'admin_remove';
-    let typeLabel, amtBadge;
-    if (v.type === 'bonus_claim') typeLabel = '🎉 Claimed signup bonus';
-    else if (v.type === 'redeemed') typeLabel = '💰 Redeemed';
-    else if (v.type === 'admin_add') typeLabel = '➕ Admin added';
-    else if (v.type === 'admin_remove') typeLabel = '➖ Admin removed';
-    else if (v.type === 'return_login') typeLabel = '👋 Returned / logged in again';
-    else typeLabel = v.type || 'Activity';
-    if (v.type === 'return_login'){
-      amtBadge = '';
-    } else {
-      amtBadge = `<div style="font-weight:700;color:${isNeg?'var(--bad)':'var(--gold-soft)'};white-space:nowrap">${isNeg?'−':'+'}₹${v.amount}</div>`;
-    }
-    return `<div class="row-item">
-      <div class="info"><div>
-        <h4>${v.name || 'Unknown'} — ${typeLabel}</h4>
-        <p>${v.description ? v.description+' · ' : ''}${new Date(ms).toLocaleString()}</p>
-      </div></div>
-      ${amtBadge}
-    </div>`;
-  }).join('');
-}
 function toggleBlock(id, blockState){
   if (!confirm(blockState ? 'Block this customer? They will lose access to the app.' : 'Unblock this customer?')) return;
   const inst = state.installs.find(x=>x.id===id);
