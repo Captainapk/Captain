@@ -99,6 +99,9 @@
   .obBtn{width:100%;background:var(--gold);color:#1a1608;border:none;border-radius:14px;
     padding:15px;font-weight:700;font-size:15px}
   .obBtn:active{transform:scale(.98)}
+  .quizOption{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--line);
+    border-radius:12px;font-size:14px;cursor:pointer}
+  .quizOption input{accent-color:var(--gold);width:18px;height:18px;flex-shrink:0}
 
   .blockedOverlay{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;
     align-items:center;justify-content:center;padding:24px;text-align:center}
@@ -250,6 +253,16 @@
     <div class="promoScroll" id="promosList">
       <div class="promoCard sk-card skeleton"></div>
       <div class="promoCard sk-card skeleton"></div>
+    </div>
+  </section>
+
+  <section id="quizSection" style="display:none">
+    <div class="sectionHead"><h2>🧩 Quiz</h2><div class="rule"></div></div>
+    <div class="contact-card" style="padding:18px">
+      <h3 id="quizQuestionText" style="margin:0 0 12px;font-size:16px"></h3>
+      <div id="quizOptionsDisplay" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+      <p id="quizStatusText" style="font-size:13px;color:var(--muted);margin:0 0 12px"></p>
+      <button class="obBtn" id="quizSubmitBtn" onclick="submitQuizAnswer()" style="display:none">Submit Answer</button>
     </div>
   </section>
 
@@ -716,6 +729,7 @@ function closeStory(){
 async function loadLive(){
   trackActivity(uid);
   loadStatus();
+  loadQuiz();
 
   // Instant paint from local cache if this device has opened the app before.
   // First-ever open has nothing cached yet, so this quietly does nothing and
@@ -764,6 +778,92 @@ function loadDemo(){
   renderUpdates(DEMO.updates);
   statusList = DEMO.status.filter(isStatusActive);
   updateLogoRing();
+}
+
+// ---------- Quiz ----------
+let currentQuiz = null;
+let myQuizAnswer = null;
+
+async function loadQuiz(){
+  if (!db) return;
+  try{
+    const snap = await db.collection('quizzes').orderBy('createdAt','desc').limit(1).get();
+    if (snap.empty){ document.getElementById('quizSection').style.display = 'none'; return; }
+    currentQuiz = { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+    const profile = getLocalProfile();
+    if (profile.phone){
+      try{
+        const ansSnap = await db.collection('quiz_answers').doc(currentQuiz.id + '_' + profile.phone).get();
+        myQuizAnswer = ansSnap.exists ? ansSnap.data() : null;
+      }catch(e){ myQuizAnswer = null; }
+    }
+    renderQuiz();
+  }catch(e){ console.error('quiz load failed', e); }
+}
+
+function renderQuiz(){
+  const section = document.getElementById('quizSection');
+  if (!currentQuiz){ section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const deadlineMs = currentQuiz.deadline && currentQuiz.deadline.toMillis ? currentQuiz.deadline.toMillis() : 0;
+  const isPast = Date.now() > deadlineMs;
+  const hasCorrectAnswer = currentQuiz.correctAnswerIndex !== null && currentQuiz.correctAnswerIndex !== undefined;
+
+  document.getElementById('quizQuestionText').textContent = currentQuiz.question;
+  const optionsEl = document.getElementById('quizOptionsDisplay');
+  const statusEl = document.getElementById('quizStatusText');
+  const submitBtn = document.getElementById('quizSubmitBtn');
+
+  if (myQuizAnswer){
+    optionsEl.innerHTML = currentQuiz.options.map((opt,i)=>{
+      const isMine = i === myQuizAnswer.selectedAnswerIndex;
+      const isCorrect = hasCorrectAnswer && i === currentQuiz.correctAnswerIndex;
+      let style = '';
+      if (hasCorrectAnswer && isCorrect) style = 'border-color:var(--gold);background:rgba(201,162,39,.12)';
+      else if (hasCorrectAnswer && isMine) style = 'border-color:var(--bad)';
+      else if (isMine) style = 'border-color:var(--gold)';
+      return `<div class="quizOption" style="${style}">${opt}${isMine?' — your answer':''}</div>`;
+    }).join('');
+    submitBtn.style.display = 'none';
+    if (hasCorrectAnswer){
+      const won = myQuizAnswer.selectedAnswerIndex === currentQuiz.correctAnswerIndex;
+      statusEl.textContent = won ? `🎉 Correct! ₹${currentQuiz.points} added to your wallet.` : 'Results are in — better luck next time!';
+    } else if (isPast){
+      statusEl.textContent = 'Quiz closed — results coming soon!';
+    } else {
+      statusEl.textContent = `You've answered. Results after ${new Date(deadlineMs).toLocaleString()}.`;
+    }
+  } else if (isPast){
+    optionsEl.innerHTML = currentQuiz.options.map(opt=>`<div class="quizOption">${opt}</div>`).join('');
+    submitBtn.style.display = 'none';
+    statusEl.textContent = 'This quiz has closed.';
+  } else {
+    optionsEl.innerHTML = currentQuiz.options.map((opt,i)=>
+      `<label class="quizOption"><input type="radio" name="quizChoice" value="${i}"> ${opt}</label>`).join('');
+    submitBtn.style.display = 'block';
+    statusEl.textContent = `Answer by ${new Date(deadlineMs).toLocaleString()} to win ₹${currentQuiz.points}!`;
+  }
+}
+
+async function submitQuizAnswer(){
+  const selected = document.querySelector('input[name="quizChoice"]:checked');
+  if (!selected){ alert('Please select an answer'); return; }
+  const profile = getLocalProfile();
+  if (!profile.phone || !currentQuiz || !db) return;
+  try{
+    await db.collection('quiz_answers').doc(currentQuiz.id + '_' + profile.phone).set({
+      quizId: currentQuiz.id, phone: profile.phone, name: profile.name,
+      selectedAnswerIndex: parseInt(selected.value, 10),
+      answeredAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    myQuizAnswer = { selectedAnswerIndex: parseInt(selected.value, 10) };
+    renderQuiz();
+  }catch(e){
+    console.error('quiz submit failed', e);
+    alert('Failed to submit — please check your connection and try again.');
+  }
 }
 
 function isValidIndianMobile(raw){
