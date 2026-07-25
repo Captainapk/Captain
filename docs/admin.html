@@ -217,6 +217,7 @@
       <button class="sidebarItem" data-tab="promos" onclick="showTab('promos')"><span class="ic">🎉</span>Promotions</button>
       <button class="sidebarItem" data-tab="updates" onclick="showTab('updates')"><span class="ic">📰</span>Updates</button>
       <button class="sidebarItem" data-tab="rewards" onclick="showTab('rewards')"><span class="ic">💰</span>Rewards</button>
+      <button class="sidebarItem" data-tab="quiz" onclick="showTab('quiz')"><span class="ic">🧩</span>Quiz</button>
       <button class="sidebarItem" data-tab="content" onclick="showTab('content')"><span class="ic">⚙️</span>Contact info</button>
     </nav>
 
@@ -297,6 +298,25 @@
         <p style="font-size:12px;color:var(--muted);margin:0 0 14px">One record per phone number — stays consistent even if a customer reinstalls the app. Tap 📄 on any customer, or in Dashboard → Recent installs, to see their full statement.</p>
         <div id="rewardCustomerList"></div>
         <div id="rewardPagination"></div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="tabPanel" id="tab-quiz">
+      <div class="panel">
+        <h3>Create a quiz</h3>
+        <div class="field"><label>Question</label><input id="quizQuestion" placeholder="e.g. What year did we open?"></div>
+        <label style="font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Answer options</label>
+        <div id="quizOptionRows" style="margin-top:8px"></div>
+        <button type="button" class="dynAdd" onclick="addQuizOptionRow()">+ Add another option</button>
+        <div class="field" style="margin-top:14px"><label>Deadline</label><input type="datetime-local" id="quizDeadline"></div>
+        <div class="field"><label>Points for correct answer (₹)</label><input type="number" id="quizPoints" placeholder="50"></div>
+        <button class="btn" onclick="createQuiz()">Publish quiz</button>
+        <div class="ok" id="quizSaved"></div>
+      </div>
+      <div class="panel">
+        <h3>All quizzes</h3>
+        <div id="quizList"><div class="empty">No quizzes yet</div></div>
       </div>
     </section>
 
@@ -473,6 +493,9 @@ let db = null, auth = null;
 let state = { promos: [], updates: [], installs: [], config: {}, status: [], rewardCustomers: [] };
 let chart = null;
 let waRows = [];
+let quizOptionRows = ['', ''];
+let state_quizzes = [];
+let quizAnswerCounts = {};
 let webRows = [];
 let logoDataUrl = '';
 let promoImgDataUrl = '';
@@ -862,6 +885,11 @@ async function loadAll(){
     state.rewardCustomers = snap.docs.map(d=>({phone:d.id, ...d.data()}));
     renderRewardCustomers();
   });
+  db.collection('quizzes').onSnapshot(snap=>{
+    state_quizzes = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderQuizList();
+    refreshQuizAnswerCounts();
+  });
   db.collection('status').orderBy('createdAt','desc').onSnapshot(snap=>{
     state.status = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderStatusGrid();
@@ -1018,6 +1046,7 @@ function renderStatementList(list){
     else if (v.type === 'admin_add') typeLabel = '➕ Bonus added by admin';
     else if (v.type === 'admin_remove') typeLabel = '➖ Amount removed by admin';
     else if (v.type === 'return_login') typeLabel = '👋 Logged in again';
+    else if (v.type === 'quiz_reward') typeLabel = '🧩 Quiz reward';
     else typeLabel = v.type || 'Activity';
     const amtBadge = v.type === 'return_login' ? '' :
       `<div style="font-weight:700;color:${isNeg?'var(--bad)':'var(--gold-soft)'};white-space:nowrap">${isNeg?'−':'+'}₹${v.amount}</div>`;
@@ -1080,6 +1109,104 @@ function renderRewardCustomers(){
 function changeRewardPage(delta){
   rewardCustomersPage += delta;
   renderRewardCustomers();
+}
+
+function renderQuizOptionRows(){
+  const el = document.getElementById('quizOptionRows');
+  el.innerHTML = quizOptionRows.map((val,i)=>`
+    <div class="dynRow">
+      <input placeholder="Option ${i+1}" value="${(val||'').replace(/"/g,'&quot;')}" oninput="quizOptionRows[${i}]=this.value">
+      ${quizOptionRows.length > 2 ? `<button type="button" class="iconbtn" onclick="removeQuizOptionRow(${i})">✕</button>` : ''}
+    </div>`).join('');
+}
+function addQuizOptionRow(){ if (quizOptionRows.length < 6){ quizOptionRows.push(''); renderQuizOptionRows(); } }
+function removeQuizOptionRow(i){ quizOptionRows.splice(i,1); renderQuizOptionRows(); }
+renderQuizOptionRows();
+
+async function createQuiz(){
+  const question = document.getElementById('quizQuestion').value.trim();
+  const options = quizOptionRows.map(o=>o.trim()).filter(Boolean);
+  const deadlineVal = document.getElementById('quizDeadline').value;
+  const points = parseInt(document.getElementById('quizPoints').value, 10);
+  const msg = document.getElementById('quizSaved');
+  if (!question || options.length < 2 || !deadlineVal || !points || points <= 0){
+    alert('Please fill in the question, at least 2 options, a deadline, and points amount.');
+    return;
+  }
+  if (!isConfigured){ msg.textContent = 'Saved (demo mode — not persisted).'; msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); return; }
+  try{
+    await db.collection('quizzes').add({
+      question, options, points,
+      deadline: firebase.firestore.Timestamp.fromDate(new Date(deadlineVal)),
+      correctAnswerIndex: null,
+      pointsAwarded: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('quizQuestion').value = '';
+    quizOptionRows = ['', ''];
+    renderQuizOptionRows();
+    document.getElementById('quizDeadline').value = '';
+    document.getElementById('quizPoints').value = '';
+    msg.textContent = 'Quiz published — customers will see it now.';
+    msg.style.display = 'block';
+    setTimeout(()=>msg.style.display='none', 3000);
+  }catch(e){
+    console.error('quiz create failed', e);
+    alert('Failed to publish — please try again.');
+  }
+}
+
+async function renderQuizList(){
+  const el = document.getElementById('quizList');
+  if (!state_quizzes.length){ el.innerHTML = '<div class="empty">No quizzes yet</div>'; return; }
+  const sorted = [...state_quizzes].sort((a,b)=>{
+    const msA = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+    return msB - msA;
+  });
+  el.innerHTML = sorted.map(q=>{
+    const deadlineMs = q.deadline && q.deadline.toMillis ? q.deadline.toMillis() : 0;
+    const isPast = Date.now() > deadlineMs;
+    const answered = quizAnswerCounts[q.id] || 0;
+    const statusTag = q.correctAnswerIndex !== null && q.correctAnswerIndex !== undefined
+      ? (q.pointsAwarded ? '<span class="tag on">Scored</span>' : '<span class="tag off">Awaiting scoring (~5 min)</span>')
+      : (isPast ? '<span class="tag off">Deadline passed — set answer</span>' : '<span class="tag on">Live</span>');
+    const answerControls = (isPast && (q.correctAnswerIndex === null || q.correctAnswerIndex === undefined))
+      ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Select the correct answer:</div>
+          ${q.options.map((opt,i)=>`<button class="btn secondary small" style="margin:0 6px 6px 0" onclick='setQuizCorrectAnswer(${JSON.stringify(q.id)},${i})'>${opt}</button>`).join('')}
+        </div>`
+      : '';
+    const correctLine = (q.correctAnswerIndex !== null && q.correctAnswerIndex !== undefined)
+      ? `<p style="color:var(--gold-soft)">Correct answer: ${q.options[q.correctAnswerIndex]}</p>` : '';
+    return `<div class="row-item" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        <h4>${q.question}</h4>${statusTag}
+      </div>
+      <p>${q.options.join(' · ')} · ₹${q.points} each</p>
+      <p>Deadline: ${new Date(deadlineMs).toLocaleString()} · ${answered} answered</p>
+      ${correctLine}
+      ${answerControls}
+    </div>`;
+  }).join('');
+}
+
+async function refreshQuizAnswerCounts(){
+  for (const q of state_quizzes){
+    try{
+      const snap = await db.collection('quiz_answers').where('quizId','==',q.id).get();
+      quizAnswerCounts[q.id] = snap.size;
+    }catch(e){ quizAnswerCounts[q.id] = quizAnswerCounts[q.id] || 0; }
+  }
+  renderQuizList();
+}
+
+function setQuizCorrectAnswer(quizId, answerIndex){
+  if (!confirm('Set this as the correct answer? Points will be awarded automatically within ~5 minutes, and this cannot be undone.')) return;
+  db.collection('quizzes').doc(quizId).update({ correctAnswerIndex: answerIndex }).catch(e=>{
+    console.error('set answer failed', e);
+    alert('Failed — please try again.');
+  });
 }
 
 function openWalletAdjustModal(phone, customerName, mode){
