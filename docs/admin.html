@@ -320,6 +320,11 @@
         <h3>All quizzes</h3>
         <div id="quizList"><div class="empty">No quizzes yet</div></div>
       </div>
+      <div class="panel">
+        <h3>Quiz history</h3>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 14px">Every quiz ever run, grouped by date — including deleted ones.</p>
+        <div id="quizHistoryWrap"><div class="empty">No quiz history yet</div></div>
+      </div>
     </section>
 
     <!-- CONTENT -->
@@ -1240,18 +1245,19 @@ function cancelQuizEdit(){
 }
 
 async function deleteQuiz(quizId){
-  if (!confirm('Delete this quiz? This also removes all submitted answers for it and cannot be undone.')) return;
+  if (!confirm('Delete this quiz? It will be removed from the active list, but stays visible in Quiz History along with its answers.')) return;
   if (!isConfigured){
-    state_quizzes = state_quizzes.filter(q=>q.id!==quizId);
+    const q = state_quizzes.find(x=>x.id===quizId);
+    if (q){ q.deleted = true; q.deletedAt = Date.now(); }
     renderQuizList();
+    renderQuizHistory();
     return;
   }
   try{
-    const answersSnap = await db.collection('quiz_answers').where('quizId','==',quizId).get();
-    const batch = db.batch();
-    answersSnap.docs.forEach(d=>batch.delete(d.ref));
-    batch.delete(db.collection('quizzes').doc(quizId));
-    await batch.commit();
+    await db.collection('quizzes').doc(quizId).update({
+      deleted: true,
+      deletedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
   }catch(e){
     console.error('quiz delete failed', e);
     alert('Failed to delete — please try again.');
@@ -1262,6 +1268,7 @@ async function renderQuizList(){
   const el = document.getElementById('quizList');
   const THIRTY_MIN = 30 * 60 * 1000;
   const visible = state_quizzes.filter(q=>{
+    if (q.deleted) return false;
     if (!q.pointsAwarded) return true;
     const scoredMs = q.scoredAt && q.scoredAt.toMillis ? q.scoredAt.toMillis() : 0;
     if (!scoredMs) return true;
@@ -1313,6 +1320,43 @@ async function refreshQuizAnswerCounts(){
     }catch(e){ quizAnswerCounts[q.id] = quizAnswerCounts[q.id] || 0; }
   }
   renderQuizList();
+  renderQuizHistory();
+}
+
+function renderQuizHistory(){
+  const el = document.getElementById('quizHistoryWrap');
+  if (!state_quizzes.length){ el.innerHTML = '<div class="empty">No quiz history yet</div>'; return; }
+
+  const groups = [];
+  const groupIndex = {};
+  const sorted = [...state_quizzes].sort((a,b)=>{
+    const msA = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+    return msB - msA;
+  });
+  sorted.forEach(q=>{
+    const ms = q.createdAt && q.createdAt.toMillis ? q.createdAt.toMillis() : 0;
+    const dateKey = new Date(ms).toLocaleDateString(undefined, {day:'2-digit', month:'2-digit', year:'numeric'});
+    if (!(dateKey in groupIndex)){ groupIndex[dateKey] = groups.length; groups.push({dateKey, items:[]}); }
+    groups[groupIndex[dateKey]].items.push(q);
+  });
+
+  el.innerHTML = groups.map(g=>{
+    const rows = g.items.map(q=>{
+      const answered = quizAnswerCounts[q.id] || 0;
+      const hasCorrect = q.correctAnswerIndex !== null && q.correctAnswerIndex !== undefined;
+      const correctText = hasCorrect ? ` · Correct answer: ${q.options[q.correctAnswerIndex]}` : (q.deadline && q.deadline.toMillis && Date.now() > q.deadline.toMillis() ? ' · Not yet scored' : ' · Still live');
+      const deletedMs = q.deletedAt && q.deletedAt.toMillis ? q.deletedAt.toMillis() : (typeof q.deletedAt === 'number' ? q.deletedAt : 0);
+      const deletedBadge = q.deleted ? `<span class="tag off">Deleted${deletedMs ? ' '+new Date(deletedMs).toLocaleString() : ''}</span>` : '<span class="tag on">Active</span>';
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+          <strong style="font-size:13.5px">${q.question}</strong>${deletedBadge}
+        </div>
+        <div style="color:var(--muted);font-size:12px;margin-top:3px">${answered} participated${correctText}</div>
+      </div>`;
+    }).join('');
+    return `<div class="histDateGroup"><div class="histDateHeader">${g.dateKey}</div>${rows}</div>`;
+  }).join('');
 }
 
 function setQuizCorrectAnswer(quizId, answerIndex){
