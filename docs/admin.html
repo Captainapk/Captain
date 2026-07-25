@@ -1158,8 +1158,15 @@ async function createQuiz(){
 
 async function renderQuizList(){
   const el = document.getElementById('quizList');
-  if (!state_quizzes.length){ el.innerHTML = '<div class="empty">No quizzes yet</div>'; return; }
-  const sorted = [...state_quizzes].sort((a,b)=>{
+  const THIRTY_MIN = 30 * 60 * 1000;
+  const visible = state_quizzes.filter(q=>{
+    if (!q.pointsAwarded) return true;
+    const scoredMs = q.scoredAt && q.scoredAt.toMillis ? q.scoredAt.toMillis() : 0;
+    if (!scoredMs) return true;
+    return (Date.now() - scoredMs) < THIRTY_MIN;
+  });
+  if (!visible.length){ el.innerHTML = '<div class="empty">No quizzes yet</div>'; return; }
+  const sorted = [...visible].sort((a,b)=>{
     const msA = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
     const msB = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
     return msB - msA;
