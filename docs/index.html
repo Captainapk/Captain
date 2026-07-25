@@ -290,7 +290,7 @@
 
   <div class="appView" id="view-quiz">
     <section id="quizSection">
-      <div class="sectionHead"><h2>🧩 Quiz</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2>Today's Quiz</h2><div class="rule"></div></div>
       <div id="quizListWrap"><div class="empty">No quizzes right now — check back soon.</div></div>
     </section>
   </div>
@@ -832,8 +832,15 @@ async function loadQuiz(){
 
 function renderQuizList(){
   const el = document.getElementById('quizListWrap');
-  if (!allQuizzes.length){ el.innerHTML = '<div class="empty">No quizzes right now — check back soon.</div>'; return; }
-  el.innerHTML = allQuizzes.map(q=>renderSingleQuizCard(q)).join('');
+  const THIRTY_MIN = 30 * 60 * 1000;
+  const visible = allQuizzes.filter(q=>{
+    if (!q.pointsAwarded) return true;
+    const scoredMs = q.scoredAt && q.scoredAt.toMillis ? q.scoredAt.toMillis() : 0;
+    if (!scoredMs) return true;
+    return (Date.now() - scoredMs) < THIRTY_MIN;
+  });
+  if (!visible.length){ el.innerHTML = '<div class="empty">No quizzes right now — check back soon.</div>'; return; }
+  el.innerHTML = visible.map(q=>renderSingleQuizCard(q)).join('');
 }
 
 function renderSingleQuizCard(q){
