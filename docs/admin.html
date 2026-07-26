@@ -204,7 +204,7 @@
 <div id="demoBanner">⚙️ Demo mode — this is sample data. Connect Firebase to manage your real app (see README).</div>
 
 <div class="clickAlert" id="clickAlert">
-  <div class="icon"><span class="icon">notifications_active</span></div>
+  <div class="icon"><span class="icon" style="color:#1a1608">notifications_active</span></div>
   <div class="txt"><div class="name" id="clickAlertName"></div><div class="sub" id="clickAlertSub"></div></div>
   <button class="close" onclick="dismissClickAlert()">✕</button>
 </div>
@@ -240,13 +240,13 @@
   <div class="adminBody">
     <div class="sidebarOverlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <nav class="sidebar" id="sidebar">
-      <button class="sidebarItem active" data-tab="dashboard" onclick="showTab('dashboard')"><span class="ic icon">dashboard</span>Dashboard</button>
-      <button class="sidebarItem" data-tab="status" onclick="showTab('status')"><span class="ic icon">photo_camera</span>Status</button>
-      <button class="sidebarItem" data-tab="promos" onclick="showTab('promos')"><span class="ic icon">local_offer</span>Promotions</button>
-      <button class="sidebarItem" data-tab="updates" onclick="showTab('updates')"><span class="ic icon">article</span>Updates</button>
-      <button class="sidebarItem" data-tab="rewards" onclick="showTab('rewards')"><span class="ic icon">account_balance_wallet</span>Rewards</button>
-      <button class="sidebarItem" data-tab="quiz" onclick="showTab('quiz')"><span class="ic icon">quiz</span>Quiz</button>
-      <button class="sidebarItem" data-tab="content" onclick="showTab('content')"><span class="ic icon">settings</span>Contact info</button>
+      <button class="sidebarItem active" data-tab="dashboard" onclick="showTab('dashboard')"><span class="ic icon" style="color:#5B8DEF">dashboard</span>Dashboard</button>
+      <button class="sidebarItem" data-tab="status" onclick="showTab('status')"><span class="ic icon" style="color:#C767D6">photo_camera</span>Status</button>
+      <button class="sidebarItem" data-tab="promos" onclick="showTab('promos')"><span class="ic icon" style="color:#FF8A3D">local_offer</span>Promotions</button>
+      <button class="sidebarItem" data-tab="updates" onclick="showTab('updates')"><span class="ic icon" style="color:#2DBECD">article</span>Updates</button>
+      <button class="sidebarItem" data-tab="rewards" onclick="showTab('rewards')"><span class="ic icon" style="color:#34C759">account_balance_wallet</span>Rewards</button>
+      <button class="sidebarItem" data-tab="quiz" onclick="showTab('quiz')"><span class="ic icon" style="color:#A162E8">quiz</span>Quiz</button>
+      <button class="sidebarItem" data-tab="content" onclick="showTab('content')"><span class="ic icon" style="color:#8A94A6">settings</span>Contact info</button>
     </nav>
 
   <main>
@@ -707,7 +707,7 @@ function renderStatusGrid(){
       <img src="${s.imageUrl}">
       <div class="expiry">${statusExpiryLabel(s)}</div>
       ${s.linkUrl ? '<div class="expiry" style="left:auto;right:6px;top:auto;bottom:6px">🔗 linked</div>' : ''}
-      <button class="delBtn" onclick="deleteStatus('${s.id}')"><span class="icon" style="font-size:14px">delete</span></button>
+      <button class="delBtn" onclick="deleteStatus('${s.id}')"><span class="icon" style="font-size:14px;color:#FF3B30">delete</span></button>
     </div>`).join('');
 }
 function deleteStatus(id){
@@ -1021,10 +1021,10 @@ function recomputeDashboard(){
         ? `<a href="https://wa.me/${i.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${i.phone}</a>`
         : '—';
       const blockBtn = i.blocked
-        ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock"><span class="icon">check_circle</span></button>`
-        : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block"><span class="icon">block</span></button>`;
+        ? `<button class="iconbtn" onclick="toggleBlock('${i.id}',false)" title="Unblock"><span class="icon" style="color:#34C759">check_circle</span></button>`
+        : `<button class="iconbtn" onclick="toggleBlock('${i.id}',true)" title="Block"><span class="icon" style="color:#FF3B30">block</span></button>`;
       const statementBtn = i.phone
-        ? `<button class="iconbtn" onclick='openCustomerStatement(${JSON.stringify(i.phone)}, ${JSON.stringify(i.name||"Customer")})' title="Statement"><span class="icon">receipt_long</span></button>`
+        ? `<button class="iconbtn" onclick='openCustomerStatement(${JSON.stringify(i.phone)}, ${JSON.stringify(i.name||"Customer")})' title="Statement"><span class="icon" style="color:#5B8DEF">receipt_long</span></button>`
         : '';
       return `<tr>
         <td>${nameCell}</td>
@@ -1138,10 +1138,10 @@ function renderRewardCustomers(){
         <p><a href="https://wa.me/${(c.phone||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold-soft)">${c.phone}</a> · Balance: ₹${bal}</p>
       </div></div>
       <div class="actions">
-        <button class="iconbtn" onclick='openCustomerStatement(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")})' title="Statement"><span class="icon">receipt_long</span></button>
-        <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "add")' title="Add"><span class="icon">add</span></button>
-        <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "remove")' title="Remove"><span class="icon">remove</span></button>
-        ${bal > 0 ? `<button class="iconbtn" onclick='redeemWallet(${JSON.stringify(c.phone)}, ${bal})' title="Mark redeemed"><span class="icon">redeem</span></button>` : ''}
+        <button class="iconbtn" onclick='openCustomerStatement(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")})' title="Statement"><span class="icon" style="color:#5B8DEF">receipt_long</span></button>
+        <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "add")' title="Add"><span class="icon" style="color:#34C759">add</span></button>
+        <button class="iconbtn" onclick='openWalletAdjustModal(${JSON.stringify(c.phone)}, ${JSON.stringify(c.name||"Customer")}, "remove")' title="Remove"><span class="icon" style="color:#FF6B6B">remove</span></button>
+        ${bal > 0 ? `<button class="iconbtn" onclick='redeemWallet(${JSON.stringify(c.phone)}, ${bal})' title="Mark redeemed"><span class="icon" style="color:#C9A227">redeem</span></button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -1337,9 +1337,9 @@ async function renderQuizList(){
       ${correctLine}
       ${answerControls}
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="iconbtn" onclick='viewQuizResponses(${JSON.stringify(q.id)})' title="View responses"><span class="icon">groups</span></button>
-        <button class="iconbtn" onclick='editQuiz(${JSON.stringify(q.id)})' title="Edit"><span class="icon">edit</span></button>
-        <button class="iconbtn" onclick='deleteQuiz(${JSON.stringify(q.id)})' title="Delete"><span class="icon">delete</span></button>
+        <button class="iconbtn" onclick='viewQuizResponses(${JSON.stringify(q.id)})' title="View responses"><span class="icon" style="color:#A162E8">groups</span></button>
+        <button class="iconbtn" onclick='editQuiz(${JSON.stringify(q.id)})' title="Edit"><span class="icon" style="color:#5B8DEF">edit</span></button>
+        <button class="iconbtn" onclick='deleteQuiz(${JSON.stringify(q.id)})' title="Delete"><span class="icon" style="color:#FF3B30">delete</span></button>
       </div>
     </div>`;
   }).join('');
@@ -1555,8 +1555,8 @@ function renderPromosAdmin(){
         <div><h4>${p.title||''} ${p.active?'':'<span class="tag off">Hidden</span>'}</h4><p>${p.badge||''}</p></div>
       </div>
       <div class="actions">
-        <button class="iconbtn" onclick='openPromoModal(${JSON.stringify(p).replace(/'/g,"&apos;")})'><span class="icon">edit</span></button>
-        <button class="iconbtn" onclick="deletePromo('${p.id}')"><span class="icon">delete</span></button>
+        <button class="iconbtn" onclick='openPromoModal(${JSON.stringify(p).replace(/'/g,"&apos;")})'><span class="icon" style="color:#5B8DEF">edit</span></button>
+        <button class="iconbtn" onclick="deletePromo('${p.id}')"><span class="icon" style="color:#FF3B30">delete</span></button>
       </div>
     </div>`).join('');
 }
@@ -1613,8 +1613,8 @@ function renderUpdatesAdmin(){
         <div><h4>${u.title||''}</h4><p>${u.body||''}</p></div>
       </div>
       <div class="actions">
-        <button class="iconbtn" onclick='openUpdateModal(${JSON.stringify(u).replace(/'/g,"&apos;")})'><span class="icon">edit</span></button>
-        <button class="iconbtn" onclick="deleteUpdate('${u.id}')"><span class="icon">delete</span></button>
+        <button class="iconbtn" onclick='openUpdateModal(${JSON.stringify(u).replace(/'/g,"&apos;")})'><span class="icon" style="color:#5B8DEF">edit</span></button>
+        <button class="iconbtn" onclick="deleteUpdate('${u.id}')"><span class="icon" style="color:#FF3B30">delete</span></button>
       </div>
     </div>`).join('');
 }
