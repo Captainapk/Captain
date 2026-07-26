@@ -71,8 +71,10 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh.setOnRefreshListener { webView.reload() }
 
         val statusId = intent.getStringExtra("statusId")
+        val quizId = intent.getStringExtra("quizId")
         var urlWithId = "$baseUrl?uid=$installId&src=app"
         if (statusId != null) urlWithId += "&status=$statusId"
+        if (quizId != null) urlWithId += "&quiz=$quizId"
         webView.loadUrl(urlWithId)
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -101,6 +103,11 @@ class MainActivity : AppCompatActivity() {
         val statusId = intent.getStringExtra("statusId")
         if (statusId != null) {
             val js = "if (window.openStatusFromNotification) { window.openStatusFromNotification('$statusId'); }"
+            webView.evaluateJavascript(js, null)
+        }
+        val quizId = intent.getStringExtra("quizId")
+        if (quizId != null) {
+            val js = "if (window.openQuizFromNotification) { window.openQuizFromNotification('$quizId'); }"
             webView.evaluateJavascript(js, null)
         }
     }
