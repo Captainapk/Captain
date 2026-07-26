@@ -534,6 +534,7 @@ let updateImgDataUrl = '';
 if (isConfigured) {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
+  db.enablePersistence().catch(()=>{ /* unsupported here, falls back to normal network mode */ });
   auth = firebase.auth();
   db.collection('config').doc('business').get().then(snap=>{
     if (snap.exists && snap.data().logoUrl) showBrandLogo(snap.data().logoUrl);
@@ -1326,12 +1327,12 @@ async function renderQuizList(){
 }
 
 async function refreshQuizAnswerCounts(){
-  for (const q of state_quizzes){
+  await Promise.all(state_quizzes.map(async q=>{
     try{
       const snap = await db.collection('quiz_answers').where('quizId','==',q.id).get();
       quizAnswerCounts[q.id] = snap.size;
     }catch(e){ quizAnswerCounts[q.id] = quizAnswerCounts[q.id] || 0; }
-  }
+  }));
   renderQuizList();
   renderQuizHistory();
 }
