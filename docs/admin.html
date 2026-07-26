@@ -1178,6 +1178,7 @@ async function createQuiz(){
         deadline: firebase.firestore.Timestamp.fromDate(new Date(deadlineVal)),
         correctAnswerIndex: null,
         pointsAwarded: false,
+        notified: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       msg.textContent = 'Quiz published — customers will see it now.';
