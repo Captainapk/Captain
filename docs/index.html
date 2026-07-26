@@ -258,7 +258,7 @@
 <header class="top">
   <button class="themeBtn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️</button>
   <button class="profileBtn" id="profileBtn" onclick="openProfile()" aria-label="My profile">
-    <span class="icon">account_circle</span><span class="profileBadge" id="profileBadge"></span>
+    <span class="icon" style="color:#8A94A6">account_circle</span><span class="profileBadge" id="profileBadge"></span>
   </button>
   <div class="logoWrap" id="logoWrap"><span class="fallback" id="logoFallback">Y</span></div>
   <h1 id="bizName">Your Business</h1>
@@ -266,15 +266,15 @@
 </header>
 
 <nav class="quickNav">
-  <a href="#promosSection"><span class="icon" style="font-size:15px;vertical-align:-2px">local_offer</span> Promotions</a>
-  <a href="#updatesSection"><span class="icon" style="font-size:15px;vertical-align:-2px">article</span> Updates</a>
+  <a href="#promosSection"><span class="icon" style="font-size:15px;vertical-align:-2px;color:#FF8A3D">local_offer</span> Promotions</a>
+  <a href="#updatesSection"><span class="icon" style="font-size:15px;vertical-align:-2px;color:#2DBECD">article</span> Updates</a>
 </nav>
 
 <div class="container">
 
   <div class="appView active" id="view-home">
     <section id="promosSection">
-      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">local_offer</span>Promotions</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px;color:#FF8A3D">local_offer</span>Promotions</h2><div class="rule"></div></div>
       <div class="promoScroll" id="promosList">
         <div class="promoCard sk-card skeleton"></div>
         <div class="promoCard sk-card skeleton"></div>
@@ -282,7 +282,7 @@
     </section>
 
     <section id="updatesSection">
-      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">article</span>Updates</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px;color:#2DBECD">article</span>Updates</h2><div class="rule"></div></div>
       <div id="updatesList">
         <div class="sk-update skeleton"></div>
         <div class="sk-update skeleton"></div>
@@ -294,7 +294,7 @@
 
   <div class="appView" id="view-support">
     <section id="contactSection">
-      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">support_agent</span>Get in touch</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px;color:#34C759">support_agent</span>Get in touch</h2><div class="rule"></div></div>
       <div class="contact-card" id="contactCard">
         <div class="sk-contact skeleton" style="margin:0"></div>
       </div>
@@ -304,7 +304,7 @@
 
   <div class="appView" id="view-quiz">
     <section id="quizSection">
-      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">quiz</span>Today's Quiz</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px;color:#A162E8">quiz</span>Today's Quiz</h2><div class="rule"></div></div>
       <div id="quizListWrap"><div class="empty"><span class="icon">quiz</span>No quizzes right now — check back soon.</div></div>
     </section>
   </div>
@@ -312,9 +312,9 @@
 </div>
 
 <nav class="bottomNav" id="bottomNav">
-  <button class="navTab active" data-view="home" onclick="switchView('home')"><span class="navIcon icon">home</span>Home</button>
-  <button class="navTab" data-view="support" onclick="switchView('support')"><span class="navIcon icon">support_agent</span>Support</button>
-  <button class="navTab" data-view="quiz" onclick="switchView('quiz')"><span class="navIcon icon">quiz</span>Quiz</button>
+  <button class="navTab active" data-view="home" onclick="switchView('home')"><span class="navIcon icon" style="color:#C9A227">home</span>Home</button>
+  <button class="navTab" data-view="support" onclick="switchView('support')"><span class="navIcon icon" style="color:#34C759">support_agent</span>Support</button>
+  <button class="navTab" data-view="quiz" onclick="switchView('quiz')"><span class="navIcon icon" style="color:#A162E8">quiz</span>Quiz</button>
 </nav>
 
 <div class="storyOverlay" id="storyOverlay">
@@ -341,7 +341,7 @@
 
 <div class="blockedOverlay" id="blockedOverlay">
   <div class="blockedCard">
-    <div class="icon"><span class="icon">block</span></div>
+    <div class="icon"><span class="icon" style="color:#FF3B30">block</span></div>
     <h2>Access Restricted</h2>
     <p>Your access to this app has been temporarily restricted. If you believe this is a mistake, please reach out to us through another channel.</p>
   </div>
@@ -499,16 +499,16 @@ function renderBusiness(cfgRaw){
 
   const rows = [];
   if (cfg.showPhone && cfg.phone) rows.push(`<a class="contact-row" href="tel:${cfg.phone.replace(/\s/g,'')}" onclick="logContactClick('call','${cfg.phone}')">
-      <div class="icon"><span class="icon">call</span></div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a>`);
+      <div class="icon"><span class="icon" style="color:#34C759">call</span></div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a>`);
   if (cfg.showWebsite && cfg.websites && cfg.websites.length){
     cfg.websites.forEach(w=>{
       if (!w.url) return;
       rows.push(`<a class="contact-row" href="${w.url}" target="_blank" rel="noopener">
-        <div class="icon"><span class="icon">language</span></div><div class="txt"><div class="label">${w.label || 'Website'}</div><div class="val">${w.url.replace(/^https?:\/\//,'')}</div></div></a>`);
+        <div class="icon"><span class="icon" style="color:#5B8DEF">language</span></div><div class="txt"><div class="label">${w.label || 'Website'}</div><div class="val">${w.url.replace(/^https?:\/\//,'')}</div></div></a>`);
     });
   }
   if (cfg.showAddress && cfg.address) rows.push(`<a class="contact-row" href="https://maps.google.com/?q=${encodeURIComponent(cfg.address)}" target="_blank" rel="noopener">
-      <div class="icon"><span class="icon">location_on</span></div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
+      <div class="icon"><span class="icon" style="color:#FF6B6B">location_on</span></div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
   document.getElementById('contactCard').innerHTML = rows.length
     ? rows.join('<div class="divider"></div>')
     : '<div class="empty">Contact details coming soon</div>';
@@ -933,8 +933,17 @@ async function submitQuizAnswer(quizId){
   if (!profile.phone || !db) return;
   const quiz = allQuizzes.find(q=>q.id===quizId);
   if (!quiz) return;
+
+  const answerId = quizId + '_' + profile.phone;
   try{
-    await db.collection('quiz_answers').doc(quizId + '_' + profile.phone).set({
+    const existing = await db.collection('quiz_answers').doc(answerId).get();
+    if (existing.exists){
+      myQuizAnswers[quizId] = existing.data();
+      renderQuizList();
+      alert("You've already answered this quiz — you can't change your answer.");
+      return;
+    }
+    await db.collection('quiz_answers').doc(answerId).set({
       quizId, phone: profile.phone, name: profile.name,
       selectedAnswerIndex: parseInt(selected.value, 10),
       answeredAt: firebase.firestore.FieldValue.serverTimestamp()
