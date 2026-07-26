@@ -1253,7 +1253,13 @@ function renderWalletSection(){
   }
 
   if (currentWalletBalance >= MIN_REDEEM_AMOUNT){
-    wrap.innerHTML = `<button class="bonusBtn" onclick="requestRedeem()">Request Redeem (₹${currentWalletBalance})</button>`;
+    wrap.innerHTML = `
+      <div class="field" style="margin-bottom:10px;text-align:left">
+        <label>Amount to redeem (min ₹${MIN_REDEEM_AMOUNT}, max ₹${currentWalletBalance})</label>
+        <input type="number" id="redeemAmountInput" placeholder="e.g. ${currentWalletBalance}"
+          min="${MIN_REDEEM_AMOUNT}" max="${currentWalletBalance}">
+      </div>
+      <button class="bonusBtn" onclick="requestRedeem()">Request Redeem</button>`;
     return;
   }
 
@@ -1270,12 +1276,15 @@ async function requestRedeem(){
   if (!db) return;
   const profile = getLocalProfile();
   if (!profile.phone) return;
-  if (currentWalletBalance < MIN_REDEEM_AMOUNT){ alert(`Minimum ₹${MIN_REDEEM_AMOUNT} needed to request a redeem.`); return; }
-  if (!confirm(`Request to redeem ₹${currentWalletBalance}? We'll review and approve it shortly.`)) return;
+  const input = document.getElementById('redeemAmountInput');
+  const amount = parseInt(input ? input.value : '', 10);
+  if (!amount || amount < MIN_REDEEM_AMOUNT){ alert(`Please enter at least ₹${MIN_REDEEM_AMOUNT}.`); return; }
+  if (amount > currentWalletBalance){ alert(`You only have ₹${currentWalletBalance} in your wallet.`); return; }
+  if (!confirm(`Request to redeem ₹${amount}? We'll review and approve it shortly.`)) return;
   try{
     await db.collection('redeem_requests').add({
       phone: profile.phone, name: profile.name,
-      requestedAmount: currentWalletBalance,
+      requestedAmount: amount,
       status: 'pending',
       requestedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
