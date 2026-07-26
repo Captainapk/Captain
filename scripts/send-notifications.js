@@ -8,7 +8,7 @@ admin.initializeApp({
 const db = admin.firestore();
 const messaging = admin.messaging();
 
-async function sendToAll({ title, body, statusId }) {
+async function sendToAll({ title, body, statusId, quizId }) {
   const installsSnap = await db.collection('installs').get();
   const tokens = installsSnap.docs
     .filter(d => !d.data().blocked)
@@ -17,12 +17,16 @@ async function sendToAll({ title, body, statusId }) {
 
   console.log(`Sending "${title}" to ${tokens.length} device(s)...`);
 
+  const data = {};
+  if (statusId) data.statusId = statusId;
+  if (quizId) data.quizId = quizId;
+
   for (const token of tokens) {
     try {
       await messaging.send({
         token,
         notification: { title, body },
-        data: { statusId: statusId || '' },
+        data,
         android: { priority: 'high' }
       });
     } catch (e) {
@@ -119,6 +123,18 @@ async function main() {
 
   // 3. Score any quiz that has a correct answer set but hasn't paid out yet
   await scoreQuizzes();
+
+  // 4. Notify about newly published quizzes
+  const newQuizSnap = await db.collection('quizzes').where('notified', '==', false).get();
+  for (const doc of newQuizSnap.docs) {
+    const q = doc.data();
+    await sendToAll({
+      title: '🧩 New quiz just posted!',
+      body: `${q.question} — answer now to win ₹${q.points}!`,
+      quizId: doc.id
+    });
+    await doc.ref.update({ notified: true });
+  }
 
   console.log('Done.');
 }
