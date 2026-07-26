@@ -318,6 +318,11 @@
     <!-- REWARDS -->
     <section class="tabPanel" id="tab-rewards">
       <div class="panel">
+        <h3>Redemption requests</h3>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 14px">Customers request to redeem from their wallet. Review, adjust the amount if needed, then accept or decline.</p>
+        <div id="redeemRequestsList"><div class="empty">No pending requests</div></div>
+      </div>
+      <div class="panel">
         <h3>Customers & wallets
           <input type="text" id="rewardSearch" placeholder="Search name or phone…" oninput="rewardCustomersPage=0; renderRewardCustomers()"
             style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
@@ -539,7 +544,7 @@ const firebaseConfig = {
 const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 
 let db = null, auth = null;
-let state = { promos: [], updates: [], installs: [], config: {}, status: [], rewardCustomers: [] };
+let state = { promos: [], updates: [], installs: [], config: {}, status: [], rewardCustomers: [], redeemRequests: [] };
 let chart = null;
 let waRows = [];
 let quizOptionRows = ['', ''];
@@ -797,6 +802,21 @@ function showReturnLoginAlert(data){
     }
   }catch(e){}
 }
+function showRedeemRequestAlert(data){
+  playSiren();
+  const label = `${data.name || 'A customer'} requested to redeem ₹${data.requestedAmount}`;
+  const sub = `${data.phone ? '📱 '+data.phone : 'No number on file'} · Check Rewards tab`;
+  document.getElementById('clickAlertName').textContent = label;
+  document.getElementById('clickAlertSub').textContent = sub;
+  document.getElementById('clickAlert').style.display = 'flex';
+  clearTimeout(clickAlertTimer);
+  clickAlertTimer = setTimeout(dismissClickAlert, 8000);
+  try{
+    if (window.Notification && Notification.permission === 'granted'){
+      new Notification('💰 ' + label, { body: sub });
+    }
+  }catch(e){}
+}
 function renderClicksList(docs){
   const el = document.getElementById('clicksList');
   if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests in the last 24 hours</div>'; return; }
@@ -940,6 +960,16 @@ async function loadAll(){
     renderQuizList();
     refreshQuizAnswerCounts();
   });
+
+  let firstRedeemReqSnapshot = true;
+  db.collection('redeem_requests').where('status','==','pending').onSnapshot(snap=>{
+    state.redeemRequests = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderRedeemRequests();
+    if (firstRedeemReqSnapshot){ firstRedeemReqSnapshot = false; return; }
+    snap.docChanges().forEach(change=>{
+      if (change.type === 'added') showRedeemRequestAlert(change.doc.data());
+    });
+  });
   db.collection('status').orderBy('createdAt','desc').onSnapshot(snap=>{
     state.status = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderStatusGrid();
@@ -1040,6 +1070,68 @@ function recomputeDashboard(){
     document.getElementById('installsTable').innerHTML = '<tr><td colspan="5" class="empty">Error loading table — see browser console</td></tr>';
   }
 }
+function renderRedeemRequests(){
+  const el = document.getElementById('redeemRequestsList');
+  if (!state.redeemRequests.length){ el.innerHTML = '<div class="empty">No pending requests</div>'; return; }
+  const sorted = [...state.redeemRequests].sort((a,b)=>{
+    const msA = a.requestedAt && a.requestedAt.toMillis ? a.requestedAt.toMillis() : 0;
+    const msB = b.requestedAt && b.requestedAt.toMillis ? b.requestedAt.toMillis() : 0;
+    return msB - msA;
+  });
+  el.innerHTML = sorted.map(r=>{
+    const ms = r.requestedAt && r.requestedAt.toMillis ? r.requestedAt.toMillis() : Date.now();
+    return `<div class="row-item" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <h4>${r.name || 'Unknown'} <span style="font-weight:400;color:var(--muted)">— ${r.phone}</span></h4>
+        <span class="tag off">Pending</span>
+      </div>
+      <p>Requested ₹${r.requestedAmount} · ${new Date(ms).toLocaleString()}</p>
+      <div class="field" style="margin:8px 0 10px">
+        <label>Amount to approve (₹)</label>
+        <input type="number" id="redeemAmt_${r.id}" value="${r.requestedAmount}">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="background:#34C759;flex:1" onclick='resolveRedeemRequest(${JSON.stringify(r.id)}, "approved")'>Accept</button>
+        <button class="btn ghost" style="flex:1" onclick='resolveRedeemRequest(${JSON.stringify(r.id)}, "declined")'>Decline</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function resolveRedeemRequest(reqId, decision){
+  const req = state.redeemRequests.find(r=>r.id===reqId);
+  if (!req) return;
+  const amountInput = document.getElementById(`redeemAmt_${reqId}`);
+  const finalAmount = decision === 'approved' ? (parseInt(amountInput.value,10) || req.requestedAmount) : 0;
+  if (!confirm(`${decision === 'approved' ? `Approve ₹${finalAmount} for` : 'Decline'} this request?`)) return;
+  if (!isConfigured){ return; }
+  try{
+    const batch = db.batch();
+    batch.update(db.collection('redeem_requests').doc(reqId), {
+      status: decision,
+      approvedAmount: decision === 'approved' ? finalAmount : null,
+      resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    let matching = { docs: [] };
+    if (decision === 'approved'){
+      batch.set(db.collection('registered_phones').doc(req.phone), { walletBalance: firebase.firestore.FieldValue.increment(-finalAmount) }, {merge:true});
+      matching = await db.collection('installs').where('phone','==',req.phone).get();
+      matching.docs.forEach(d=>{
+        batch.set(d.ref, { walletBalance: firebase.firestore.FieldValue.increment(-finalAmount) }, {merge:true});
+      });
+      batch.set(db.collection('wallet_transactions').doc(), {
+        uid: matching.docs[0] ? matching.docs[0].id : '', name: req.name, phone: req.phone,
+        amount: finalAmount, type: 'redeemed', description: 'Redeemed via request',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    await batch.commit();
+  }catch(e){
+    console.error('resolve redeem request failed', e);
+    alert('Failed — please try again.');
+  }
+}
+
 async function redeemWallet(phone, amount){
   if (!confirm(`Mark ₹${amount} as redeemed for this customer?`)) return;
   const cust = state.rewardCustomers.find(c=>c.phone===phone);
