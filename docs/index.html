@@ -265,11 +265,6 @@
   <p id="bizTagline">Loading the latest updates &amp; offers…</p>
 </header>
 
-<nav class="quickNav">
-  <a href="#promosSection"><span class="icon" style="font-size:15px;vertical-align:-2px;color:#FF8A3D">local_offer</span> Promotions</a>
-  <a href="#updatesSection"><span class="icon" style="font-size:15px;vertical-align:-2px;color:#2DBECD">article</span> Updates</a>
-</nav>
-
 <div class="container">
 
   <div class="appView active" id="view-home">
@@ -369,7 +364,7 @@
       <div class="amt" id="profileWalletAmt">₹0</div>
       <div class="lbl">Wallet Balance</div>
     </div>
-    <a class="bonusBtn wa" id="profileAvailBtn" href="#" target="_blank" rel="noopener" style="display:none">💬 Redeem Now</a>
+    <div id="redeemActionWrap" style="margin-bottom:12px"></div>
     <button class="bonusBtn ghost" onclick="openMyStatement()">📄 View Statement</button>
   </div>
 </div>
@@ -454,6 +449,9 @@ function normalizeConfig(cfg){
 let db = null;
 let signupBonusAmount = 100;
 let primaryWhatsapp = '';
+let currentWalletBalance = 0;
+let myLatestRedeemRequest = null;
+const MIN_REDEEM_AMOUNT = 100;
 if (isConfigured) {
   try {
     firebase.initializeApp(firebaseConfig);
@@ -842,17 +840,36 @@ async function loadQuiz(){
   if (!db) return;
   try{
     const snap = await db.collection('quizzes').orderBy('createdAt','desc').limit(20).get();
-    allQuizzes = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(q=>!q.deleted);
+    const THIRTY_MIN = 30 * 60 * 1000;
+    allQuizzes = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(q=>{
+      if (q.deleted) return false;
+      if (q.pointsAwarded){
+        const scoredMs = q.scoredAt && q.scoredAt.toMillis ? q.scoredAt.toMillis() : 0;
+        if (scoredMs && (Date.now() - scoredMs) > THIRTY_MIN) return false;
+      }
+      return true;
+    });
 
     const profile = getLocalProfile();
-    if (profile.phone){
+    if (profile.phone && allQuizzes.length){
+      let batchWorked = false;
       try{
         const ansSnap = await db.collection('quiz_answers').where('phone','==',profile.phone).get();
         ansSnap.docs.forEach(d=>{
           const a = d.data();
           if (a.quizId) myQuizAnswers[a.quizId] = a;
         });
-      }catch(e){ console.error('quiz answers load failed', e); }
+        batchWorked = true;
+      }catch(e){ console.error('batch quiz answers load failed, falling back', e); }
+
+      if (!batchWorked){
+        await Promise.all(allQuizzes.map(async q=>{
+          try{
+            const ansSnap = await db.collection('quiz_answers').doc(q.id + '_' + profile.phone).get();
+            if (ansSnap.exists) myQuizAnswers[q.id] = ansSnap.data();
+          }catch(e){}
+        }));
+      }
     }
     renderQuizList();
 
@@ -1224,6 +1241,64 @@ window.saveFcmToken = async function(installId, token){
   }catch(e){ console.error('fcm token save failed', e); }
 };
 
+function renderWalletSection(){
+  const wrap = document.getElementById('redeemActionWrap');
+  if (!wrap) return;
+
+  if (myLatestRedeemRequest && myLatestRedeemRequest.status === 'pending'){
+    wrap.innerHTML = `<div class="empty" style="padding:14px;background:var(--card2);border-radius:12px;font-size:13px">
+      Your request for ₹${myLatestRedeemRequest.requestedAmount} is pending approval.
+    </div>`;
+    return;
+  }
+
+  if (currentWalletBalance >= MIN_REDEEM_AMOUNT){
+    wrap.innerHTML = `<button class="bonusBtn" onclick="requestRedeem()">Request Redeem (₹${currentWalletBalance})</button>`;
+    return;
+  }
+
+  let note = '';
+  if (myLatestRedeemRequest && myLatestRedeemRequest.status === 'approved'){
+    note = `<div class="empty" style="padding:10px;color:var(--gold-soft);font-size:12px">🎉 Your last request for ₹${myLatestRedeemRequest.approvedAmount} was approved!</div>`;
+  } else if (myLatestRedeemRequest && myLatestRedeemRequest.status === 'declined'){
+    note = `<div class="empty" style="padding:10px;color:var(--muted);font-size:12px">Your last request was declined.</div>`;
+  }
+  wrap.innerHTML = note + `<div class="empty" style="padding:14px;font-size:12px">Minimum ₹${MIN_REDEEM_AMOUNT} needed to request a redeem.</div>`;
+}
+
+async function requestRedeem(){
+  if (!db) return;
+  const profile = getLocalProfile();
+  if (!profile.phone) return;
+  if (currentWalletBalance < MIN_REDEEM_AMOUNT){ alert(`Minimum ₹${MIN_REDEEM_AMOUNT} needed to request a redeem.`); return; }
+  if (!confirm(`Request to redeem ₹${currentWalletBalance}? We'll review and approve it shortly.`)) return;
+  try{
+    await db.collection('redeem_requests').add({
+      phone: profile.phone, name: profile.name,
+      requestedAmount: currentWalletBalance,
+      status: 'pending',
+      requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){
+    console.error('redeem request failed', e);
+    alert('Failed to submit request — please check your connection and try again.');
+  }
+}
+
+function watchRedeemStatus(){
+  const profile = getLocalProfile();
+  if (!db || !profile.phone) return;
+  db.collection('redeem_requests').where('phone','==',profile.phone).onSnapshot(snap=>{
+    const requests = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>{
+      const msA = a.requestedAt && a.requestedAt.toMillis ? a.requestedAt.toMillis() : 0;
+      const msB = b.requestedAt && b.requestedAt.toMillis ? b.requestedAt.toMillis() : 0;
+      return msB - msA;
+    });
+    myLatestRedeemRequest = requests[0] || null;
+    renderWalletSection();
+  }, err => { console.error('redeem status watch failed', err); });
+}
+
 function watchMyInstallDoc(){
   if (!db || !uid) return;
   db.collection('installs').doc(uid).onSnapshot({includeMetadataChanges: true}, snap=>{
@@ -1240,6 +1315,7 @@ function watchMyInstallDoc(){
     }
 
     const bal = data.walletBalance || 0;
+    currentWalletBalance = bal;
     const badge = document.getElementById('profileBadge');
     if (badge){
       if (bal > 0){ badge.textContent = '₹'+bal; badge.style.display = 'block'; }
@@ -1247,21 +1323,14 @@ function watchMyInstallDoc(){
     }
     const bigAmt = document.getElementById('profileWalletAmt');
     if (bigAmt) bigAmt.textContent = '₹' + bal;
-    const profileAvailBtn = document.getElementById('profileAvailBtn');
-    if (profileAvailBtn){
-      if (bal > 0 && primaryWhatsapp){
-        profileAvailBtn.href = primaryWhatsapp;
-        profileAvailBtn.style.display = 'block';
-      } else {
-        profileAvailBtn.style.display = 'none';
-      }
-    }
+    renderWalletSection();
   }, err => { /* connection issue — fail open, don't lock out real customers */ });
 }
 
 function initApp(){
   if (isConfigured && db) {
     watchMyInstallDoc();
+    watchRedeemStatus();
     if (uid && !hasProfileLocally()) document.getElementById('onboardOverlay').style.display = 'flex';
     loadLive();
   } else {
