@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://firestore.googleapis.com">
 <link rel="preconnect" href="https://www.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 <script>
 (function(){
   try {
@@ -32,6 +33,10 @@
     --sk1:#EFE8D3; --sk2:#FDFBF5;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  .icon{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;
+    font-size:20px;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;
+    white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';
+    -webkit-font-smoothing:antialiased;vertical-align:middle}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
     font-family:'Public Sans',-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
   body{transition:background-color .35s ease,color .35s ease}
@@ -42,13 +47,18 @@
   .appView.active{display:block}
   .bottomNav{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;
     background:var(--card);border-top:1px solid var(--line);display:flex;z-index:40;
-    padding-bottom:env(safe-area-inset-bottom)}
-  .navTab{flex:1;background:transparent;border:none;padding:10px 4px 8px;display:flex;
-    flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:10.5px;font-weight:700}
-  .navTab .navIcon{font-size:19px}
-  .navTab.active{color:var(--gold)}
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:4px;
+    box-shadow:0 -8px 24px -12px var(--shadow)}
+  .navTab{flex:1;background:transparent;border:none;padding:8px 4px 6px;display:flex;
+    flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;
+    border-radius:14px;transition:color .2s ease,background-color .2s ease,transform .15s ease}
+  .navTab:active{transform:scale(.94)}
+  .navTab .navIcon{font-size:20px;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+  .navTab.active{color:var(--gold);background:rgba(201,162,39,.12)}
+  .navTab.active .navIcon{transform:translateY(-1px)}
   .quizCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
-    margin-bottom:14px;box-shadow:0 6px 18px -12px var(--shadow)}
+    margin-bottom:14px;box-shadow:0 6px 18px -12px var(--shadow);transition:box-shadow .2s ease,border-color .2s ease}
+  .quizCard:active{box-shadow:0 4px 12px -8px var(--shadow)}
 
   #demoBanner{display:none;background:var(--gold);color:#1a1608;font-size:12.5px;
     font-weight:700;text-align:center;padding:8px 12px;letter-spacing:.02em}
@@ -108,10 +118,10 @@
     background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
   .obErr{color:#D96A4C;font-size:12.5px;margin-bottom:10px;display:none}
   .obBtn{width:100%;background:var(--gold);color:#1a1608;border:none;border-radius:14px;
-    padding:15px;font-weight:700;font-size:15px}
+    padding:15px;font-weight:700;font-size:15px;transition:transform .12s ease}
   .obBtn:active{transform:scale(.98)}
   .quizOption{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--line);
-    border-radius:12px;font-size:14px;cursor:pointer}
+    border-radius:12px;font-size:14px;cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
   .quizOption input{accent-color:var(--gold);width:18px;height:18px;flex-shrink:0}
 
   .blockedOverlay{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;
@@ -184,7 +194,9 @@
   .promoCard{flex:0 0 auto;width:62%;max-width:240px;aspect-ratio:3/2;scroll-snap-align:start;
     position:relative;border-radius:14px;overflow:hidden;text-decoration:none;display:block;
     background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line);
-    box-shadow:0 10px 22px -14px var(--shadow);transition:background-color .35s ease,border-color .35s ease}
+    box-shadow:0 10px 22px -14px var(--shadow);
+    transition:background-color .35s ease,border-color .35s ease,transform .15s ease}
+  .promoCard:active{transform:scale(.97)}
   .promoCard img{width:100%;height:100%;object-fit:cover;display:block}
   .promoCard .scrim{position:absolute;inset:0;
     background:linear-gradient(180deg,rgba(10,9,6,0) 40%,rgba(10,9,6,.92) 100%);
@@ -199,7 +211,7 @@
   .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:8px;margin:0 18px;box-shadow:0 6px 18px -12px var(--shadow);
     transition:background-color .35s ease,border-color .35s ease}
-  .contact-row{display:flex;align-items:center;gap:12px;padding:13px 10px;text-decoration:none;border-radius:12px}
+  .contact-row{display:flex;align-items:center;gap:12px;padding:13px 10px;text-decoration:none;border-radius:12px;transition:background-color .15s ease}
   .contact-row:active{background:var(--card2)}
   .contact-row .icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
     justify-content:center;flex-shrink:0;font-size:17px;background:var(--card2);border:1px solid var(--line)}
@@ -228,7 +240,8 @@
   .sk-update{height:64px;border-radius:14px;margin:0 18px 10px;border:1px solid rgba(201,162,39,.35)}
   .sk-contact{height:150px;border-radius:var(--radius);margin:0 18px;border:1px solid rgba(201,162,39,.35)}
 
-  .empty{color:var(--muted);font-size:13.5px;padding:18px;text-align:center}
+  .empty{color:var(--muted);font-size:13.5px;padding:26px 18px;text-align:center;line-height:1.5}
+  .empty .icon{display:block;font-size:30px;margin-bottom:8px;opacity:.5}
   footer{text-align:center;color:var(--muted);font-size:11px;margin-top:40px;letter-spacing:.03em}
 
   @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -244,7 +257,7 @@
 <header class="top">
   <button class="themeBtn" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️</button>
   <button class="profileBtn" id="profileBtn" onclick="openProfile()" aria-label="My profile">
-    👤<span class="profileBadge" id="profileBadge"></span>
+    <span class="icon">account_circle</span><span class="profileBadge" id="profileBadge"></span>
   </button>
   <div class="logoWrap" id="logoWrap"><span class="fallback" id="logoFallback">Y</span></div>
   <h1 id="bizName">Your Business</h1>
@@ -252,15 +265,15 @@
 </header>
 
 <nav class="quickNav">
-  <a href="#promosSection">✨ Promotions</a>
-  <a href="#updatesSection">📰 Updates</a>
+  <a href="#promosSection"><span class="icon" style="font-size:15px;vertical-align:-2px">local_offer</span> Promotions</a>
+  <a href="#updatesSection"><span class="icon" style="font-size:15px;vertical-align:-2px">article</span> Updates</a>
 </nav>
 
 <div class="container">
 
   <div class="appView active" id="view-home">
     <section id="promosSection">
-      <div class="sectionHead"><h2>Promotions</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">local_offer</span>Promotions</h2><div class="rule"></div></div>
       <div class="promoScroll" id="promosList">
         <div class="promoCard sk-card skeleton"></div>
         <div class="promoCard sk-card skeleton"></div>
@@ -268,7 +281,7 @@
     </section>
 
     <section id="updatesSection">
-      <div class="sectionHead"><h2>Updates</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">article</span>Updates</h2><div class="rule"></div></div>
       <div id="updatesList">
         <div class="sk-update skeleton"></div>
         <div class="sk-update skeleton"></div>
@@ -280,7 +293,7 @@
 
   <div class="appView" id="view-support">
     <section id="contactSection">
-      <div class="sectionHead"><h2>Get in touch</h2><div class="rule"></div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">support_agent</span>Get in touch</h2><div class="rule"></div></div>
       <div class="contact-card" id="contactCard">
         <div class="sk-contact skeleton" style="margin:0"></div>
       </div>
@@ -290,17 +303,17 @@
 
   <div class="appView" id="view-quiz">
     <section id="quizSection">
-      <div class="sectionHead"><h2>Today's Quiz</h2><div class="rule"></div></div>
-      <div id="quizListWrap"><div class="empty">No quizzes right now — check back soon.</div></div>
+      <div class="sectionHead"><h2><span class="icon" style="font-size:20px;vertical-align:-4px;margin-right:4px">quiz</span>Today's Quiz</h2><div class="rule"></div></div>
+      <div id="quizListWrap"><div class="empty"><span class="icon">quiz</span>No quizzes right now — check back soon.</div></div>
     </section>
   </div>
 
 </div>
 
 <nav class="bottomNav" id="bottomNav">
-  <button class="navTab active" data-view="home" onclick="switchView('home')"><span class="navIcon">🏠</span>Home</button>
-  <button class="navTab" data-view="support" onclick="switchView('support')"><span class="navIcon">💬</span>Support</button>
-  <button class="navTab" data-view="quiz" onclick="switchView('quiz')"><span class="navIcon">🧩</span>Quiz</button>
+  <button class="navTab active" data-view="home" onclick="switchView('home')"><span class="navIcon icon">home</span>Home</button>
+  <button class="navTab" data-view="support" onclick="switchView('support')"><span class="navIcon icon">support_agent</span>Support</button>
+  <button class="navTab" data-view="quiz" onclick="switchView('quiz')"><span class="navIcon icon">quiz</span>Quiz</button>
 </nav>
 
 <div class="storyOverlay" id="storyOverlay">
@@ -327,7 +340,7 @@
 
 <div class="blockedOverlay" id="blockedOverlay">
   <div class="blockedCard">
-    <div class="icon">🚫</div>
+    <div class="icon"><span class="icon">block</span></div>
     <h2>Access Restricted</h2>
     <p>Your access to this app has been temporarily restricted. If you believe this is a mistake, please reach out to us through another channel.</p>
   </div>
@@ -461,6 +474,13 @@ try{
   }
 }catch(e){}
 
+try{
+  const savedView = localStorage.getItem('current_view');
+  if (savedView && ['home','support','quiz'].includes(savedView)){
+    switchView(savedView);
+  }
+}catch(e){}
+
 function renderBusiness(cfgRaw){
   const cfg = normalizeConfig(cfgRaw);
   signupBonusAmount = cfg.bonusAmount || 100;
@@ -478,16 +498,16 @@ function renderBusiness(cfgRaw){
 
   const rows = [];
   if (cfg.showPhone && cfg.phone) rows.push(`<a class="contact-row" href="tel:${cfg.phone.replace(/\s/g,'')}" onclick="logContactClick('call','${cfg.phone}')">
-      <div class="icon">📞</div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a>`);
+      <div class="icon"><span class="icon">call</span></div><div class="txt"><div class="label">Call us</div><div class="val">${cfg.phone}</div></div></a>`);
   if (cfg.showWebsite && cfg.websites && cfg.websites.length){
     cfg.websites.forEach(w=>{
       if (!w.url) return;
       rows.push(`<a class="contact-row" href="${w.url}" target="_blank" rel="noopener">
-        <div class="icon">🌐</div><div class="txt"><div class="label">${w.label || 'Website'}</div><div class="val">${w.url.replace(/^https?:\/\//,'')}</div></div></a>`);
+        <div class="icon"><span class="icon">language</span></div><div class="txt"><div class="label">${w.label || 'Website'}</div><div class="val">${w.url.replace(/^https?:\/\//,'')}</div></div></a>`);
     });
   }
   if (cfg.showAddress && cfg.address) rows.push(`<a class="contact-row" href="https://maps.google.com/?q=${encodeURIComponent(cfg.address)}" target="_blank" rel="noopener">
-      <div class="icon">📍</div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
+      <div class="icon"><span class="icon">location_on</span></div><div class="txt"><div class="label">Visit us</div><div class="val">${cfg.address}${cfg.hours ? ' · '+cfg.hours : ''}</div></div></a>`);
   document.getElementById('contactCard').innerHTML = rows.length
     ? rows.join('<div class="divider"></div>')
     : '<div class="empty">Contact details coming soon</div>';
@@ -542,7 +562,7 @@ function handleStatusDeepLink(){
 
 function renderPromos(list){
   const el = document.getElementById('promosList');
-  if (!list.length){ el.innerHTML = '<div class="empty">No promotions right now — check back soon.</div>'; stopAutoScroll(); return; }
+  if (!list.length){ el.innerHTML = '<div class="empty"><span class="icon">local_offer</span>No promotions right now — check back soon.</div>'; stopAutoScroll(); return; }
   el.innerHTML = list.map((p,i)=>{
     const inner = p.imageUrl
       ? `<img src="${p.imageUrl}" alt=""><div class="scrim">${p.badge?`<span class="badge">${p.badge}</span>`:''}<h3>${p.title||''}</h3>${p.linkUrl?'<div class="tap">Tap to view →</div>':''}</div>`
@@ -592,7 +612,7 @@ function setupAutoScroll(){
 
 function renderUpdates(list){
   const el = document.getElementById('updatesList');
-  if (!list.length){ el.innerHTML = '<div class="empty">No updates yet.</div>'; return; }
+  if (!list.length){ el.innerHTML = '<div class="empty"><span class="icon">article</span>No updates yet.</div>'; return; }
   el.innerHTML = list.map((u,i)=>`
     <div class="update in" style="animation-delay:${i*70}ms">
       ${u.imageUrl ? `<img src="${u.imageUrl}" alt="">` : ''}
@@ -810,6 +830,7 @@ function switchView(view){
   document.querySelectorAll('.navTab').forEach(el=>el.classList.remove('active'));
   document.querySelector(`.navTab[data-view="${view}"]`).classList.add('active');
   window.scrollTo(0,0);
+  try{ localStorage.setItem('current_view', view); }catch(e){}
 }
 
 // ---------- Quiz (supports several quizzes at once) ----------
@@ -820,16 +841,17 @@ async function loadQuiz(){
   if (!db) return;
   try{
     const snap = await db.collection('quizzes').orderBy('createdAt','desc').limit(20).get();
-    allQuizzes = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    allQuizzes = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(q=>!q.deleted);
 
     const profile = getLocalProfile();
     if (profile.phone){
-      await Promise.all(allQuizzes.map(async q=>{
-        try{
-          const ansSnap = await db.collection('quiz_answers').doc(q.id + '_' + profile.phone).get();
-          if (ansSnap.exists) myQuizAnswers[q.id] = ansSnap.data();
-        }catch(e){}
-      }));
+      try{
+        const ansSnap = await db.collection('quiz_answers').where('phone','==',profile.phone).get();
+        ansSnap.docs.forEach(d=>{
+          const a = d.data();
+          if (a.quizId) myQuizAnswers[a.quizId] = a;
+        });
+      }catch(e){ console.error('quiz answers load failed', e); }
     }
     renderQuizList();
 
@@ -855,7 +877,7 @@ function renderQuizList(){
     if (!scoredMs) return true;
     return (Date.now() - scoredMs) < THIRTY_MIN;
   });
-  if (!visible.length){ el.innerHTML = '<div class="empty">No quizzes right now — check back soon.</div>'; return; }
+  if (!visible.length){ el.innerHTML = '<div class="empty"><span class="icon">quiz</span>No quizzes right now — check back soon.</div>'; return; }
   el.innerHTML = visible.map(q=>renderSingleQuizCard(q)).join('');
 }
 
@@ -1087,7 +1109,7 @@ function computeHistorySummary(list){
 }
 function renderHistoryList(list){
   const el = document.getElementById('historyList');
-  if (!list.length){ el.innerHTML = '<div class="empty">No history yet</div>'; return; }
+  if (!list.length){ el.innerHTML = '<div class="empty"><span class="icon">receipt_long</span>No history yet</div>'; return; }
 
   const groups = [];
   const groupIndex = {};
