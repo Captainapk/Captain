@@ -1241,9 +1241,16 @@ window.saveFcmToken = async function(installId, token){
   }catch(e){ console.error('fcm token save failed', e); }
 };
 
+let lastWalletRenderKey = null;
+
 function renderWalletSection(){
   const wrap = document.getElementById('redeemActionWrap');
   if (!wrap) return;
+
+  const pendingStatus = myLatestRedeemRequest ? myLatestRedeemRequest.status + ':' + myLatestRedeemRequest.id : 'none';
+  const renderKey = `${currentWalletBalance}|${pendingStatus}`;
+  if (renderKey === lastWalletRenderKey) return;
+  lastWalletRenderKey = renderKey;
 
   if (myLatestRedeemRequest && myLatestRedeemRequest.status === 'pending'){
     wrap.innerHTML = `<div class="empty" style="padding:14px;background:var(--card2);border-radius:12px;font-size:13px">
