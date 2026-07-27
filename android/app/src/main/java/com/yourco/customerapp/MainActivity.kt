@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var swipeRefresh: SwipeRefreshLayout
 
-    private val baseUrl = "https://captaininida.app/"
+    private val baseUrl = "https://captainindia.app/"
 
     private var webViewReady = false
     private var pendingToken: String? = null
