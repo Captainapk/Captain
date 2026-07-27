@@ -124,6 +124,11 @@
   .quizOption{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--line);
     border-radius:12px;font-size:14px;cursor:pointer;transition:border-color .15s ease,background-color .15s ease}
   .quizOption input{accent-color:var(--gold);width:18px;height:18px;flex-shrink:0}
+  .field{text-align:left}
+  .field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.05em;margin-bottom:6px}
+  .field input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);font-size:15px;font-family:inherit}
 
   .blockedOverlay{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;
     align-items:center;justify-content:center;padding:24px;text-align:center}
@@ -1042,6 +1047,7 @@ async function submitProfile(){
     markProfileDone(name, phone);
     document.getElementById('onboardOverlay').style.display = 'none';
     if (continueBtn){ continueBtn.disabled = false; continueBtn.textContent = 'Continue'; }
+    watchRedeemStatus();
 
     if (shouldBlock){
       setLocalBlockedStatus(true);
@@ -1266,7 +1272,9 @@ function renderWalletSection(){
         <input type="number" id="redeemAmountInput" placeholder="e.g. ${currentWalletBalance}"
           min="${MIN_REDEEM_AMOUNT}" max="${currentWalletBalance}">
       </div>
-      <button class="bonusBtn" onclick="requestRedeem()">Request Redeem</button>`;
+      <button class="bonusBtn" id="requestRedeemBtn" type="button">Request Redeem</button>`;
+    const btn = document.getElementById('requestRedeemBtn');
+    if (btn) btn.addEventListener('click', requestRedeem);
     return;
   }
 
