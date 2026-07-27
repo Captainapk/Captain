@@ -1318,7 +1318,7 @@ async function requestRedeem(){
     });
   }catch(e){
     console.error('redeem request failed', e);
-    if (errEl){ errEl.textContent = 'Failed to submit — please check your connection and try again.'; errEl.style.display = 'block'; }
+    if (errEl){ errEl.textContent = 'Error: ' + (e.message || e.code || 'unknown error'); errEl.style.display = 'block'; }
     if (btn){ btn.disabled = false; btn.textContent = 'Request Redeem'; }
   }
 }
