@@ -323,7 +323,7 @@
       <div class="panel">
         <h3>Redemption history</h3>
         <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Pick a date to see every request from that day — pending, approved, or declined.</p>
-        <input type="date" id="redeemHistoryDate" onchange="renderRedeemHistory()"
+        <input type="date" id="redeemHistoryDate" onchange="redeemHistoryPage=0; renderRedeemHistory()"
           style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);
           background:var(--card2);color:var(--ink);font-size:14px;font-family:inherit;margin-bottom:14px">
         <div id="redeemHistoryWrap"><div class="empty">Select a date to view history</div></div>
@@ -1132,6 +1132,8 @@ function changeInstallsPage(delta){
   installsPage += delta;
   recomputeDashboard();
 }
+let redeemHistoryPage = 0;
+
 function renderRedeemHistory(){
   const el = document.getElementById('redeemHistoryWrap');
   const dateInput = document.getElementById('redeemHistoryDate');
@@ -1155,7 +1157,14 @@ function renderRedeemHistory(){
 
   if (!matching.length){ el.innerHTML = '<div class="empty">No requests on this date</div>'; return; }
 
-  const rows = matching.map(r=>{
+  const REDEEM_HIST_PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(matching.length / REDEEM_HIST_PAGE_SIZE));
+  if (redeemHistoryPage >= totalPages) redeemHistoryPage = totalPages - 1;
+  if (redeemHistoryPage < 0) redeemHistoryPage = 0;
+  const start = redeemHistoryPage * REDEEM_HIST_PAGE_SIZE;
+  const pageItems = matching.slice(start, start + REDEEM_HIST_PAGE_SIZE);
+
+  const rows = pageItems.map(r=>{
     const ms = r.requestedAt && r.requestedAt.toMillis ? r.requestedAt.toMillis() : Date.now();
     let statusTag;
     if (r.status === 'approved') statusTag = `<span class="tag on">Approved ₹${r.approvedAmount}</span>`;
@@ -1169,10 +1178,21 @@ function renderRedeemHistory(){
     </div>`;
   }).join('');
 
+  const pagination = totalPages > 1 ? `<div class="paginationBar">
+    <button class="iconbtn" onclick="changeRedeemHistoryPage(-1)" ${redeemHistoryPage===0?'disabled':''}>‹</button>
+    <span class="pageInfo">Page ${redeemHistoryPage+1} of ${totalPages}</span>
+    <button class="iconbtn" onclick="changeRedeemHistoryPage(1)" ${redeemHistoryPage>=totalPages-1?'disabled':''}>›</button>
+  </div>` : '';
+
   el.innerHTML = `<div class="quizDateCard">
     <div class="dateBar"><span class="dateTxt">${new Date(selectedDate+'T00:00:00').toLocaleDateString(undefined,{day:'2-digit',month:'2-digit',year:'numeric'})}</span><span class="count">${matching.length} request${matching.length>1?'s':''}</span></div>
     ${rows}
+    ${pagination}
   </div>`;
+}
+function changeRedeemHistoryPage(delta){
+  redeemHistoryPage += delta;
+  renderRedeemHistory();
 }
 
 function renderRedeemRequests(){
