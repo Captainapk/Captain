@@ -1272,6 +1272,7 @@ function renderWalletSection(){
         <input type="number" id="redeemAmountInput" placeholder="e.g. ${currentWalletBalance}"
           min="${MIN_REDEEM_AMOUNT}" max="${currentWalletBalance}">
       </div>
+      <div class="obErr" id="redeemErr" style="display:none"></div>
       <button class="bonusBtn" id="requestRedeemBtn" type="button">Request Redeem</button>`;
     const btn = document.getElementById('requestRedeemBtn');
     if (btn) btn.addEventListener('click', requestRedeem);
@@ -1292,10 +1293,22 @@ async function requestRedeem(){
   const profile = getLocalProfile();
   if (!profile.phone) return;
   const input = document.getElementById('redeemAmountInput');
+  const errEl = document.getElementById('redeemErr');
+  const btn = document.getElementById('requestRedeemBtn');
   const amount = parseInt(input ? input.value : '', 10);
-  if (!amount || amount < MIN_REDEEM_AMOUNT){ alert(`Please enter at least ₹${MIN_REDEEM_AMOUNT}.`); return; }
-  if (amount > currentWalletBalance){ alert(`You only have ₹${currentWalletBalance} in your wallet.`); return; }
-  if (!confirm(`Request to redeem ₹${amount}? We'll review and approve it shortly.`)) return;
+
+  if (errEl) errEl.style.display = 'none';
+
+  if (!amount || amount < MIN_REDEEM_AMOUNT){
+    if (errEl){ errEl.textContent = `Please enter at least ₹${MIN_REDEEM_AMOUNT}.`; errEl.style.display = 'block'; }
+    return;
+  }
+  if (amount > currentWalletBalance){
+    if (errEl){ errEl.textContent = `You only have ₹${currentWalletBalance} in your wallet.`; errEl.style.display = 'block'; }
+    return;
+  }
+
+  if (btn){ btn.disabled = true; btn.textContent = 'Submitting…'; }
   try{
     await db.collection('redeem_requests').add({
       phone: profile.phone, name: profile.name,
@@ -1305,7 +1318,8 @@ async function requestRedeem(){
     });
   }catch(e){
     console.error('redeem request failed', e);
-    alert('Failed to submit request — please check your connection and try again.');
+    if (errEl){ errEl.textContent = 'Failed to submit — please check your connection and try again.'; errEl.style.display = 'block'; }
+    if (btn){ btn.disabled = false; btn.textContent = 'Request Redeem'; }
   }
 }
 
