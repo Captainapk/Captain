@@ -936,15 +936,8 @@ async function loadAll(){
   state.config = cfgSnap.exists ? cfgSnap.data() : {};
   fillConfigForm(state.config);
 
-  db.collection('promotions').onSnapshot(snap=>{
-    state.promos = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderPromosAdmin();
-  });
-  db.collection('updates').orderBy('createdAt','desc').onSnapshot(snap=>{
-    state.updates = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderUpdatesAdmin();
-  });
-  db.collection('installs').onSnapshot(snap=>{
+  // Dashboard-critical data first, so the default tab feels immediately responsive.
+  db.collection('installs').orderBy('lastActiveAt','desc').limit(500).onSnapshot(snap=>{
     state.installs = snap.docs.map(d=>{
       const v = d.data();
       return {id:d.id,
@@ -959,9 +952,44 @@ async function loadAll(){
     renderRewardCustomers();
   });
 
-  db.collection('registered_phones').onSnapshot(snap=>{
+  let firstClickSnapshot = true;
+  const clicksDayAgo = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
+  db.collection('contact_clicks').where('clickedAt','>=',clicksDayAgo).orderBy('clickedAt','desc').limit(100).onSnapshot(snap=>{
+    if (firstClickSnapshot){
+      firstClickSnapshot = false;
+      renderClicksList(snap.docs);
+      return;
+    }
+    snap.docChanges().forEach(change=>{
+      if (change.type === 'added') showClickAlert(change.doc.data());
+    });
+    renderClicksList(snap.docs);
+  });
+
+  // Everything else follows shortly after — still fast, just not competing
+  // with the Dashboard's first paint.
+  setTimeout(loadSecondaryData, 150);
+}
+
+function loadSecondaryData(){
+  db.collection('promotions').onSnapshot(snap=>{
+    state.promos = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderPromosAdmin();
+  });
+  db.collection('updates').orderBy('createdAt','desc').onSnapshot(snap=>{
+    state.updates = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderUpdatesAdmin();
+  });
+
+  db.collection('registered_phones').orderBy('claimedAt','desc').limit(500).onSnapshot(snap=>{
     state.rewardCustomers = snap.docs.map(d=>({phone:d.id, ...d.data()}));
     renderRewardCustomers();
+  }, err=>{
+    // older accounts may not have claimedAt indexed yet — fall back to unordered
+    db.collection('registered_phones').limit(500).onSnapshot(snap=>{
+      state.rewardCustomers = snap.docs.map(d=>({phone:d.id, ...d.data()}));
+      renderRewardCustomers();
+    });
   });
   db.collection('quizzes').onSnapshot(snap=>{
     state_quizzes = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -986,20 +1014,6 @@ async function loadAll(){
     state.status = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderStatusGrid();
     cleanupExpiredStatus(state.status);
-  });
-
-  let firstClickSnapshot = true;
-  const clicksDayAgo = firebase.firestore.Timestamp.fromDate(new Date(Date.now() - 24*60*60*1000));
-  db.collection('contact_clicks').where('clickedAt','>=',clicksDayAgo).orderBy('clickedAt','desc').limit(100).onSnapshot(snap=>{
-    if (firstClickSnapshot){
-      firstClickSnapshot = false;
-      renderClicksList(snap.docs);
-      return;
-    }
-    snap.docChanges().forEach(change=>{
-      if (change.type === 'added') showClickAlert(change.doc.data());
-    });
-    renderClicksList(snap.docs);
   });
 
   let firstWalletSnapshot = true;
