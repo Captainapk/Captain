@@ -1162,14 +1162,16 @@ function renderHistoryList(list){
       let desc;
       if (t.type === 'bonus_claim') desc = 'New login bonus';
       else if (t.type === 'redeemed') desc = 'Redeemed in-store';
+      else if (t.type === 'redeem_declined') desc = t.description || 'Redeem request declined';
       else if (t.type === 'admin_add') desc = t.description || 'Bonus added';
       else if (t.type === 'admin_remove') desc = t.description || 'Amount adjusted';
       else if (t.type === 'quiz_reward') desc = t.description || 'Quiz reward';
       else desc = t.description || 'Reward update';
       const time = new Date(t.ms).toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+      const amtHtml = t.type === 'redeem_declined' ? '' : `<div class="amt${isNeg?' neg':''}">${isNeg?'−':'+'}₹${t.amount}</div>`;
       return `<div class="histItem">
         <div><div class="desc">${desc}</div><div class="date">${time}</div></div>
-        <div class="amt${isNeg?' neg':''}">${isNeg?'−':'+'}₹${t.amount}</div>
+        ${amtHtml}
       </div>`;
     }).join('');
     return `<div class="histDateGroup"><div class="histDateHeader">${g.dateKey}</div>${rows}</div>`;
