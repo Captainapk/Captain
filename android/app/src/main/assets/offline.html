@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Offline</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;background:#0F0D0A;color:#F5EFDD;
+    font-family:-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;
+    padding:32px 24px;box-sizing:border-box;text-align:center}
+  .card{max-width:320px}
+  .icon{width:64px;height:64px;border-radius:50%;background:#231F18;border:1.5px solid #332D22;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:26px}
+  h1{font-size:19px;margin:0 0 10px;font-weight:700}
+  p{font-size:13.5px;color:#A79A7D;line-height:1.6;margin:0 0 26px}
+  button{background:#C9A227;color:#1a1608;border:none;border-radius:14px;padding:14px 30px;
+    font-weight:700;font-size:15px;font-family:inherit;width:100%}
+  button:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="icon">📡</div>
+    <h1>Can't connect right now</h1>
+    <p>Please check your internet connection and try again. If this keeps happening, please reach out to us directly for help.</p>
+    <button onclick="location.href='app://retry'">Try Again</button>
+  </div>
+</div>
+</body>
+</html>
