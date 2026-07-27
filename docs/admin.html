@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#0F0D0A; --card:#1B1815; --card2:#231F18; --gold:#C9A227; --gold-soft:#E4C874;
@@ -259,29 +258,28 @@
         <div class="stat inactive"><div class="num mono" id="statGone">0</div><div class="lbl">Likely gone</div></div>
       </div>
       <div class="panel">
-        <h3>Active vs inactive
+        <h3>Recent contact requests</h3>
+        <div id="clicksList"><div class="empty">No contact requests yet</div></div>
+        <div id="clicksPagination"></div>
+      </div>
+      <div class="panel">
+        <h3>Recent installs
           <select class="thresh" id="threshSelect" onchange="recomputeDashboard()" style="float:right">
             <option value="1" selected>last 24 hours</option>
             <option value="7">last 7 days</option>
             <option value="30">last 30 days</option>
           </select>
         </h3>
-        <canvas id="activityChart" height="140"></canvas>
-      </div>
-      <div class="panel">
-        <h3>Recent contact requests</h3>
-        <div id="clicksList"><div class="empty">No contact requests yet</div></div>
-      </div>
-      <div class="panel">
-        <h3>Recent installs
-          <input type="text" id="installSearch" placeholder="Search name or phone…" oninput="recomputeDashboard()"
-            style="float:right;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;
-            font-size:12.5px;background:var(--card2);color:var(--ink);width:150px">
-        </h3>
+        <div class="field" style="margin:12px 0 0">
+          <input type="text" id="installSearch" placeholder="Search name or phone…" oninput="installsPage=0; recomputeDashboard()"
+            style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;
+            font-size:13px;background:var(--card2);color:var(--ink)">
+        </div>
         <table>
           <thead><tr><th>Name</th><th>Phone</th><th>Last active</th><th>Status</th><th></th></tr></thead>
           <tbody id="installsTable"><tr><td colspan="5" class="empty">No installs yet</td></tr></tbody>
         </table>
+        <div id="installsPagination"></div>
       </div>
     </section>
 
@@ -553,7 +551,7 @@ const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 
 let db = null, auth = null;
 let state = { promos: [], updates: [], installs: [], config: {}, status: [], rewardCustomers: [], redeemRequests: [], allRedeemRequests: [] };
-let chart = null;
+let installsPage = 0;
 let waRows = [];
 let quizOptionRows = ['', ''];
 let state_quizzes = [];
@@ -825,10 +823,22 @@ function showRedeemRequestAlert(data){
     }
   }catch(e){}
 }
+let clicksPage = 0;
+let lastClicksDocs = [];
 function renderClicksList(docs){
+  lastClicksDocs = docs;
   const el = document.getElementById('clicksList');
-  if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests in the last 24 hours</div>'; return; }
-  el.innerHTML = docs.map(d=>{
+  const pagEl = document.getElementById('clicksPagination');
+  if (!docs.length){ el.innerHTML = '<div class="empty">No contact requests in the last 24 hours</div>'; pagEl.innerHTML=''; return; }
+
+  const CLICKS_PAGE_SIZE = 10;
+  const totalClicksPages = Math.max(1, Math.ceil(docs.length / CLICKS_PAGE_SIZE));
+  if (clicksPage >= totalClicksPages) clicksPage = totalClicksPages - 1;
+  if (clicksPage < 0) clicksPage = 0;
+  const start = clicksPage * CLICKS_PAGE_SIZE;
+  const pageDocs = docs.slice(start, start + CLICKS_PAGE_SIZE);
+
+  el.innerHTML = pageDocs.map(d=>{
     const v = d.data();
     const ms = v.clickedAt && v.clickedAt.toMillis ? v.clickedAt.toMillis() : Date.now();
     const name = v.name || 'Unknown customer';
@@ -841,6 +851,20 @@ function renderClicksList(docs){
       ${v.phone ? `<a class="btn secondary small" href="https://wa.me/${v.phone.replace(/[^0-9]/g,'')}" target="_blank">Reply</a>` : ''}
     </div>`;
   }).join('');
+
+  if (totalClicksPages > 1){
+    pagEl.innerHTML = `<div class="paginationBar">
+      <button class="iconbtn" onclick="changeClicksPage(-1)" ${clicksPage===0?'disabled':''}>‹</button>
+      <span class="pageInfo">Page ${clicksPage+1} of ${totalClicksPages}</span>
+      <button class="iconbtn" onclick="changeClicksPage(1)" ${clicksPage>=totalClicksPages-1?'disabled':''}>›</button>
+    </div>`;
+  } else {
+    pagEl.innerHTML = '';
+  }
+}
+function changeClicksPage(delta){
+  clicksPage += delta;
+  renderClicksList(lastClicksDocs);
 }
 
 function normalizeConfig(cfg){
@@ -1050,23 +1074,20 @@ function recomputeDashboard(){
   document.getElementById('statGone').textContent = gone;
 
   try {
-    const ctx = document.getElementById('activityChart');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels: ['Active','Inactive','Likely gone'], datasets:[{ data:[active,inactive,gone],
-        backgroundColor:['#C9A227','#D96A4C','#5c5646'], borderWidth:0 }] },
-      options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#F5EFDD', font:{family:'Public Sans'}, boxWidth:12 } } }, cutout:'62%' }
-    });
-  } catch(e) { console.error('chart render failed', e); }
-
-  try {
     const searchEl = document.getElementById('installSearch');
     const q = (searchEl ? searchEl.value : '').toLowerCase().trim();
     const filtered = state.installs.filter(i =>
       !q || (i.name||'').toLowerCase().includes(q) || (i.phone||'').includes(q));
+    const sortedInstalls = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt);
 
-    const rows = [...filtered].sort((a,b)=>b.lastActiveAt-a.lastActiveAt).slice(0,50).map(i=>{
+    const INSTALLS_PAGE_SIZE = 10;
+    const totalInstallPages = Math.max(1, Math.ceil(sortedInstalls.length / INSTALLS_PAGE_SIZE));
+    if (installsPage >= totalInstallPages) installsPage = totalInstallPages - 1;
+    if (installsPage < 0) installsPage = 0;
+    const startI = installsPage * INSTALLS_PAGE_SIZE;
+    const pageInstalls = sortedInstalls.slice(startI, startI + INSTALLS_PAGE_SIZE);
+
+    const rows = pageInstalls.map(i=>{
       let tagClass, tagLabel;
       if (i.blocked){ tagClass='off'; tagLabel='🚫 Blocked'; }
       else if (i.lastActiveAt >= cutoff){ tagClass='on'; tagLabel='Active'; }
@@ -1091,10 +1112,25 @@ function recomputeDashboard(){
       </tr>`;
     }).join('');
     document.getElementById('installsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">No installs match</td></tr>';
+
+    const instPagEl = document.getElementById('installsPagination');
+    if (totalInstallPages > 1){
+      instPagEl.innerHTML = `<div class="paginationBar">
+        <button class="iconbtn" onclick="changeInstallsPage(-1)" ${installsPage===0?'disabled':''}>‹</button>
+        <span class="pageInfo">Page ${installsPage+1} of ${totalInstallPages} · ${sortedInstalls.length} installs</span>
+        <button class="iconbtn" onclick="changeInstallsPage(1)" ${installsPage>=totalInstallPages-1?'disabled':''}>›</button>
+      </div>`;
+    } else {
+      instPagEl.innerHTML = '';
+    }
   } catch(e) {
     console.error('table render failed', e);
     document.getElementById('installsTable').innerHTML = '<tr><td colspan="5" class="empty">Error loading table — see browser console</td></tr>';
   }
+}
+function changeInstallsPage(delta){
+  installsPage += delta;
+  recomputeDashboard();
 }
 function renderRedeemHistory(){
   const el = document.getElementById('redeemHistoryWrap');
