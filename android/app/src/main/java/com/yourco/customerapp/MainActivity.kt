@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     private var webViewReady = false
     private var pendingToken: String? = null
+    private var lastLoadedUrl: String = ""
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,10 @@ class MainActivity : AppCompatActivity() {
             @Deprecated("Deprecated in Java, kept for broad API-level compatibility")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 if (url == null) return false
+                if (url == "app://retry") {
+                    view?.loadUrl(lastLoadedUrl)
+                    return true
+                }
                 return if (url.startsWith(baseUrl)) {
                     false
                 } else {
@@ -66,15 +71,28 @@ class MainActivity : AppCompatActivity() {
                 webViewReady = true
                 trySyncToken(installId)
             }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: android.webkit.WebResourceRequest?,
+                error: android.webkit.WebResourceError?
+            ) {
+                super.onReceivedError(view, request, error)
+                if (request?.isForMainFrame == true) {
+                    swipeRefresh.isRefreshing = false
+                    view?.loadUrl("file:///android_asset/offline.html")
+                }
+            }
         }
 
-        swipeRefresh.setOnRefreshListener { webView.reload() }
+        swipeRefresh.setOnRefreshListener { webView.loadUrl(lastLoadedUrl) }
 
         val statusId = intent.getStringExtra("statusId")
         val quizId = intent.getStringExtra("quizId")
         var urlWithId = "$baseUrl?uid=$installId&src=app"
         if (statusId != null) urlWithId += "&status=$statusId"
         if (quizId != null) urlWithId += "&quiz=$quizId"
+        lastLoadedUrl = urlWithId
         webView.loadUrl(urlWithId)
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
